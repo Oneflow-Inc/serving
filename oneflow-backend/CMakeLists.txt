@@ -99,6 +99,8 @@ configure_file(src/libtriton_oneflow.ldscript libtriton_oneflow.ldscript COPYONL
 add_library(
   triton-oneflow-backend SHARED
   src/oneflow.cc
+  src/model_state.cpp
+  src/model_instance_state.cpp
 )
 
 add_library(

@@ -49,6 +49,32 @@ limitations under the License.
 
 namespace triton { namespace backend { namespace oneflow {
 
+#define GUARDED_RESPOND_IF_ERROR(RESPONSES, IDX, X)                     \
+  do {                                                                  \
+    if ((RESPONSES)[IDX] != nullptr) {                                  \
+      TRITONSERVER_Error* err__ = (X);                                  \
+      if (err__ != nullptr) {                                           \
+        LOG_IF_ERROR(                                                   \
+            TRITONBACKEND_ResponseSend(                                 \
+                (RESPONSES)[IDX], TRITONSERVER_RESPONSE_COMPLETE_FINAL, \
+                err__),                                                 \
+            "failed to send error response");                           \
+        (RESPONSES)[IDX] = nullptr;                                     \
+        TRITONSERVER_ErrorDelete(err__);                                \
+      }                                                                 \
+    }                                                                   \
+  } while (false)
+
+
+#define RESPOND_ALL_AND_RETURN_IF_ERROR(RESPONSES, RESPONSES_COUNT, X) \
+  do {                                                                 \
+    TRITONSERVER_Error* raarie_err__ = (X);                            \
+    if (raarie_err__ != nullptr) {                                     \
+      SendErrorForResponses(RESPONSES, RESPONSES_COUNT, raarie_err__); \
+      return;                                                          \
+    }                                                                  \
+  } while (false)
+
 enum class XrtKind : int { kOneflow = 0, kTensorrt = 1, kOpenvino = 2 };
 
 inline XrtKind

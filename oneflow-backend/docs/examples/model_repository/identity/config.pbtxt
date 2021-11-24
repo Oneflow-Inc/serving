@@ -23,3 +23,9 @@ instance_group [
   }
 ]
 
+parameters {
+  key: "xrt"
+  value: {
+    string_value: "openvino"
+  }
+}

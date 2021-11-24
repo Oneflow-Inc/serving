@@ -77,7 +77,7 @@ int main(int argc, char** argv) {
         }
 
         // element count
-        uint64_t result_element_count = result_shape.elem_cnt();
+        int64_t result_element_count = result_shape.elem_cnt();
         if (result_element_count != element_count) {
           std::cout << result_element_count << " " << element_count << std::endl;
           std::cout << "wrong element count" << std::endl;

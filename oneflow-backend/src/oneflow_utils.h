@@ -42,6 +42,9 @@ limitations under the License.
 
 #pragma once
 
+#include <oneflow/tensor.h>
+#include <cstddef>
+#include <iostream>
 #include <string>
 
 namespace triton { namespace backend { namespace oneflow {
@@ -84,6 +87,27 @@ inline bool
 IsXrtOpenvino(const XrtKind& kind)
 {
   return kind == XrtKind::kOpenvino;
+}
+
+// TODO(zzk0): delete this or refactor; used to test currently
+inline bool
+GetDataPtrFp32(const oneflow_api::Tensor& tensor, float** dptr, size_t* elem_cnt) {
+  *elem_cnt = tensor.shape().elem_cnt();
+  *dptr = new float[*elem_cnt * 4];
+  oneflow_api::Tensor::to_blob(tensor, *dptr);
+  return true;
+}
+
+inline void
+PrintTensor(const oneflow_api::Tensor& tensor) {
+  float* dptr;
+  size_t elem_cnt;
+  GetDataPtrFp32(tensor, &dptr, &elem_cnt);
+  for (size_t i = 0; i < elem_cnt; i++) {
+    std::cout << dptr[i] << " ";
+  }
+  std::cout << std::endl;
+  delete [] dptr;
 }
 
 }}}  // namespace triton::backend::oneflow

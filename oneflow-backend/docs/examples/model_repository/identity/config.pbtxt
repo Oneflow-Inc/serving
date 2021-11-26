@@ -1,6 +1,6 @@
 name: "identity"
 backend: "oneflow"
-max_batch_size: 1
+max_batch_size: 16
 input [
   {
     name: "INPUT0"
@@ -22,6 +22,10 @@ instance_group [
     kind: KIND_CPU
   }
 ]
+
+dynamic_batching {
+  max_queue_delay_microseconds: 5000000
+}
 
 parameters {
   key: "xrt"

@@ -44,6 +44,7 @@ limitations under the License.
 #include <cstdint>
 #include "oneflow_utils.h"
 #include "model_instance_state.h"
+#include "triton/backend/backend_common.h"
 #include "triton/backend/backend_output_responder.h"
 
 namespace triton { namespace backend { namespace oneflow {
@@ -191,13 +192,13 @@ ModelInstanceState::SetInputTensors(
     input_names->emplace_back(input_name);
     std::vector<int64_t> tensor_shape(
         input_shape, input_shape + input_dims_count);
-    const int64_t tensor_byte_size = GetByteSize(input_datatype, tensor_shape);
 
     // padding to max batch size
-    int64_t max_batch_size = model_state_->GetMaxBatchSize();
+    int max_batch_size = model_state_->MaxBatchSize();
     if (max_batch_size != 0) {
       tensor_shape[0] = max_batch_size;
     }
+    const int64_t tensor_byte_size = GetByteSize(input_datatype, tensor_shape);
 
     std::vector<BackendMemory::AllocationType> alloc_perference;
     alloc_perference = {BackendMemory::AllocationType::CPU};

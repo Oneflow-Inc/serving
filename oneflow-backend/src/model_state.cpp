@@ -36,8 +36,6 @@ ModelState::ValidateModelConfig()
   common::TritonJson::Value inputs, outputs;
   RETURN_IF_ERROR(model_config_.MemberAsArray("input", &inputs));
   RETURN_IF_ERROR(model_config_.MemberAsArray("output", &outputs));
-  RETURN_IF_ERROR(
-      model_config_.MemberAsInt("max_batch_size", &max_batch_size_));
 
   // Collect input/output names, shapes and datatypes
   std::map<std::string, std::tuple<std::string, std::vector<int64_t>>>
@@ -109,12 +107,6 @@ const std::vector<const char*>&
 ModelState::GetOutputNames() const
 {
   return output_names_;
-}
-
-int
-ModelState::GetMaxBatchSize() const
-{
-  return max_batch_size_;
 }
 
 }}}  // namespace triton::backend::oneflow

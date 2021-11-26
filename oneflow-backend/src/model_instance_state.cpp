@@ -41,6 +41,7 @@ limitations under the License.
 */
 
 #include <oneflow/nn.h>
+#include <cstdint>
 #include "oneflow_utils.h"
 #include "model_instance_state.h"
 #include "triton/backend/backend_output_responder.h"
@@ -111,14 +112,6 @@ ModelInstanceState::ProcessRequests(
   SetInputTensors(
       1, requests, request_count, &responses, &collector, &input_names,
       &input_tensors, &input_memories, &cuda_copy);
-  std::cout << input_tensors.size() << std::endl;
-  for (size_t i = 0; i < input_tensors.size(); i++) {
-    auto shape = input_tensors[i].shape();
-    for (int64_t j = 0; j < shape.NumAxes(); j++) {
-      std::cout << shape.At(j) << " ";
-    }
-    std::cout << std::endl;
-  }
 
   // execute
   uint64_t compute_start_ns = 0;
@@ -201,8 +194,8 @@ ModelInstanceState::SetInputTensors(
     const int64_t tensor_byte_size = GetByteSize(input_datatype, tensor_shape);
 
     // padding to max batch size
-    if (model_state_ != 0) {
-      int max_batch_size = model_state_->GetMaxBatchSize();
+    int64_t max_batch_size = model_state_->GetMaxBatchSize();
+    if (max_batch_size != 0) {
       tensor_shape[0] = max_batch_size;
     }
 
@@ -279,13 +272,10 @@ ModelInstanceState::Execute(
     std::vector<oneflow_api::Tensor>* input_tensors,
     std::vector<oneflow_api::Tensor>* output_tensors)
 {
-  // TODO(zzk0): input, output order
-  PrintTensor(input_tensors->at(0));
   for (auto input_tensor : *input_tensors) {
     auto output_tensor = oneflow_api::nn::relu(input_tensor);
     output_tensors->push_back(output_tensor);
   }
-  PrintTensor(output_tensors->at(0));
 }
 
 }}}  // namespace triton::backend::oneflow

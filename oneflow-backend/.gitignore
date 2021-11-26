@@ -4,3 +4,7 @@
 *.so
 .cache/
 compile_commands.json
+
+*.pt
+*.plan
+*.engine

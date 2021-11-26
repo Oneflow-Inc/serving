@@ -40,10 +40,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include <oneflow/nn.h>
-#include <cstdint>
-#include "oneflow_utils.h"
 #include "model_instance_state.h"
+
+#include <oneflow/nn.h>
+
+#include <cstddef>
+#include <cstdint>
+
+#include "oneflow_utils.h"
 #include "triton/backend/backend_common.h"
 #include "triton/backend/backend_output_responder.h"
 
@@ -87,6 +91,11 @@ ModelInstanceState::ProcessRequests(
   uint64_t exec_start_ns = 0;
   SET_TIMESTAMP(exec_start_ns);
 
+  size_t total_batch_size = 0;
+  if (!CountBatchSize(requests, request_count, &total_batch_size)) {
+    return;
+  }
+
   // create responses
   std::vector<TRITONBACKEND_Response*> responses;
   responses.reserve(request_count);
@@ -111,7 +120,7 @@ ModelInstanceState::ProcessRequests(
       requests, request_count, &responses, model_state_->TritonMemoryManager(),
       model_state_->EnablePinnedInput(), CudaStream());
   SetInputTensors(
-      1, requests, request_count, &responses, &collector, &input_names,
+      total_batch_size, requests, request_count, &responses, &collector, &input_names,
       &input_tensors, &input_memories, &cuda_copy);
 
   // execute
@@ -129,7 +138,8 @@ ModelInstanceState::ProcessRequests(
   uint64_t compute_end_ns = 0;
   SET_TIMESTAMP(compute_end_ns);
   ReadOutputTensors(
-      1, model_state_->GetOutputNames(), output_tensors, requests, request_count, &responses);
+      total_batch_size, model_state_->GetOutputNames(), output_tensors, requests,
+      request_count, &responses);
 
   // report
   uint64_t exec_end_ns = 0;
@@ -144,6 +154,7 @@ ModelInstanceState::ProcessRequests(
     }
   }
 
+  // Report statistics for each request.
   for (uint32_t r = 0; r < request_count; ++r) {
     auto& request = requests[r];
     LOG_IF_ERROR(
@@ -157,6 +168,13 @@ ModelInstanceState::ProcessRequests(
         TRITONBACKEND_RequestRelease(request, TRITONSERVER_REQUEST_RELEASE_ALL),
         "failed releasing request");
   }
+
+  // Report the entire batch statistics.
+  LOG_IF_ERROR(
+      TRITONBACKEND_ModelInstanceReportBatchStatistics(
+          TritonModelInstance(), total_batch_size, exec_start_ns,
+          compute_start_ns, compute_end_ns, exec_end_ns),
+      "failed reporting batch request statistics");
 }
 
 void
@@ -273,10 +291,62 @@ ModelInstanceState::Execute(
     std::vector<oneflow_api::Tensor>* input_tensors,
     std::vector<oneflow_api::Tensor>* output_tensors)
 {
+  PrintTensor(input_tensors->at(0));
   for (auto input_tensor : *input_tensors) {
     auto output_tensor = oneflow_api::nn::relu(input_tensor);
     output_tensors->push_back(output_tensor);
   }
+  PrintTensor(output_tensors->at(0));
+}
+
+bool
+ModelInstanceState::CountBatchSize(
+    TRITONBACKEND_Request** requests, const uint32_t request_count,
+    size_t* total_batch_size)
+{
+  *total_batch_size = 0;
+  const int max_batch_size = model_state_->MaxBatchSize();
+  for (size_t i = 0; i < request_count; i++) {
+    // If we get a nullptr request then something is badly wrong. Fail
+    // and release all requests.
+    if (requests[i] == nullptr) {
+      RequestsRespondWithError(
+          requests, request_count,
+          TRITONSERVER_ErrorNew(
+              TRITONSERVER_ERROR_INTERNAL,
+              std::string(
+                  "null request given to PyTorch backend for '" + Name() + "'")
+                  .c_str()));
+      return false;
+    }
+
+    if (max_batch_size > 0) {
+      // Retrieve the batch size from one of the inputs, if the model
+      // supports batching, the first dimension size is batch size
+      TRITONBACKEND_Input* input;
+      TRITONSERVER_Error* err =
+          TRITONBACKEND_RequestInputByIndex(requests[i], 0 /* index */, &input);
+      if (err == nullptr) {
+        const int64_t* shape;
+        err = TRITONBACKEND_InputProperties(
+            input, nullptr, nullptr, &shape, nullptr, nullptr, nullptr);
+        *total_batch_size += shape[0];
+      }
+      if (err != nullptr) {
+        RequestsRespondWithError(requests, request_count, err);
+        return false;
+      }
+    } else {
+      *total_batch_size += 1;
+    }
+  }
+
+  // If there are no valid payloads then no need to run the inference.
+  if (*total_batch_size == 0) {
+    return false;
+  }
+
+  return true;
 }
 
 }}}  // namespace triton::backend::oneflow

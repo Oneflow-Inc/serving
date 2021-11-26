@@ -42,10 +42,13 @@ limitations under the License.
 
 #pragma once
 
+#include <cstddef>
+
 #include "model_state.h"
 #include "triton/backend/backend_input_collector.h"
 #include "triton/backend/backend_memory.h"
 #include "triton/backend/backend_model_instance.h"
+#include "triton/core/tritonserver.h"
 
 namespace triton { namespace backend { namespace oneflow {
 
@@ -90,6 +93,9 @@ class ModelInstanceState : public BackendModelInstance {
       const std::vector<oneflow_api::Tensor>& output_tensors,
       TRITONBACKEND_Request** requests, const uint32_t request_count,
       std::vector<TRITONBACKEND_Response*>* responses);
+  bool CountBatchSize(
+      TRITONBACKEND_Request** requests, const uint32_t request_count,
+      size_t* total_batch_size);
 
   ModelState* model_state_;
 };

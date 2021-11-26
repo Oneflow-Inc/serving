@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <iostream>
 #include <ostream>
 #include <string>
 #include <vector>
@@ -99,16 +100,21 @@ ModelState::ValidateAndParseInputs()
     RETURN_IF_ERROR(inputs.IndexAsObject(io_index, &input));
     RETURN_IF_ERROR(input.MemberAsString("name", &input_name, &input_name_len));
     RETURN_IF_ERROR(input.MemberAsString("data_type", &input_dtype_str));
-    input_dtype = TRITONSERVER_StringToDataType(input_dtype_str.c_str());
     if (input.Find("reshape", &reshape)) {
       RETURN_IF_ERROR(backend::ParseShape(reshape, "shape", &input_shape));
     } else {
       RETURN_IF_ERROR(backend::ParseShape(input, "dims", &input_shape));
     }
+    if (input_dtype_str.rfind("TYPE_", 0) != 0) {
+      return TRITONSERVER_ErrorNew(
+          TRITONSERVER_ERROR_INVALID_ARG, "DataType shoud start with TYPE_");
+    }
 
     // store, TODO(zzk0): input order
     std::string input_name_str = std::string(input_name);
     input_names_.push_back(input_name_str);
+    input_dtype = TRITONSERVER_StringToDataType(
+        input_dtype_str.substr(strlen("TYPE_")).c_str());
     input_attribute_[input_name_str] =
         InputOutputAttribute{input_dtype, input_shape, 0};
   }
@@ -134,16 +140,21 @@ ModelState::ValidateAndParseOutputs()
     RETURN_IF_ERROR(
         output.MemberAsString("name", &output_name, &output_name_len));
     RETURN_IF_ERROR(output.MemberAsString("data_type", &output_dtype_str));
-    output_dtype = TRITONSERVER_StringToDataType(output_dtype_str.c_str());
     if (output.Find("reshape", &reshape)) {
       RETURN_IF_ERROR(backend::ParseShape(reshape, "shape", &output_shape));
     } else {
       RETURN_IF_ERROR(backend::ParseShape(output, "dims", &output_shape));
     }
+    if (output_dtype_str.rfind("TYPE_", 0) != 0) {
+      return TRITONSERVER_ErrorNew(
+          TRITONSERVER_ERROR_INVALID_ARG, "DataType shoud start with TYPE_");
+    }
 
     // store, TODO(zzk0): output order
     std::string output_name_str = std::string(output_name);
     output_names_.push_back(output_name_str);
+    output_dtype = TRITONSERVER_StringToDataType(
+        output_dtype_str.substr(strlen("TYPE_")).c_str());
     output_attribute_[output_name_str] =
         InputOutputAttribute{output_dtype, output_shape, 0};
   }

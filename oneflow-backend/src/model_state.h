@@ -42,6 +42,9 @@ limitations under the License.
 
 #pragma once
 
+#include <cstddef>
+#include <cstdint>
+
 #include "oneflow_utils.h"
 #include "triton/backend/backend_model.h"
 
@@ -62,11 +65,14 @@ class ModelState : public BackendModel {
   // Validate that model configuration is supported by this backend.
   TRITONSERVER_Error* ValidateModelConfig();
   const std::vector<const char*>& GetOutputNames() const;
+  int GetMaxBatchSize() const;
 
  private:
   ModelState(TRITONBACKEND_Model* triton_model);
 
-  XrtKind xrt_kind;
+  // 0 for not used batching
+  int64_t max_batch_size_ = 0;
+  XrtKind xrt_kind_ = XrtKind::kOneflow;
   std::vector<const char*> output_names_;
 };
 

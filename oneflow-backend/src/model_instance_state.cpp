@@ -200,6 +200,12 @@ ModelInstanceState::SetInputTensors(
         input_shape, input_shape + input_dims_count);
     const int64_t tensor_byte_size = GetByteSize(input_datatype, tensor_shape);
 
+    // padding to max batch size
+    if (model_state_ != 0) {
+      int max_batch_size = model_state_->GetMaxBatchSize();
+      tensor_shape[0] = max_batch_size;
+    }
+
     std::vector<BackendMemory::AllocationType> alloc_perference;
     alloc_perference = {BackendMemory::AllocationType::CPU};
 
@@ -273,6 +279,7 @@ ModelInstanceState::Execute(
     std::vector<oneflow_api::Tensor>* input_tensors,
     std::vector<oneflow_api::Tensor>* output_tensors)
 {
+  // TODO(zzk0): input, output order
   PrintTensor(input_tensors->at(0));
   for (auto input_tensor : *input_tensors) {
     auto output_tensor = oneflow_api::nn::relu(input_tensor);

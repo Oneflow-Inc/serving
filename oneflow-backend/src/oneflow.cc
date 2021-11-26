@@ -40,24 +40,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include <oneflow/device.h>
-#include <oneflow/dtype.h>
-#include <oneflow/env.h>
-#include <oneflow/nn.h>
-#include <oneflow/shape.h>
-#include <oneflow/tensor.h>
-
-#include <algorithm>
-#include <cstddef>
-#include <cstdint>
-#include <iostream>
-#include <map>
-#include <memory>
-#include <ostream>
-#include <string>
-#include <thread>
-#include <vector>
-
 #include "oneflow/api.h"
 #include "oneflow_utils.h"
 #include "model_state.h"
@@ -88,11 +70,12 @@ TRITONBACKEND_Initialize(TRITONBACKEND_Backend* backend)
   const char* cname;
   RETURN_IF_ERROR(TRITONBACKEND_BackendName(backend, &cname));
   std::string name(cname);
-
-  oneflow_api::initialize();
   LOG_MESSAGE(
       TRITONSERVER_LOG_INFO,
       (std::string("TRITONBACKEND_Initialize: ") + name).c_str());
+
+  // initailize oneflow
+  oneflow_api::initialize();
 
   // We should check the backend API version that Triton supports
   // vs. what this backend was compiled against.
@@ -132,11 +115,12 @@ TRITONBACKEND_Finalize(TRITONBACKEND_Backend* backend)
   const char* cname;
   RETURN_IF_ERROR(TRITONBACKEND_BackendName(backend, &cname));
   std::string name(cname);
-
-  oneflow_api::release();
   LOG_MESSAGE(
       TRITONSERVER_LOG_INFO,
       (std::string("TRITONBACKEND_Finalize: ") + name).c_str());
+  
+  // release oneflow
+  oneflow_api::release();
 
   return nullptr;  // success
 }
@@ -199,12 +183,12 @@ TRITONBACKEND_ModelInstanceInitialize(TRITONBACKEND_ModelInstance* instance)
   RETURN_IF_ERROR(TRITONBACKEND_ModelInstanceName(instance, &cname));
   std::string name(cname);
 
+  std::string device_tag = "cpu";
   int32_t device_id;
   RETURN_IF_ERROR(TRITONBACKEND_ModelInstanceDeviceId(instance, &device_id));
   TRITONSERVER_InstanceGroupKind kind;
   RETURN_IF_ERROR(TRITONBACKEND_ModelInstanceKind(instance, &kind));
 
-  std::string device_tag = "cpu";
 #ifdef TRITON_ENABLE_GPU
   if (kind == TRITONSERVER_INSTANCEGROUPKIND_GPU) {
     // cudaSetDevice(device_id);

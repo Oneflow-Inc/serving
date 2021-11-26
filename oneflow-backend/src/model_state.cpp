@@ -1,5 +1,9 @@
 #include "model_state.h"
+
 #include <cstddef>
+#include <cstdint>
+
+#include "triton/backend/backend_common.h"
 
 namespace triton { namespace backend { namespace oneflow {
 
@@ -20,16 +24,20 @@ ModelState::Create(TRITONBACKEND_Model* triton_model, ModelState** state)
 }
 
 ModelState::ModelState(TRITONBACKEND_Model* triton_model)
-    : BackendModel(triton_model), xrt_kind(XrtKind::kOneflow)
+    : BackendModel(triton_model)
 {
 }
 
 TRITONSERVER_Error*
 ModelState::ValidateModelConfig()
 {
+  // TODO(zzk0): max batch size
+  // TODO(zzk0): input, output order
   common::TritonJson::Value inputs, outputs;
   RETURN_IF_ERROR(model_config_.MemberAsArray("input", &inputs));
   RETURN_IF_ERROR(model_config_.MemberAsArray("output", &outputs));
+  RETURN_IF_ERROR(
+      model_config_.MemberAsInt("max_batch_size", &max_batch_size_));
 
   // Collect input/output names, shapes and datatypes
   std::map<std::string, std::tuple<std::string, std::vector<int64_t>>>
@@ -85,7 +93,7 @@ ModelState::ValidateModelConfig()
     if (params.Find("xrt", &xrt)) {
       std::string xrt_str;
       RETURN_IF_ERROR(xrt.MemberAsString("string_value", &xrt_str));
-      this->xrt_kind = ParseXrtKind(xrt_str, &is_unknown);
+      this->xrt_kind_ = ParseXrtKind(xrt_str, &is_unknown);
     }
   }
   if (is_unknown) {
@@ -101,6 +109,12 @@ const std::vector<const char*>&
 ModelState::GetOutputNames() const
 {
   return output_names_;
+}
+
+int
+ModelState::GetMaxBatchSize() const
+{
+  return max_batch_size_;
 }
 
 }}}  // namespace triton::backend::oneflow

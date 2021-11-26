@@ -42,10 +42,15 @@ limitations under the License.
 
 #pragma once
 
+#include <oneflow/dtype.h>
 #include <oneflow/tensor.h>
+
 #include <cstddef>
 #include <iostream>
 #include <string>
+#include <utility>
+
+#include "triton/core/tritonserver.h"
 
 namespace triton { namespace backend { namespace oneflow {
 
@@ -85,12 +90,10 @@ ParseXrtKind(const std::string& xrt_str, bool* is_unknown)
   if (xrt_str == "oneflow") {
     kind = XrtKind::kOneflow;
     *is_unknown = false;
-  }
-  else if (xrt_str == "tensorrt") {
+  } else if (xrt_str == "tensorrt") {
     kind = XrtKind::kTensorrt;
     *is_unknown = false;
-  }
-  else if (xrt_str == "openvino") {
+  } else if (xrt_str == "openvino") {
     kind = XrtKind::kOpenvino;
     *is_unknown = false;
   }
@@ -117,7 +120,9 @@ IsXrtOpenvino(const XrtKind& kind)
 
 // TODO(zzk0): delete this or refactor; used to test currently
 inline bool
-GetDataPtrFp32(const oneflow_api::Tensor& tensor, float** dptr, size_t* elem_cnt) {
+GetDataPtrFp32(
+    const oneflow_api::Tensor& tensor, float** dptr, size_t* elem_cnt)
+{
   *elem_cnt = tensor.shape().elem_cnt();
   *dptr = new float[*elem_cnt * 4];
   oneflow_api::Tensor::to_blob(tensor, *dptr);
@@ -125,7 +130,8 @@ GetDataPtrFp32(const oneflow_api::Tensor& tensor, float** dptr, size_t* elem_cnt
 }
 
 inline void
-PrintTensor(const oneflow_api::Tensor& tensor) {
+PrintTensor(const oneflow_api::Tensor& tensor)
+{
   float* dptr;
   size_t elem_cnt;
   GetDataPtrFp32(tensor, &dptr, &elem_cnt);
@@ -133,7 +139,66 @@ PrintTensor(const oneflow_api::Tensor& tensor) {
     std::cout << dptr[i] << " ";
   }
   std::cout << std::endl;
-  delete [] dptr;
+  delete[] dptr;
+}
+
+inline TRITONSERVER_DataType
+ConvertOneFlowTypeToTritonType(const oneflow_api::DType& of_type)
+{
+  switch (of_type) {
+    case oneflow_api::DType::kFloat:
+      return TRITONSERVER_TYPE_FP32;
+    case oneflow_api::DType::kDouble:
+      return TRITONSERVER_TYPE_FP64;
+    case oneflow_api::DType::kInt8:
+      return TRITONSERVER_TYPE_INT8;
+    case oneflow_api::DType::kInt32:
+      return TRITONSERVER_TYPE_INT32;
+    case oneflow_api::DType::kInt64:
+      return TRITONSERVER_TYPE_INT64;
+    case oneflow_api::DType::kUInt8:
+      return TRITONSERVER_TYPE_UINT8;
+    case oneflow_api::DType::kFloat16:
+      return TRITONSERVER_TYPE_FP16;
+    case oneflow_api::DType::kChar:
+    case oneflow_api::DType::kOFRecord:
+    case oneflow_api::DType::kTensorBuffer:
+    case oneflow_api::DType::kBFloat16:
+    case oneflow_api::DType::kMaxDataType:
+    case oneflow_api::DType::kInvalidDataType:
+    default:
+      return TRITONSERVER_TYPE_INVALID;
+  }
+}
+
+inline oneflow_api::DType
+ConvertTritonTypeToOneFlowType(const TRITONSERVER_DataType dtype)
+{
+  switch (dtype) {
+    case TRITONSERVER_TYPE_UINT8:
+      return oneflow_api::DType::kUInt8;
+    case TRITONSERVER_TYPE_INT8:
+      return oneflow_api::DType::kInt8;
+    case TRITONSERVER_TYPE_INT32:
+      return oneflow_api::DType::kInt32;
+    case TRITONSERVER_TYPE_INT64:
+      return oneflow_api::DType::kInt64;
+    case TRITONSERVER_TYPE_FP16:
+      return oneflow_api::DType::kFloat16;
+    case TRITONSERVER_TYPE_FP32:
+      return oneflow_api::DType::kFloat;
+    case TRITONSERVER_TYPE_FP64:
+      return oneflow_api::DType::kDouble;
+    case TRITONSERVER_TYPE_INVALID:
+    case TRITONSERVER_TYPE_BOOL:
+    case TRITONSERVER_TYPE_INT16:
+    case TRITONSERVER_TYPE_BYTES:
+    case TRITONSERVER_TYPE_UINT16:
+    case TRITONSERVER_TYPE_UINT32:
+    case TRITONSERVER_TYPE_UINT64:
+    default:
+      return oneflow_api::DType::kInvalidDataType;
+  }
 }
 
 }}}  // namespace triton::backend::oneflow

@@ -44,11 +44,20 @@ limitations under the License.
 
 #include <cstddef>
 #include <cstdint>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 #include "oneflow_utils.h"
 #include "triton/backend/backend_model.h"
 
 namespace triton { namespace backend { namespace oneflow {
+
+struct InputOutputAttribute {
+  TRITONSERVER_DataType datatype;
+  std::vector<int64_t> input_shape;
+  int input_index;
+};
 
 //
 // ModelState
@@ -63,14 +72,25 @@ class ModelState : public BackendModel {
   virtual ~ModelState() = default;
 
   // Validate that model configuration is supported by this backend.
-  TRITONSERVER_Error* ValidateModelConfig();
-  const std::vector<const char*>& GetOutputNames() const;
+  TRITONSERVER_Error* ValidateAndParseModelConfig();
+  const std::vector<std::string>& InputNames() const;
+  const std::vector<std::string>& OutputNames() const;
+  const std::unordered_map<std::string, InputOutputAttribute>& InputAttributes()
+      const;
+  const std::unordered_map<std::string, InputOutputAttribute>&
+  OutputAttributes() const;
 
  private:
   ModelState(TRITONBACKEND_Model* triton_model);
+  TRITONSERVER_Error* ValidateAndParseInputs();
+  TRITONSERVER_Error* ValidateAndParseOutputs();
 
   XrtKind xrt_kind_ = XrtKind::kOneflow;
-  std::vector<const char*> output_names_;
+
+  std::vector<std::string> input_names_;
+  std::vector<std::string> output_names_;
+  std::unordered_map<std::string, InputOutputAttribute> input_attribute_;
+  std::unordered_map<std::string, InputOutputAttribute> output_attribute_;
 };
 
 }}}  // namespace triton::backend::oneflow

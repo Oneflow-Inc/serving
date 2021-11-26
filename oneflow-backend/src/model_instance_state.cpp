@@ -42,10 +42,12 @@ limitations under the License.
 
 #include "model_instance_state.h"
 
+#include <oneflow/dtype.h>
 #include <oneflow/nn.h>
 
 #include <cstddef>
 #include <cstdint>
+#include <string>
 
 #include "oneflow_utils.h"
 #include "triton/backend/backend_common.h"
@@ -120,8 +122,8 @@ ModelInstanceState::ProcessRequests(
       requests, request_count, &responses, model_state_->TritonMemoryManager(),
       model_state_->EnablePinnedInput(), CudaStream());
   SetInputTensors(
-      total_batch_size, requests, request_count, &responses, &collector, &input_names,
-      &input_tensors, &input_memories, &cuda_copy);
+      total_batch_size, requests, request_count, &responses, &collector,
+      &input_names, &input_tensors, &input_memories, &cuda_copy);
 
   // execute
   uint64_t compute_start_ns = 0;
@@ -138,7 +140,7 @@ ModelInstanceState::ProcessRequests(
   uint64_t compute_end_ns = 0;
   SET_TIMESTAMP(compute_end_ns);
   ReadOutputTensors(
-      total_batch_size, model_state_->GetOutputNames(), output_tensors, requests,
+      total_batch_size, model_state_->OutputNames(), output_tensors, requests,
       request_count, &responses);
 
   // report
@@ -237,11 +239,11 @@ ModelInstanceState::SetInputTensors(
         input_name, input_buffer, tensor_byte_size, memory_type,
         memory_type_id);
 
+    oneflow_api::DType of_type = ConvertTritonTypeToOneFlowType(input_datatype);
     oneflow_api::Shape shape(tensor_shape);
     oneflow_api::Device device("cpu");
     oneflow_api::Tensor input_tensor = oneflow_api::Tensor::from_blob(
-        reinterpret_cast<float*>(input_buffer), shape, device,
-        oneflow_api::DType::kFloat);
+        reinterpret_cast<float*>(input_buffer), shape, device, of_type);
     (*input_tensors)[input_idx] = input_tensor;
   }
 
@@ -250,7 +252,7 @@ ModelInstanceState::SetInputTensors(
 
 void
 ModelInstanceState::ReadOutputTensors(
-    size_t total_batch_size, const std::vector<const char*>& output_names,
+    size_t total_batch_size, const std::vector<std::string>& output_names,
     const std::vector<oneflow_api::Tensor>& output_tensors,
     TRITONBACKEND_Request** requests, const uint32_t request_count,
     std::vector<TRITONBACKEND_Response*>* responses)
@@ -261,12 +263,17 @@ ModelInstanceState::ReadOutputTensors(
       CudaStream());
 
   for (size_t idx = 0; idx < output_names.size(); ++idx) {
-    // TODO(zzk0): assume output_names and output_tensors are correspond
     std::string name = output_names[idx];
     oneflow_api::Tensor output_tensor = output_tensors[idx];
 
-    TRITONSERVER_DataType output_dtype = TRITONSERVER_TYPE_FP32;
-    std::vector<char> output_buffer(output_tensor.shape().elem_cnt() * 4);
+    TRITONSERVER_DataType output_dtype =
+        model_state_->OutputAttributes().find(name)->second.datatype;
+    int64_t output_buffer_size =
+        GetByteSize(output_dtype, OfShapeToVector(output_tensor.shape()));
+    std::cout << name << std::endl;
+    std::cout << output_dtype << std::endl;
+    std::cout << "output_buffer_size: " << output_buffer_size << std::endl;
+    std::vector<char> output_buffer(output_buffer_size);
     oneflow_api::Tensor::to_blob(
         output_tensor, reinterpret_cast<float*>(output_buffer.data()));
 

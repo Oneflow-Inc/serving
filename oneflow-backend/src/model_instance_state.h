@@ -43,6 +43,7 @@ limitations under the License.
 #pragma once
 
 #include <cstddef>
+#include <string>
 
 #include "model_state.h"
 #include "triton/backend/backend_input_collector.h"
@@ -89,7 +90,7 @@ class ModelInstanceState : public BackendModelInstance {
       std::vector<oneflow_api::Tensor>* input_tensors,
       std::vector<BackendMemory*>* input_memories, bool* cuda_copy);
   void ReadOutputTensors(
-      size_t total_batch_size, const std::vector<const char*>& output_names,
+      size_t total_batch_size, const std::vector<std::string>& output_names,
       const std::vector<oneflow_api::Tensor>& output_tensors,
       TRITONBACKEND_Request** requests, const uint32_t request_count,
       std::vector<TRITONBACKEND_Response*>* responses);

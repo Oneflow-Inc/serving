@@ -43,12 +43,15 @@ limitations under the License.
 #pragma once
 
 #include <oneflow/dtype.h>
+#include <oneflow/shape.h>
 #include <oneflow/tensor.h>
 
 #include <cstddef>
+#include <cstdint>
 #include <iostream>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "triton/core/tritonserver.h"
 
@@ -129,6 +132,7 @@ GetDataPtrFp32(
   return true;
 }
 
+// TODO(zzk0): delete this or refactor; used to test currently
 inline void
 PrintTensor(const oneflow_api::Tensor& tensor)
 {
@@ -199,6 +203,16 @@ ConvertTritonTypeToOneFlowType(const TRITONSERVER_DataType dtype)
     default:
       return oneflow_api::DType::kInvalidDataType;
   }
+}
+
+inline std::vector<int64_t>
+OfShapeToVector(const oneflow_api::Shape& shape)
+{
+  std::vector<int64_t> shape_vec(shape.NumAxes());
+  for (int64_t i = 0; i < shape.NumAxes(); i++) {
+    shape_vec[i] = shape.At(i);
+  }
+  return shape_vec;
 }
 
 }}}  // namespace triton::backend::oneflow

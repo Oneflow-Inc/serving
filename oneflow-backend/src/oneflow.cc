@@ -40,10 +40,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+#include "model_instance_state.h"
+#include "model_state.h"
 #include "oneflow/api.h"
 #include "oneflow_utils.h"
-#include "model_state.h"
-#include "model_instance_state.h"
 #include "triton/backend/backend_common.h"
 #include "triton/backend/backend_input_collector.h"
 #include "triton/backend/backend_memory.h"
@@ -118,7 +118,7 @@ TRITONBACKEND_Finalize(TRITONBACKEND_Backend* backend)
   LOG_MESSAGE(
       TRITONSERVER_LOG_INFO,
       (std::string("TRITONBACKEND_Finalize: ") + name).c_str());
-  
+
   // release oneflow
   oneflow_api::release();
 
@@ -150,7 +150,7 @@ TRITONBACKEND_ModelInitialize(TRITONBACKEND_Model* model)
   RETURN_IF_ERROR(
       TRITONBACKEND_ModelSetState(model, reinterpret_cast<void*>(model_state)));
 
-  RETURN_IF_ERROR(model_state->ValidateModelConfig());
+  RETURN_IF_ERROR(model_state->ValidateAndParseModelConfig());
 
   return nullptr;  // success
 }

@@ -2,8 +2,12 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <ostream>
+#include <string>
+#include <vector>
 
 #include "triton/backend/backend_common.h"
+#include "triton/core/tritonserver.h"
 
 namespace triton { namespace backend { namespace oneflow {
 
@@ -29,60 +33,10 @@ ModelState::ModelState(TRITONBACKEND_Model* triton_model)
 }
 
 TRITONSERVER_Error*
-ModelState::ValidateModelConfig()
+ModelState::ValidateAndParseModelConfig()
 {
-  // TODO(zzk0): max batch size
-  // TODO(zzk0): input, output order
-  common::TritonJson::Value inputs, outputs;
-  RETURN_IF_ERROR(model_config_.MemberAsArray("input", &inputs));
-  RETURN_IF_ERROR(model_config_.MemberAsArray("output", &outputs));
-
-  // Collect input/output names, shapes and datatypes
-  std::map<std::string, std::tuple<std::string, std::vector<int64_t>>>
-      input_infos, output_infos;
-  for (size_t io_index = 0; io_index < inputs.ArraySize(); io_index++) {
-    common::TritonJson::Value input, output;
-    RETURN_IF_ERROR(inputs.IndexAsObject(io_index, &input));
-    RETURN_IF_ERROR(outputs.IndexAsObject(io_index, &output));
-
-    const char* input_name = NULL;
-    size_t input_name_len;
-    RETURN_IF_ERROR(input.MemberAsString("name", &input_name, &input_name_len));
-
-    const char* output_name = NULL;
-    size_t output_name_len;
-    RETURN_IF_ERROR(
-        output.MemberAsString("name", &output_name, &output_name_len));
-    output_names_.emplace_back(output_name);
-
-    std::string input_name_str = std::string(input_name);
-    std::string output_name_str = std::string(output_name);
-
-    // Input and output must have same datatype
-    std::string input_dtype, output_dtype;
-    RETURN_IF_ERROR(input.MemberAsString("data_type", &input_dtype));
-    RETURN_IF_ERROR(output.MemberAsString("data_type", &output_dtype));
-
-    // Input and output must have same shape or reshaped shape
-    std::vector<int64_t> input_shape, output_shape;
-    triton::common::TritonJson::Value reshape;
-    if (input.Find("reshape", &reshape)) {
-      RETURN_IF_ERROR(backend::ParseShape(reshape, "shape", &input_shape));
-    } else {
-      RETURN_IF_ERROR(backend::ParseShape(input, "dims", &input_shape));
-    }
-
-    if (output.Find("reshape", &reshape)) {
-      RETURN_IF_ERROR(backend::ParseShape(reshape, "shape", &output_shape));
-    } else {
-      RETURN_IF_ERROR(backend::ParseShape(output, "dims", &output_shape));
-    }
-
-    input_infos.insert(std::make_pair(
-        input_name_str, std::make_tuple(input_dtype, input_shape)));
-    output_infos.insert(std::make_pair(
-        output_name_str, std::make_tuple(output_dtype, output_shape)));
-  }
+  ValidateAndParseInputs();
+  ValidateAndParseOutputs();
 
   triton::common::TritonJson::Value params;
   bool is_unknown = true;
@@ -103,10 +57,97 @@ ModelState::ValidateModelConfig()
   return nullptr;  // success
 }
 
-const std::vector<const char*>&
-ModelState::GetOutputNames() const
+const std::vector<std::string>&
+ModelState::InputNames() const
+{
+  return input_names_;
+}
+
+const std::vector<std::string>&
+ModelState::OutputNames() const
 {
   return output_names_;
+}
+
+const std::unordered_map<std::string, InputOutputAttribute>&
+ModelState::InputAttributes() const
+{
+  return input_attribute_;
+}
+
+const std::unordered_map<std::string, InputOutputAttribute>&
+ModelState::OutputAttributes() const
+{
+  return output_attribute_;
+}
+
+TRITONSERVER_Error*
+ModelState::ValidateAndParseInputs()
+{
+  common::TritonJson::Value inputs;
+  RETURN_IF_ERROR(model_config_.MemberAsArray("input", &inputs));
+  for (size_t io_index = 0; io_index < inputs.ArraySize(); io_index++) {
+    common::TritonJson::Value input;
+    const char* input_name = nullptr;
+    size_t input_name_len;
+    std::string input_dtype_str;
+    TRITONSERVER_DataType input_dtype;
+    std::vector<int64_t> input_shape;
+    triton::common::TritonJson::Value reshape;
+
+    // parse
+    RETURN_IF_ERROR(inputs.IndexAsObject(io_index, &input));
+    RETURN_IF_ERROR(input.MemberAsString("name", &input_name, &input_name_len));
+    RETURN_IF_ERROR(input.MemberAsString("data_type", &input_dtype_str));
+    input_dtype = TRITONSERVER_StringToDataType(input_dtype_str.c_str());
+    if (input.Find("reshape", &reshape)) {
+      RETURN_IF_ERROR(backend::ParseShape(reshape, "shape", &input_shape));
+    } else {
+      RETURN_IF_ERROR(backend::ParseShape(input, "dims", &input_shape));
+    }
+
+    // store, TODO(zzk0): input order
+    std::string input_name_str = std::string(input_name);
+    input_names_.push_back(input_name_str);
+    input_attribute_[input_name_str] =
+        InputOutputAttribute{input_dtype, input_shape, 0};
+  }
+  return nullptr;  // success
+}
+
+TRITONSERVER_Error*
+ModelState::ValidateAndParseOutputs()
+{
+  common::TritonJson::Value outputs;
+  RETURN_IF_ERROR(model_config_.MemberAsArray("output", &outputs));
+  for (size_t io_index = 0; io_index < outputs.ArraySize(); io_index++) {
+    common::TritonJson::Value output;
+    const char* output_name = nullptr;
+    size_t output_name_len;
+    std::string output_dtype_str;
+    TRITONSERVER_DataType output_dtype;
+    std::vector<int64_t> output_shape;
+    triton::common::TritonJson::Value reshape;
+
+    // parse
+    RETURN_IF_ERROR(outputs.IndexAsObject(io_index, &output));
+    RETURN_IF_ERROR(
+        output.MemberAsString("name", &output_name, &output_name_len));
+    RETURN_IF_ERROR(output.MemberAsString("data_type", &output_dtype_str));
+    output_dtype = TRITONSERVER_StringToDataType(output_dtype_str.c_str());
+    if (output.Find("reshape", &reshape)) {
+      RETURN_IF_ERROR(backend::ParseShape(reshape, "shape", &output_shape));
+    } else {
+      RETURN_IF_ERROR(backend::ParseShape(output, "dims", &output_shape));
+    }
+
+    // store, TODO(zzk0): output order
+    std::string output_name_str = std::string(output_name);
+    output_names_.push_back(output_name_str);
+    output_attribute_[output_name_str] =
+        InputOutputAttribute{output_dtype, output_shape, 0};
+  }
+  return nullptr;  // success
 }
 
 }}}  // namespace triton::backend::oneflow

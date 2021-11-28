@@ -2,6 +2,8 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <cstdlib>
+#include <exception>
 #include <iostream>
 #include <ostream>
 #include <string>
@@ -36,8 +38,8 @@ ModelState::ModelState(TRITONBACKEND_Model* triton_model)
 TRITONSERVER_Error*
 ModelState::ValidateAndParseModelConfig()
 {
-  ValidateAndParseInputs();
-  ValidateAndParseOutputs();
+  RETURN_IF_ERROR(ValidateAndParseInputs());
+  RETURN_IF_ERROR(ValidateAndParseOutputs());
 
   triton::common::TritonJson::Value params;
   bool is_unknown = true;
@@ -99,6 +101,7 @@ ModelState::ValidateAndParseInputs()
     // parse
     RETURN_IF_ERROR(inputs.IndexAsObject(io_index, &input));
     RETURN_IF_ERROR(input.MemberAsString("name", &input_name, &input_name_len));
+    std::string input_name_str = std::string(input_name);
     RETURN_IF_ERROR(input.MemberAsString("data_type", &input_dtype_str));
     if (input.Find("reshape", &reshape)) {
       RETURN_IF_ERROR(backend::ParseShape(reshape, "shape", &input_shape));
@@ -109,14 +112,26 @@ ModelState::ValidateAndParseInputs()
       return TRITONSERVER_ErrorNew(
           TRITONSERVER_ERROR_INVALID_ARG, "DataType shoud start with TYPE_");
     }
+    if (input_name_str.rfind("INPUT_", 0) != 0) {
+      return TRITONSERVER_ErrorNew(
+          TRITONSERVER_ERROR_INVALID_ARG, "input name shoud start with INPUT_");
+    }
+    int input_index;
+    try {
+      input_index = std::atoi(input_name_str.substr(6).c_str());
+    }
+    catch (std::exception& ex) {
+      return TRITONSERVER_ErrorNew(
+          TRITONSERVER_ERROR_INVALID_ARG,
+          "input name shoud follow naming convention: INPUT_<index>");
+    }
 
-    // store, TODO(zzk0): input order
-    std::string input_name_str = std::string(input_name);
+    // store
     input_names_.push_back(input_name_str);
     input_dtype = TRITONSERVER_StringToDataType(
         input_dtype_str.substr(strlen("TYPE_")).c_str());
     input_attribute_[input_name_str] =
-        InputOutputAttribute{input_dtype, input_shape, 0};
+        InputOutputAttribute{input_dtype, input_shape, input_index};
   }
   return nullptr;  // success
 }
@@ -139,6 +154,7 @@ ModelState::ValidateAndParseOutputs()
     RETURN_IF_ERROR(outputs.IndexAsObject(io_index, &output));
     RETURN_IF_ERROR(
         output.MemberAsString("name", &output_name, &output_name_len));
+    std::string output_name_str = std::string(output_name);
     RETURN_IF_ERROR(output.MemberAsString("data_type", &output_dtype_str));
     if (output.Find("reshape", &reshape)) {
       RETURN_IF_ERROR(backend::ParseShape(reshape, "shape", &output_shape));
@@ -149,14 +165,27 @@ ModelState::ValidateAndParseOutputs()
       return TRITONSERVER_ErrorNew(
           TRITONSERVER_ERROR_INVALID_ARG, "DataType shoud start with TYPE_");
     }
+    if (output_name_str.rfind("OUTPUT_", 0) != 0) {
+      return TRITONSERVER_ErrorNew(
+          TRITONSERVER_ERROR_INVALID_ARG,
+          "output name shoud start with OUTPUT_");
+    }
+    int output_index;
+    try {
+      output_index = std::atoi(output_name_str.substr(7).c_str());
+    }
+    catch (std::exception& ex) {
+      return TRITONSERVER_ErrorNew(
+          TRITONSERVER_ERROR_INVALID_ARG,
+          "output name shoud follow naming convention: OUTPUT_<index>");
+    }
 
-    // store, TODO(zzk0): output order
-    std::string output_name_str = std::string(output_name);
+    // store
     output_names_.push_back(output_name_str);
     output_dtype = TRITONSERVER_StringToDataType(
         output_dtype_str.substr(strlen("TYPE_")).c_str());
     output_attribute_[output_name_str] =
-        InputOutputAttribute{output_dtype, output_shape, 0};
+        InputOutputAttribute{output_dtype, output_shape, output_index};
   }
   return nullptr;  // success
 }

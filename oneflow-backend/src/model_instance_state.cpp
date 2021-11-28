@@ -101,7 +101,7 @@ ModelInstanceState::ProcessRequests(
   // create responses
   std::vector<TRITONBACKEND_Response*> responses;
   responses.reserve(request_count);
-  for (size_t i = 0; i < request_count; i++) {
+  for (size_t i = 0; i < request_count; ++i) {
     TRITONBACKEND_Response* response;
     auto err = TRITONBACKEND_ResponseNew(&response, requests[i]);
     if (err == nullptr) {
@@ -193,7 +193,7 @@ ModelInstanceState::SetInputTensors(
       responses, request_count,
       TRITONBACKEND_RequestInputCount(requests[0], &input_count));
   input_tensors->resize(input_count);
-  for (uint32_t input_idx = 0; input_idx < input_count; input_idx++) {
+  for (uint32_t input_idx = 0; input_idx < input_count; ++input_idx) {
     TRITONBACKEND_Input* input;
     RESPOND_ALL_AND_RETURN_IF_ERROR(
         responses, request_count,
@@ -221,6 +221,7 @@ ModelInstanceState::SetInputTensors(
     const int64_t tensor_byte_size = GetByteSize(input_datatype, tensor_shape);
 
     std::vector<BackendMemory::AllocationType> alloc_perference;
+    // TODO(zzk0): add GPU support
     alloc_perference = {BackendMemory::AllocationType::CPU};
 
     BackendMemory* input_memory;
@@ -269,13 +270,14 @@ ModelInstanceState::ReadOutputTensors(
       CudaStream());
 
   for (size_t idx = 0; idx < output_names.size(); ++idx) {
-    std::string name = output_names[idx];
+    const std::string& name = output_names[idx];
     auto output_attribute = model_state_->OutputAttributes().find(name);
     if (output_attribute == model_state_->OutputAttributes().end()) {
       continue;
     }
     size_t output_tensor_index = output_attribute->second.input_index;
-    oneflow_api::Tensor output_tensor = output_tensors[output_tensor_index];
+    const oneflow_api::Tensor& output_tensor =
+        output_tensors[output_tensor_index];
     TRITONSERVER_DataType output_dtype = output_attribute->second.datatype;
     int64_t output_buffer_size =
         GetByteSize(output_dtype, OfShapeToVector(output_tensor.shape()));
@@ -319,7 +321,7 @@ ModelInstanceState::CountBatchSize(
 {
   *total_batch_size = 0;
   const int max_batch_size = model_state_->MaxBatchSize();
-  for (size_t i = 0; i < request_count; i++) {
+  for (size_t i = 0; i < request_count; ++i) {
     // If we get a nullptr request then something is badly wrong. Fail
     // and release all requests.
     if (requests[i] == nullptr) {

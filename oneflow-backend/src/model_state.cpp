@@ -89,7 +89,7 @@ ModelState::ValidateAndParseInputs()
 {
   common::TritonJson::Value inputs;
   RETURN_IF_ERROR(model_config_.MemberAsArray("input", &inputs));
-  for (size_t io_index = 0; io_index < inputs.ArraySize(); io_index++) {
+  for (size_t io_index = 0; io_index < inputs.ArraySize(); ++io_index) {
     common::TritonJson::Value input;
     const char* input_name = nullptr;
     size_t input_name_len;
@@ -146,7 +146,7 @@ ModelState::ValidateAndParseOutputs()
 {
   common::TritonJson::Value outputs;
   RETURN_IF_ERROR(model_config_.MemberAsArray("output", &outputs));
-  for (size_t io_index = 0; io_index < outputs.ArraySize(); io_index++) {
+  for (size_t io_index = 0; io_index < outputs.ArraySize(); ++io_index) {
     common::TritonJson::Value output;
     const char* output_name = nullptr;
     size_t output_name_len;

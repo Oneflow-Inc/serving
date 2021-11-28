@@ -116,9 +116,14 @@ ModelState::ValidateAndParseInputs()
       return TRITONSERVER_ErrorNew(
           TRITONSERVER_ERROR_INVALID_ARG, "input name shoud start with INPUT_");
     }
-    int input_index;
+    size_t input_index;
     try {
       input_index = std::atoi(input_name_str.substr(6).c_str());
+      if (input_index >= inputs.ArraySize() || input_index < 0) {
+        return TRITONSERVER_ErrorNew(
+            TRITONSERVER_ERROR_INVALID_ARG,
+            "input index should be in range [0, input_size)");
+      }
     }
     catch (std::exception& ex) {
       return TRITONSERVER_ErrorNew(
@@ -170,9 +175,14 @@ ModelState::ValidateAndParseOutputs()
           TRITONSERVER_ERROR_INVALID_ARG,
           "output name shoud start with OUTPUT_");
     }
-    int output_index;
+    size_t output_index;
     try {
       output_index = std::atoi(output_name_str.substr(7).c_str());
+      if (output_index >= outputs.ArraySize() || output_index < 0) {
+        return TRITONSERVER_ErrorNew(
+            TRITONSERVER_ERROR_INVALID_ARG,
+            "output index should be in range [0, output_size)");
+      }
     }
     catch (std::exception& ex) {
       return TRITONSERVER_ErrorNew(

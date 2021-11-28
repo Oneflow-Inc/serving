@@ -244,7 +244,13 @@ ModelInstanceState::SetInputTensors(
     oneflow_api::Device device("cpu");
     oneflow_api::Tensor input_tensor = oneflow_api::Tensor::from_blob(
         reinterpret_cast<float*>(input_buffer), shape, device, of_type);
-    (*input_tensors)[input_idx] = input_tensor;
+
+    auto input_attribute = model_state_->InputAttributes().find(input_name);
+    if (input_attribute == model_state_->InputAttributes().end()) {
+      continue;
+    }
+    size_t input_tensor_index = input_attribute->second.input_index;
+    (*input_tensors)[input_tensor_index] = input_tensor;
   }
 
   *cuda_copy |= collector->Finalize();
@@ -264,15 +270,15 @@ ModelInstanceState::ReadOutputTensors(
 
   for (size_t idx = 0; idx < output_names.size(); ++idx) {
     std::string name = output_names[idx];
-    oneflow_api::Tensor output_tensor = output_tensors[idx];
-
-    TRITONSERVER_DataType output_dtype =
-        model_state_->OutputAttributes().find(name)->second.datatype;
+    auto output_attribute = model_state_->OutputAttributes().find(name);
+    if (output_attribute == model_state_->OutputAttributes().end()) {
+      continue;
+    }
+    size_t output_tensor_index = output_attribute->second.input_index;
+    oneflow_api::Tensor output_tensor = output_tensors[output_tensor_index];
+    TRITONSERVER_DataType output_dtype = output_attribute->second.datatype;
     int64_t output_buffer_size =
         GetByteSize(output_dtype, OfShapeToVector(output_tensor.shape()));
-    std::cout << name << std::endl;
-    std::cout << output_dtype << std::endl;
-    std::cout << "output_buffer_size: " << output_buffer_size << std::endl;
     std::vector<char> output_buffer(output_buffer_size);
     oneflow_api::Tensor::to_blob(
         output_tensor, reinterpret_cast<float*>(output_buffer.data()));
@@ -299,7 +305,7 @@ ModelInstanceState::Execute(
     std::vector<oneflow_api::Tensor>* output_tensors)
 {
   PrintTensor(input_tensors->at(0));
-  for (auto input_tensor : *input_tensors) {
+  for (auto& input_tensor : *input_tensors) {
     auto output_tensor = oneflow_api::nn::relu(input_tensor);
     output_tensors->push_back(output_tensor);
   }

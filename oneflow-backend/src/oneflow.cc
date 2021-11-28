@@ -53,9 +53,6 @@ limitations under the License.
 #include "triton/core/tritonbackend.h"
 #include "triton/core/tritonserver.h"
 
-#ifdef TRITON_ENABLE_GPU
-#include <cuda_runtime_api.h>
-#endif  // TRITON_ENABLE_GPU
 
 namespace triton { namespace backend { namespace oneflow {
 
@@ -189,12 +186,10 @@ TRITONBACKEND_ModelInstanceInitialize(TRITONBACKEND_ModelInstance* instance)
   TRITONSERVER_InstanceGroupKind kind;
   RETURN_IF_ERROR(TRITONBACKEND_ModelInstanceKind(instance, &kind));
 
-#ifdef TRITON_ENABLE_GPU
+  SetDevice(kind, device_id);
   if (kind == TRITONSERVER_INSTANCEGROUPKIND_GPU) {
-    // cudaSetDevice(device_id);
     device_tag = "gpu";
   }
-#endif  // TRITON_ENABLE_GPU
 
   oneflow_api::Device device(device_tag, device_id);
 
@@ -235,12 +230,7 @@ TRITONBACKEND_ModelInstanceFinalize(TRITONBACKEND_ModelInstance* instance)
   RETURN_IF_ERROR(TRITONBACKEND_ModelInstanceState(instance, &vstate));
   ModelInstanceState* instance_state =
       reinterpret_cast<ModelInstanceState*>(vstate);
-
-#ifdef TRITON_ENABLE_GPU
-  if (instance_state->Kind() == TRITONSERVER_INSTANCEGROUPKIND_GPU) {
-    cudaSetDevice(instance_state->DeviceId());
-  }
-#endif  // TRITON_ENABLE_GPU
+  SetDevice(instance_state->Kind(), instance_state->DeviceId());
 
   LOG_MESSAGE(
       TRITONSERVER_LOG_INFO,
@@ -268,12 +258,7 @@ TRITONBACKEND_ModelInstanceExecute(
   RETURN_IF_ERROR(TRITONBACKEND_ModelInstanceState(
       instance, reinterpret_cast<void**>(&instance_state)));
   ModelState* model_state = instance_state->StateForModel();
-
-#ifdef TRITON_ENABLE_GPU
-  if (instance_state->Kind() == TRITONSERVER_INSTANCEGROUPKIND_GPU) {
-    cudaSetDevice(instance_state->DeviceId());
-  }
-#endif  // TRITON_ENABLE_GPU
+  SetDevice(instance_state->Kind(), instance_state->DeviceId());
 
   // This backend specifies BLOCKING execution policy. That means that
   // we should not return from this function until execution is

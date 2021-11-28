@@ -55,6 +55,11 @@ limitations under the License.
 
 #include "triton/core/tritonserver.h"
 
+#ifdef TRITON_ENABLE_GPU
+#include <cuda_runtime_api.h>
+#endif  // TRITON_ENABLE_GPU
+
+
 namespace triton { namespace backend { namespace oneflow {
 
 #define GUARDED_RESPOND_IF_ERROR(RESPONSES, IDX, X)                     \
@@ -119,31 +124,6 @@ inline bool
 IsXrtOpenvino(const XrtKind& kind)
 {
   return kind == XrtKind::kOpenvino;
-}
-
-// TODO(zzk0): delete this or refactor; used to test currently
-inline bool
-GetDataPtrFp32(
-    const oneflow_api::Tensor& tensor, float** dptr, size_t* elem_cnt)
-{
-  *elem_cnt = tensor.shape().elem_cnt();
-  *dptr = new float[*elem_cnt * 4];
-  oneflow_api::Tensor::to_blob(tensor, *dptr);
-  return true;
-}
-
-// TODO(zzk0): delete this or refactor; used to test currently
-inline void
-PrintTensor(const oneflow_api::Tensor& tensor)
-{
-  float* dptr;
-  size_t elem_cnt;
-  GetDataPtrFp32(tensor, &dptr, &elem_cnt);
-  for (size_t i = 0; i < elem_cnt; i++) {
-    std::cout << dptr[i] << " ";
-  }
-  std::cout << std::endl;
-  delete[] dptr;
 }
 
 inline TRITONSERVER_DataType
@@ -213,6 +193,41 @@ OfShapeToVector(const oneflow_api::Shape& shape)
     shape_vec[i] = shape.At(i);
   }
   return shape_vec;
+}
+
+inline void
+SetDevice(TRITONSERVER_InstanceGroupKind kind, int device_id)
+{
+#ifdef TRITON_ENABLE_GPU
+  if (kind == TRITONSERVER_INSTANCEGROUPKIND_GPU) {
+    cudaSetDevice(device_id);
+  }
+#endif  // TRITON_ENABLE_GPU
+}
+
+// TODO(zzk0): delete this or refactor; used to test currently
+inline bool
+GetDataPtrFp32(
+    const oneflow_api::Tensor& tensor, float** dptr, size_t* elem_cnt)
+{
+  *elem_cnt = tensor.shape().elem_cnt();
+  *dptr = new float[*elem_cnt * 4];
+  oneflow_api::Tensor::to_blob(tensor, *dptr);
+  return true;
+}
+
+// TODO(zzk0): delete this or refactor; used to test currently
+inline void
+PrintTensor(const oneflow_api::Tensor& tensor)
+{
+  float* dptr;
+  size_t elem_cnt;
+  GetDataPtrFp32(tensor, &dptr, &elem_cnt);
+  for (size_t i = 0; i < elem_cnt; i++) {
+    std::cout << dptr[i] << " ";
+  }
+  std::cout << std::endl;
+  delete[] dptr;
 }
 
 }}}  // namespace triton::backend::oneflow

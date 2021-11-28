@@ -48,8 +48,6 @@ project(tritononeflowbackend LANGUAGES C CXX)
 # Must include options required for this project as well as any
 # projects included in this one by FetchContent.
 #
-# GPU support is disabled by default because identity backend doesn't
-# support GPUs.
 #
 option(TRITON_ENABLE_GPU "Enable GPU support in backend" OFF)
 option(TRITON_ENABLE_STATS "Include statistics collections in backend" ON)
@@ -130,21 +128,13 @@ target_link_libraries(
     OneFlow::liboneflow
 )
 
-if(WIN32)
-  set_target_properties(
-    triton-oneflow-backend PROPERTIES
-    POSITION_INDEPENDENT_CODE ON
-    OUTPUT_NAME triton_oneflow
-  )
-else()
-  set_target_properties(
-    triton-oneflow-backend PROPERTIES
-    POSITION_INDEPENDENT_CODE ON
-    OUTPUT_NAME triton_oneflow
-    LINK_DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/libtriton_oneflow.ldscript
-    LINK_FLAGS "-Wl,--version-script libtriton_oneflow.ldscript"
-  )
-endif()
+set_target_properties(
+  triton-oneflow-backend PROPERTIES
+  POSITION_INDEPENDENT_CODE ON
+  OUTPUT_NAME triton_oneflow
+  LINK_DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/libtriton_oneflow.ldscript
+  LINK_FLAGS "-Wl,--version-script libtriton_oneflow.ldscript"
+)
 
 #
 # Install

@@ -110,11 +110,11 @@ ModelState::ValidateAndParseInputs()
     }
     if (input_dtype_str.rfind("TYPE_", 0) != 0) {
       return TRITONSERVER_ErrorNew(
-          TRITONSERVER_ERROR_INVALID_ARG, "DataType shoud start with TYPE_");
+          TRITONSERVER_ERROR_INVALID_ARG, "DataType should start with TYPE_");
     }
     if (input_name_str.rfind("INPUT_", 0) != 0) {
       return TRITONSERVER_ErrorNew(
-          TRITONSERVER_ERROR_INVALID_ARG, "input name shoud start with INPUT_");
+          TRITONSERVER_ERROR_INVALID_ARG, "input name should start with INPUT_");
     }
     size_t input_index;
     try {
@@ -128,7 +128,7 @@ ModelState::ValidateAndParseInputs()
     catch (std::exception& ex) {
       return TRITONSERVER_ErrorNew(
           TRITONSERVER_ERROR_INVALID_ARG,
-          "input name shoud follow naming convention: INPUT_<index>");
+          "input name should follow naming convention: INPUT_<index>");
     }
 
     // store
@@ -168,12 +168,12 @@ ModelState::ValidateAndParseOutputs()
     }
     if (output_dtype_str.rfind("TYPE_", 0) != 0) {
       return TRITONSERVER_ErrorNew(
-          TRITONSERVER_ERROR_INVALID_ARG, "DataType shoud start with TYPE_");
+          TRITONSERVER_ERROR_INVALID_ARG, "DataType should start with TYPE_");
     }
     if (output_name_str.rfind("OUTPUT_", 0) != 0) {
       return TRITONSERVER_ErrorNew(
           TRITONSERVER_ERROR_INVALID_ARG,
-          "output name shoud start with OUTPUT_");
+          "output name should start with OUTPUT_");
     }
     size_t output_index;
     try {
@@ -181,13 +181,13 @@ ModelState::ValidateAndParseOutputs()
       if (output_index >= outputs.ArraySize() || output_index < 0) {
         return TRITONSERVER_ErrorNew(
             TRITONSERVER_ERROR_INVALID_ARG,
-            "output index should be in range [0, output_size)");
+            "output index should be in the range [0, output_size)");
       }
     }
     catch (std::exception& ex) {
       return TRITONSERVER_ErrorNew(
           TRITONSERVER_ERROR_INVALID_ARG,
-          "output name shoud follow naming convention: OUTPUT_<index>");
+          "output name should follow naming convention: OUTPUT_<index>");
     }
 
     // store

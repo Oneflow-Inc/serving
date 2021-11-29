@@ -3,14 +3,14 @@ backend: "oneflow"
 max_batch_size: 16
 input [
   {
-    name: "INPUT0"
+    name: "INPUT_0"
     data_type: TYPE_FP32
     dims: [ 10 ]
   }
 ]
 output [
   {
-    name: "OUTPUT0"
+    name: "OUTPUT_0"
     data_type: TYPE_FP32
     dims: [ 10 ]
   }

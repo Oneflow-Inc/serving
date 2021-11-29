@@ -67,3 +67,25 @@ apt update && apt install libopenblas-dev
 export LD_LIBRARY_PATH=/triton/  # /triton has liboneflow.so
 ./bin/tritonserver --model-store ./models  # put your models in ./models
 ```
+
+## Model Config Convention
+
+### input output name
+
+- input name should follow naming convention: `INPUT_<index>`
+- output name should follow naming convention: `OUTPUT_<index>`
+- In `INPUT_<index>`, the `<index>` should be in the range `[0, input_size)`
+- In `OUTPUT_<index>`, the `<index>` should be in the range `[0, output_size)`
+
+### XRT
+
+You can enable XRT by adding following configuration.
+
+```
+parameters {
+  key: "xrt"
+  value: {
+    string_value: "openvino"
+  }
+}
+```

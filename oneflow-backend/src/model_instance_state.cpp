@@ -261,7 +261,7 @@ ModelInstanceState::SetInputTensors(
     if (input_attribute == model_state_->InputAttributes().end()) {
       continue;
     }
-    size_t input_tensor_index = input_attribute->second.input_index;
+    size_t input_tensor_index = input_attribute->second.input_output_index;
     (*input_tensors)[input_tensor_index] = input_tensor;
   }
 
@@ -286,22 +286,15 @@ ModelInstanceState::ReadOutputTensors(
     if (output_attribute == model_state_->OutputAttributes().end()) {
       continue;
     }
-    size_t output_tensor_index = output_attribute->second.input_index;
+    size_t output_tensor_index = output_attribute->second.input_output_index;
     const oneflow_api::Tensor& output_tensor =
         output_tensors[output_tensor_index];
     TRITONSERVER_DataType output_dtype = output_attribute->second.datatype;
-    int64_t output_buffer_size =
-        GetByteSize(output_dtype, OfShapeToVector(output_tensor.shape()));
+    std::vector<int64_t> tensor_shape = OfShapeToVector(output_tensor.shape());
+    int64_t output_buffer_size = GetByteSize(output_dtype, tensor_shape);
     std::vector<char> output_buffer(output_buffer_size);
     oneflow_api::Tensor::to_blob(
         output_tensor, reinterpret_cast<float*>(output_buffer.data()));
-
-    std::vector<int64_t> tensor_shape;
-    for (int64_t shape_idx = 0; shape_idx < output_tensor.shape().NumAxes();
-         ++shape_idx) {
-      tensor_shape.emplace_back(output_tensor.shape().At(shape_idx));
-    }
-
     responder.ProcessTensor(
         name, output_dtype, tensor_shape, output_buffer.data(),
         TRITONSERVER_MEMORY_CPU, 0);

@@ -56,7 +56,7 @@ namespace triton { namespace backend { namespace oneflow {
 struct InputOutputAttribute {
   TRITONSERVER_DataType datatype;
   std::vector<int64_t> input_shape;
-  size_t input_index;
+  size_t input_output_index;
 };
 
 //

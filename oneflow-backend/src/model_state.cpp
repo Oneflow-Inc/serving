@@ -114,7 +114,8 @@ ModelState::ValidateAndParseInputs()
     }
     if (input_name_str.rfind("INPUT_", 0) != 0) {
       return TRITONSERVER_ErrorNew(
-          TRITONSERVER_ERROR_INVALID_ARG, "input name should start with INPUT_");
+          TRITONSERVER_ERROR_INVALID_ARG,
+          "input name should start with INPUT_");
     }
     size_t input_index;
     try {

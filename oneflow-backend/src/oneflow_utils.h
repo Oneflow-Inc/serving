@@ -53,6 +53,7 @@ limitations under the License.
 #include <utility>
 #include <vector>
 
+#include "triton/backend/backend_common.h"
 #include "triton/core/tritonserver.h"
 
 #ifdef TRITON_ENABLE_GPU
@@ -201,6 +202,16 @@ SetDevice(TRITONSERVER_InstanceGroupKind kind, int device_id)
 #ifdef TRITON_ENABLE_GPU
   if (kind == TRITONSERVER_INSTANCEGROUPKIND_GPU) {
     cudaSetDevice(device_id);
+  }
+#endif  // TRITON_ENABLE_GPU
+}
+
+inline void
+SynchronizeStream(cudaStream_t stream, bool cuda_copy)
+{
+#ifdef TRITON_ENABLE_GPU
+  if (cuda_copy) {
+    cudaStreamSynchronize(stream);
   }
 #endif  // TRITON_ENABLE_GPU
 }

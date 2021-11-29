@@ -180,18 +180,10 @@ TRITONBACKEND_ModelInstanceInitialize(TRITONBACKEND_ModelInstance* instance)
   RETURN_IF_ERROR(TRITONBACKEND_ModelInstanceName(instance, &cname));
   std::string name(cname);
 
-  std::string device_tag = "cpu";
   int32_t device_id;
   RETURN_IF_ERROR(TRITONBACKEND_ModelInstanceDeviceId(instance, &device_id));
   TRITONSERVER_InstanceGroupKind kind;
   RETURN_IF_ERROR(TRITONBACKEND_ModelInstanceKind(instance, &kind));
-
-  SetDevice(kind, device_id);
-  if (kind == TRITONSERVER_INSTANCEGROUPKIND_GPU) {
-    device_tag = "gpu";
-  }
-
-  oneflow_api::Device device(device_tag, device_id);
 
   LOG_MESSAGE(
       TRITONSERVER_LOG_INFO,
@@ -199,6 +191,14 @@ TRITONBACKEND_ModelInstanceInitialize(TRITONBACKEND_ModelInstance* instance)
        TRITONSERVER_InstanceGroupKindString(kind) + " device " +
        std::to_string(device_id) + ")")
           .c_str());
+
+  std::string device_tag = "cpu";
+  SetDevice(kind, device_id);
+  if (kind == TRITONSERVER_INSTANCEGROUPKIND_GPU) {
+    device_tag = "cuda";
+  }
+  std::cout << device_tag << std::endl;
+  oneflow_api::Device device(device_tag, device_id);
 
   // The instance can access the corresponding model as well... here
   // we get the model and from that get the model's state.
@@ -212,8 +212,8 @@ TRITONBACKEND_ModelInstanceInitialize(TRITONBACKEND_ModelInstance* instance)
   // With each instance we create a ModelInstanceState object and
   // associate it with the TRITONBACKEND_ModelInstance.
   ModelInstanceState* instance_state;
-  RETURN_IF_ERROR(
-      ModelInstanceState::Create(model_state, instance, &instance_state));
+  RETURN_IF_ERROR(ModelInstanceState::Create(
+      model_state, instance, &instance_state, device));
   RETURN_IF_ERROR(TRITONBACKEND_ModelInstanceSetState(
       instance, reinterpret_cast<void*>(instance_state)));
 

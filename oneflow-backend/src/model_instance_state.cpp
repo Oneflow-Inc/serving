@@ -42,6 +42,7 @@ limitations under the License.
 
 #include "model_instance_state.h"
 
+#include <oneflow/device.h>
 #include <oneflow/dtype.h>
 #include <oneflow/nn.h>
 
@@ -51,17 +52,19 @@ limitations under the License.
 
 #include "oneflow_utils.h"
 #include "triton/backend/backend_common.h"
+#include "triton/backend/backend_memory.h"
 #include "triton/backend/backend_output_responder.h"
+#include "triton/core/tritonserver.h"
 
 namespace triton { namespace backend { namespace oneflow {
 
 TRITONSERVER_Error*
 ModelInstanceState::Create(
     ModelState* model_state, TRITONBACKEND_ModelInstance* triton_model_instance,
-    ModelInstanceState** state)
+    ModelInstanceState** state, const oneflow_api::Device& device)
 {
   try {
-    *state = new ModelInstanceState(model_state, triton_model_instance);
+    *state = new ModelInstanceState(model_state, triton_model_instance, device);
   }
   catch (const BackendModelInstanceException& ex) {
     RETURN_ERROR_IF_TRUE(
@@ -74,9 +77,10 @@ ModelInstanceState::Create(
 }
 
 ModelInstanceState::ModelInstanceState(
-    ModelState* model_state, TRITONBACKEND_ModelInstance* triton_model_instance)
+    ModelState* model_state, TRITONBACKEND_ModelInstance* triton_model_instance,
+    const oneflow_api::Device& device)
     : BackendModelInstance(model_state, triton_model_instance),
-      model_state_(model_state)
+      model_state_(model_state), device_(device)
 {
 }
 
@@ -124,6 +128,7 @@ ModelInstanceState::ProcessRequests(
   SetInputTensors(
       total_batch_size, requests, request_count, &responses, &collector,
       &input_names, &input_tensors, &input_memories, &cuda_copy);
+  SynchronizeStream(CudaStream(), cuda_copy);
 
   // execute
   uint64_t compute_start_ns = 0;
@@ -139,9 +144,10 @@ ModelInstanceState::ProcessRequests(
 
   uint64_t compute_end_ns = 0;
   SET_TIMESTAMP(compute_end_ns);
+  cuda_copy = false;
   ReadOutputTensors(
       total_batch_size, model_state_->OutputNames(), output_tensors, requests,
-      request_count, &responses);
+      request_count, &responses, &cuda_copy);
 
   // report
   uint64_t exec_end_ns = 0;
@@ -221,15 +227,21 @@ ModelInstanceState::SetInputTensors(
     const int64_t tensor_byte_size = GetByteSize(input_datatype, tensor_shape);
 
     std::vector<BackendMemory::AllocationType> alloc_perference;
-    // TODO(zzk0): add GPU support
-    alloc_perference = {BackendMemory::AllocationType::CPU};
+    if (device_.type() == "cpu") {
+      alloc_perference = {BackendMemory::AllocationType::CPU};
+    } else {
+      alloc_perference = {
+          BackendMemory::AllocationType::GPU_POOL,
+          BackendMemory::AllocationType::GPU};
+    }
 
     BackendMemory* input_memory;
     RESPOND_ALL_AND_RETURN_IF_ERROR(
         responses, request_count,
         BackendMemory::Create(
-            model_state_->TritonMemoryManager(), alloc_perference, 0,
-            tensor_byte_size, &input_memory));
+            model_state_->TritonMemoryManager(), alloc_perference,
+            device_.type() == "cpu" ? 0 : device_.device_id(), tensor_byte_size,
+            &input_memory));
     input_memories->push_back(input_memory);
 
     TRITONSERVER_MemoryType memory_type = input_memory->MemoryType();
@@ -242,9 +254,8 @@ ModelInstanceState::SetInputTensors(
 
     oneflow_api::DType of_type = ConvertTritonTypeToOneFlowType(input_datatype);
     oneflow_api::Shape shape(tensor_shape);
-    oneflow_api::Device device("cpu");
     oneflow_api::Tensor input_tensor = oneflow_api::Tensor::from_blob(
-        reinterpret_cast<float*>(input_buffer), shape, device, of_type);
+        reinterpret_cast<float*>(input_buffer), shape, device_, of_type);
 
     auto input_attribute = model_state_->InputAttributes().find(input_name);
     if (input_attribute == model_state_->InputAttributes().end()) {
@@ -262,7 +273,7 @@ ModelInstanceState::ReadOutputTensors(
     size_t total_batch_size, const std::vector<std::string>& output_names,
     const std::vector<oneflow_api::Tensor>& output_tensors,
     TRITONBACKEND_Request** requests, const uint32_t request_count,
-    std::vector<TRITONBACKEND_Response*>* responses)
+    std::vector<TRITONBACKEND_Response*>* responses, bool* cuda_copy)
 {
   BackendOutputResponder responder(
       requests, request_count, responses, model_state_->MaxBatchSize(),
@@ -294,9 +305,16 @@ ModelInstanceState::ReadOutputTensors(
     responder.ProcessTensor(
         name, output_dtype, tensor_shape, output_buffer.data(),
         TRITONSERVER_MEMORY_CPU, 0);
+
+    // TODO(zzk0): avoid copy twice
+    // responder.ProcessTensor(
+    //     name, output_dtype, tensor_shape, output_buffer.data(),
+    //     device_.type() == "cpu" ? TRITONSERVER_MEMORY_CPU :
+    //     TRITONSERVER_MEMORY_GPU, device_.type() == "cpu" ? 0 :
+    //     device_.device_id());
   }
 
-  responder.Finalize();
+  *cuda_copy |= responder.Finalize();
 }
 
 void

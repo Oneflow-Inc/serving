@@ -42,6 +42,8 @@ limitations under the License.
 
 #pragma once
 
+#include <oneflow/device.h>
+
 #include <cstddef>
 #include <string>
 
@@ -64,7 +66,7 @@ class ModelInstanceState : public BackendModelInstance {
   static TRITONSERVER_Error* Create(
       ModelState* model_state,
       TRITONBACKEND_ModelInstance* triton_model_instance,
-      ModelInstanceState** state);
+      ModelInstanceState** state, const oneflow_api::Device& device);
   virtual ~ModelInstanceState() = default;
 
   // Get the state of the model that corresponds to this instance.
@@ -76,7 +78,8 @@ class ModelInstanceState : public BackendModelInstance {
  private:
   ModelInstanceState(
       ModelState* model_state,
-      TRITONBACKEND_ModelInstance* triton_model_instance);
+      TRITONBACKEND_ModelInstance* triton_model_instance,
+      const oneflow_api::Device& device);
   void Execute(
       std::vector<TRITONBACKEND_Response*>* responses,
       const uint32_t response_count,
@@ -93,12 +96,13 @@ class ModelInstanceState : public BackendModelInstance {
       size_t total_batch_size, const std::vector<std::string>& output_names,
       const std::vector<oneflow_api::Tensor>& output_tensors,
       TRITONBACKEND_Request** requests, const uint32_t request_count,
-      std::vector<TRITONBACKEND_Response*>* responses);
+      std::vector<TRITONBACKEND_Response*>* responses, bool* cuda_copy);
   bool CountBatchSize(
       TRITONBACKEND_Request** requests, const uint32_t request_count,
       size_t* total_batch_size);
 
   ModelState* model_state_;
+  oneflow_api::Device device_;
 };
 
 

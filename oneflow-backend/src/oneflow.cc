@@ -197,7 +197,6 @@ TRITONBACKEND_ModelInstanceInitialize(TRITONBACKEND_ModelInstance* instance)
   if (kind == TRITONSERVER_INSTANCEGROUPKIND_GPU) {
     device_tag = "cuda";
   }
-  std::cout << device_tag << std::endl;
   oneflow_api::Device device(device_tag, device_id);
 
   // The instance can access the corresponding model as well... here

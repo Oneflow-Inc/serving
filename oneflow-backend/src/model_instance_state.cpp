@@ -317,12 +317,12 @@ ModelInstanceState::Execute(
     std::vector<oneflow_api::Tensor>* input_tensors,
     std::vector<oneflow_api::Tensor>* output_tensors)
 {
-  PrintTensor(input_tensors->at(0));
+  // PrintTensor(input_tensors->at(0));
   for (auto& input_tensor : *input_tensors) {
     auto output_tensor = oneflow_api::nn::relu(input_tensor);
     output_tensors->push_back(output_tensor);
   }
-  PrintTensor(output_tensors->at(0));
+  // PrintTensor(output_tensors->at(0));
 }
 
 bool

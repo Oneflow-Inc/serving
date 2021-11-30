@@ -233,6 +233,8 @@ PrintTensor(const oneflow_api::Tensor& tensor)
 {
   float* dptr;
   size_t elem_cnt;
+  std::cout << tensor.device().type() << " " << tensor.device().device_id()
+            << std::endl;
   GetDataPtrFp32(tensor, &dptr, &elem_cnt);
   for (size_t i = 0; i < elem_cnt; i++) {
     std::cout << dptr[i] << " ";

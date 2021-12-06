@@ -42,7 +42,7 @@ limitations under the License.
 
 #pragma once
 
-#include <oneflow/device.h>
+#include "oneflow/api.h"
 
 #include <cstddef>
 #include <string>

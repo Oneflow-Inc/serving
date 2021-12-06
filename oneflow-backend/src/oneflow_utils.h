@@ -42,9 +42,8 @@ limitations under the License.
 
 #pragma once
 
-#include <oneflow/dtype.h>
-#include <oneflow/shape.h>
-#include <oneflow/tensor.h>
+
+#include "oneflow/api.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -223,7 +222,7 @@ GetDataPtrFp32(
 {
   *elem_cnt = tensor.shape().elem_cnt();
   *dptr = new float[*elem_cnt * 4];
-  oneflow_api::Tensor::to_blob(tensor, *dptr);
+  tensor.copy_to(*dptr);
   return true;
 }
 

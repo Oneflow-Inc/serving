@@ -41,10 +41,7 @@ limitations under the License.
 */
 
 #include "model_instance_state.h"
-
-#include <oneflow/device.h>
-#include <oneflow/dtype.h>
-#include <oneflow/nn.h>
+#include "oneflow/api.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -254,7 +251,7 @@ ModelInstanceState::SetInputTensors(
 
     oneflow_api::DType of_type = ConvertTritonTypeToOneFlowType(input_datatype);
     oneflow_api::Shape shape(tensor_shape);
-    oneflow_api::Tensor input_tensor = oneflow_api::Tensor::from_blob(
+    oneflow_api::Tensor input_tensor = oneflow_api::Tensor::from_buffer(
         reinterpret_cast<float*>(input_buffer), shape, device_, of_type);
 
     auto input_attribute = model_state_->InputAttributes().find(input_name);
@@ -293,8 +290,7 @@ ModelInstanceState::ReadOutputTensors(
     std::vector<int64_t> tensor_shape = OfShapeToVector(output_tensor.shape());
     int64_t output_buffer_size = GetByteSize(output_dtype, tensor_shape);
     std::vector<char> output_buffer(output_buffer_size);
-    oneflow_api::Tensor::to_blob(
-        output_tensor, reinterpret_cast<float*>(output_buffer.data()));
+    output_tensor.copy_to(reinterpret_cast<float*>(output_buffer.data()));
     responder.ProcessTensor(
         name, output_dtype, tensor_shape, output_buffer.data(),
         TRITONSERVER_MEMORY_CPU, 0);

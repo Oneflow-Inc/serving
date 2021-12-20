@@ -62,7 +62,7 @@ The Model Examples are located here: `docs/examples/model_repository`
 ## Run
 
 ```
-nvidia-docker run --rm --runtime=nvidia --shm-size=2g --network=host -it --name triton-server -v `pwd`:/triton nvcr.io/nvidia/tritonserver:21.10-py3 bash
+nvidia-docker run --rm --runtime=nvidia --shm-size=2g --network=host -it --name triton-server -v `pwd`:/triton nvcr.io/nvidia/tritonserver:21.10 bash
 apt update && apt install libopenblas-dev
 export LD_LIBRARY_PATH=/triton/  # /triton has liboneflow.so
 ./bin/tritonserver --model-store ./models  # put your models in ./models

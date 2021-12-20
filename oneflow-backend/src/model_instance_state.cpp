@@ -41,12 +41,13 @@ limitations under the License.
 */
 
 #include "model_instance_state.h"
-#include "oneflow/api.h"
 
+#include <chrono>
 #include <cstddef>
 #include <cstdint>
 #include <string>
 
+#include "oneflow/api.h"
 #include "oneflow_utils.h"
 #include "triton/backend/backend_common.h"
 #include "triton/backend/backend_memory.h"
@@ -79,6 +80,7 @@ ModelInstanceState::ModelInstanceState(
     : BackendModelInstance(model_state, triton_model_instance),
       model_state_(model_state), device_(device)
 {
+  THROW_IF_BACKEND_INSTANCE_ERROR(model_state->LoadModel(device_, &graph_));
 }
 
 void
@@ -155,7 +157,7 @@ ModelInstanceState::ProcessRequests(
       LOG_IF_ERROR(
           TRITONBACKEND_ResponseSend(
               response, TRITONSERVER_RESPONSE_COMPLETE_FINAL, nullptr),
-          "failed to send PyTorch backend response");
+          "failed to send OneFlow backend response");
     }
   }
 
@@ -313,11 +315,12 @@ ModelInstanceState::Execute(
     std::vector<oneflow_api::Tensor>* input_tensors,
     std::vector<oneflow_api::Tensor>* output_tensors)
 {
+  *output_tensors = graph_->Forward(*input_tensors);
   // PrintTensor(input_tensors->at(0));
-  for (auto& input_tensor : *input_tensors) {
-    auto output_tensor = oneflow_api::nn::relu(input_tensor);
-    output_tensors->push_back(output_tensor);
-  }
+  // for (auto& input_tensor : *input_tensors) {
+  //   auto output_tensor = oneflow_api::nn::relu(input_tensor);
+  //   output_tensors->push_back(output_tensor);
+  // }
   // PrintTensor(output_tensors->at(0));
 }
 
@@ -337,7 +340,7 @@ ModelInstanceState::CountBatchSize(
           TRITONSERVER_ErrorNew(
               TRITONSERVER_ERROR_INTERNAL,
               std::string(
-                  "null request given to PyTorch backend for '" + Name() + "'")
+                  "null request given to OneFlow backend for '" + Name() + "'")
                   .c_str()));
       return false;
     }

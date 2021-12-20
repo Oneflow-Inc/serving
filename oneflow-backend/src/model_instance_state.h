@@ -42,12 +42,12 @@ limitations under the License.
 
 #pragma once
 
-#include "oneflow/api.h"
-
 #include <cstddef>
+#include <memory>
 #include <string>
 
 #include "model_state.h"
+#include "oneflow/api.h"
 #include "triton/backend/backend_input_collector.h"
 #include "triton/backend/backend_memory.h"
 #include "triton/backend/backend_model_instance.h"
@@ -103,6 +103,7 @@ class ModelInstanceState : public BackendModelInstance {
 
   ModelState* model_state_;
   oneflow_api::Device device_;
+  std::unique_ptr<oneflow_api::Graph> graph_;
 };
 
 

@@ -201,4 +201,26 @@ ModelState::ValidateAndParseOutputs()
   return nullptr;  // success
 }
 
+TRITONSERVER_Error*
+ModelState::LoadModel(
+    const oneflow_api::Device device,
+    std::unique_ptr<oneflow_api::Graph>* graph)
+{
+  const std::string model_path =
+      JoinPath({RepositoryPath(), std::to_string(Version()), "model"});
+
+  {
+    bool exists;
+    RETURN_IF_ERROR(FileExists(model_path, &exists));
+    RETURN_ERROR_IF_FALSE(
+        exists, TRITONSERVER_ERROR_UNAVAILABLE,
+        std::string("unable to find '") + model_path +
+            "' for model instance '" + Name() + "'");
+  }
+
+  graph->reset(new oneflow_api::Graph(oneflow_api::Load(model_path, device)));
+
+  return nullptr;
+}
+
 }}}  // namespace triton::backend::oneflow

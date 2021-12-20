@@ -42,9 +42,6 @@ limitations under the License.
 
 #pragma once
 
-
-#include "oneflow/api.h"
-
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
@@ -52,6 +49,7 @@ limitations under the License.
 #include <utility>
 #include <vector>
 
+#include "oneflow/api.h"
 #include "triton/backend/backend_common.h"
 #include "triton/core/tritonserver.h"
 

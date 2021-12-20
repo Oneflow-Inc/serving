@@ -42,6 +42,8 @@ limitations under the License.
 
 #pragma once
 
+#include <oneflow/api.h>
+
 #include <cstddef>
 #include <cstdint>
 #include <string>
@@ -79,6 +81,10 @@ class ModelState : public BackendModel {
       const;
   const std::unordered_map<std::string, InputOutputAttribute>&
   OutputAttributes() const;
+
+  TRITONSERVER_Error* LoadModel(
+      const oneflow_api::Device device,
+      std::unique_ptr<oneflow_api::Graph>* graph);
 
  private:
   ModelState(TRITONBACKEND_Model* triton_model);

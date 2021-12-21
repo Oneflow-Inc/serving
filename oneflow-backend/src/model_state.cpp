@@ -1,4 +1,5 @@
 #include "model_state.h"
+#include <oneflow/framework/graph.h>
 
 #include <cstddef>
 #include <cstdint>
@@ -218,7 +219,7 @@ ModelState::LoadModel(
             "' for model instance '" + Name() + "'");
   }
 
-  graph->reset(new oneflow_api::Graph(oneflow_api::Load(model_path, device)));
+  graph->reset(new oneflow_api::Graph(oneflow_api::Graph::Load(model_path, device)));
 
   return nullptr;
 }

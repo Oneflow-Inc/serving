@@ -89,3 +89,19 @@ parameters {
   }
 }
 ```
+
+### Model Repository Structure
+
+A directory named `model` should be put in the version directory.
+
+Example:
+
+```
+.
+├── 1
+│   └── model
+├── client.py
+├── config.pbtxt
+├── labels.txt
+└── model.py
+```

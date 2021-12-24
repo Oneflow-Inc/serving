@@ -80,7 +80,13 @@ ModelInstanceState::ModelInstanceState(
     : BackendModelInstance(model_state, triton_model_instance),
       model_state_(model_state), device_(device)
 {
-  THROW_IF_BACKEND_INSTANCE_ERROR(model_state->LoadModel(device_, &graph_));
+}
+
+TRITONSERVER_Error*
+ModelInstanceState::LoadModel()
+{
+  RETURN_IF_ERROR(model_state_->LoadModel(device_, &graph_));
+  return nullptr;  // success
 }
 
 void
@@ -315,11 +321,10 @@ ModelInstanceState::Execute(
     std::vector<oneflow_api::Tensor>* input_tensors,
     std::vector<oneflow_api::Tensor>* output_tensors)
 {
-  const auto& output  = graph_->Forward(*input_tensors);
+  const auto& output = graph_->Forward(*input_tensors);
   if (output.IsTensor()) {
     output_tensors->push_back(output.ToTensor());
-  }
-  else {
+  } else {
     *output_tensors = output.ToTensorVector();
   }
 }

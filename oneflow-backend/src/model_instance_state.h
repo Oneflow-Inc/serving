@@ -72,6 +72,7 @@ class ModelInstanceState : public BackendModelInstance {
   // Get the state of the model that corresponds to this instance.
   ModelState* StateForModel() const { return model_state_; }
 
+  TRITONSERVER_Error* LoadModel();
   void ProcessRequests(
       TRITONBACKEND_Request** requests, uint32_t request_count);
 

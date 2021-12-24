@@ -215,6 +215,7 @@ TRITONBACKEND_ModelInstanceInitialize(TRITONBACKEND_ModelInstance* instance)
       model_state, instance, &instance_state, device));
   RETURN_IF_ERROR(TRITONBACKEND_ModelInstanceSetState(
       instance, reinterpret_cast<void*>(instance_state)));
+  RETURN_IF_ERROR(instance_state->LoadModel());
 
   return nullptr;  // success
 }

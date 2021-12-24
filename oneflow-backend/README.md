@@ -51,7 +51,7 @@ Developing OneFlow Backend For Triton Inference Server
 ```
 mkdir build
 cd build
-cmake -DCMAKE_INSTALL_PREFIX:PATH=`pwd`/install  -DTRITON_BACKEND_REPO_TAG=r21.10 -DTRITON_CORE_REPO_TAG=r21.10 -DTRITON_COMMON_REPO_TAG=r21.10 -G Ninja -DCMAKE_PREFIX_PATH=/home/zhouzekai/oneflow/build-clang/liboneflow/share ..
+cmake -DCMAKE_INSTALL_PREFIX:PATH=`pwd`/install  -DTRITON_BACKEND_REPO_TAG=r21.10 -DTRITON_CORE_REPO_TAG=r21.10 -DTRITON_COMMON_REPO_TAG=r21.10 -G Ninja -DCMAKE_PREFIX_PATH=/triton/oneflow/build-clang/liboneflow/share -DTRITON_ENABLE_GPU=ON ..
 ninja
 ```
 
@@ -62,7 +62,7 @@ The Model Examples are located here: `docs/examples/model_repository`
 ## Run
 
 ```
-nvidia-docker run --rm --runtime=nvidia --shm-size=2g --network=host -it --name triton-server -v `pwd`:/triton nvcr.io/nvidia/tritonserver:21.10 bash
+nvidia-docker run --rm --runtime=nvidia --shm-size=2g --network=host -it --name triton-server -v `pwd`:/triton nvcr.io/nvidia/tritonserver:21.10-py3 bash
 apt update && apt install libopenblas-dev
 export LD_LIBRARY_PATH=/triton/  # /triton has liboneflow.so
 ./bin/tritonserver --model-store ./models  # put your models in ./models
@@ -104,4 +104,13 @@ Example:
 ├── config.pbtxt
 ├── labels.txt
 └── model.py
+```
+
+#### Model Backend Name
+
+Model backend name must be `oneflow`.
+
+```
+name: "identity"
+backend: "oneflow"
 ```

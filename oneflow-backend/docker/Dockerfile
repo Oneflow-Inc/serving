@@ -8,7 +8,7 @@ RUN sed -i 's/archive.ubuntu.com/mirrors.ustc.edu.cn/g' /etc/apt/sources.list
 RUN apt update && \
     apt -o Acquire::http::proxy=false install -y apt-utils software-properties-common && \
     apt update && \
-    apt -o Acquire::http::proxy=false install -y git python3 python3-dev build-essential autoconf automake libtool make gcc g++ curl wget tar ccache rsync libopenblas-dev nasm python3-pip libssl-dev libonig-dev zlib1g-dev libboost-all-dev libre2-dev libb64-dev rapidjson-dev ninja-build && \
+    apt -o Acquire::http::proxy=false install -y git python3 python3-dev build-essential autoconf automake libtool make gcc g++ curl wget tar ccache rsync libopenblas-dev nasm python3-pip libssl-dev libonig-dev zlib1g-dev libboost-all-dev libre2-dev libb64-dev rapidjson-dev ninja-build libjpeg-dev && \
     apt clean
 
 # cmake, dcgm
@@ -33,7 +33,7 @@ RUN git clone https://github.com/Oneflow-Inc/oneflow --depth=1 && \
     mkdir build  && \
     cd build && \
     cmake .. -C ../cmake/caches/cn/fast/cuda-75.cmake -DBUILD_CPP_API=ON -DBUILD_MONOLITHIC_LIBONEFLOW_CPP_SO=ON -DBUILD_SHARED_LIBS=OFF -DWITH_MLIR=ON && \
-    ninja -j8
+    ninja
 
 # build oneflow-backend, need authentication
 RUN git clone https://github.com/Oneflow-Inc/ofserving  && \

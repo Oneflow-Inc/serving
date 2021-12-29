@@ -43,7 +43,7 @@ if __name__ == '__main__':
 
     image = np.random.randn(1, 3, 224, 224).astype(np.float32)
     model = resnet50(pretrained=True, progress=True)
-    # model.eval()
+    model.eval()
     graph = MyGraph(model)
     flow_output = graph(flow.tensor(image)).numpy()
 

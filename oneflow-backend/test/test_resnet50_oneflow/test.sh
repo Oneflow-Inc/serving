@@ -24,7 +24,7 @@ cp -r ./resnet50_oneflow ./models/resnet50_oneflow_batching
 (cd ./models/resnet50_oneflow_batching && \
         sed -i "s/^name:.*/name: \"resnet50_oneflow_batching\"/" config.pbtxt && \
         sed -i "s/^max_batch_size:.*/max_batch_size: 5/" config.pbtxt && \
-        echo "dynamic_batching { max_queue_delay_microseconds: 100000000 }" >> config.pbtxt)
+        echo "dynamic_batching { max_queue_delay_microseconds: 1000000 }" >> config.pbtxt)
 
 SERVER=/opt/tritonserver/bin/tritonserver
 SERVER_ARGS="--model-repository=`pwd`/models --log-verbose=1"

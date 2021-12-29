@@ -31,7 +31,7 @@ class MyGraph(nn.Graph):
 if __name__ == "__main__":
     image = flow.ones((1, 3, 224, 224))
     model = resnet50(pretrained=True, progress=True)
-    # model.eval()
+    model.eval()
     graph = MyGraph(model)
     out = graph(image)
     flow.save(graph, "1/model")

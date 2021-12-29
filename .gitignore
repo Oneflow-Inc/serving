@@ -1,0 +1,14 @@
+build
+build-*
+checkpoints
+model
+log
+.vscode
+.cache
+
+*.so
+*.pt
+*.plan
+*.engine
+
+compile_commands.json

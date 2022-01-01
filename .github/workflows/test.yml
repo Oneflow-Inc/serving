@@ -1,16 +1,15 @@
 name: OneFlow Serving
 
-on:
-  pull_request:
-    # types: [review_requested]
-    types: [push]
-    branches:
-      - "*"
-  workflow_dispatch:
-    inputs:
-      placeholder:
-        description: "placeholder, no effect"
-        required: false
+on: [push]
+  # pull_request:
+  #   types: [review_requested]
+  #   branches:
+  #     - "*"
+  # workflow_dispatch:
+  #   inputs:
+  #     placeholder:
+  #       description: "placeholder, no effect"
+  #       required: false
 
 jobs:
   cancel_previous:

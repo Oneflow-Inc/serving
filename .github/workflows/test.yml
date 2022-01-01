@@ -45,7 +45,7 @@ jobs:
           container_name=serving-pr-${{ github.event.pull_request.number }}-run-id-${{ github.run_id }}-${test_suite}-test
           extra_docker_args+=" --runtime=nvidia"
           extra_docker_args+=" --name ${container_name}"
-          extra_docker_args+=" --shm-size=8g --rm -w $PWD -v $PWD:$PWD"
+          extra_docker_args+=" --shm-size=8g -w $PWD -v $PWD:$PWD"
           extra_docker_args+=" -v $(pwd):/ofserving"
           extra_docker_args+=" -w /ofserving/ci"
           echo "extra_docker_args=${extra_docker_args}" >> $GITHUB_ENV

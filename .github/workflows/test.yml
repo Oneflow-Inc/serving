@@ -30,7 +30,8 @@ jobs:
       - name: current directory
         run: |
           pwd
-          ls
+          ls -al
+          docker images
       - name: Fix permissions
         run: |
           docker run --rm -v $PWD:/p -w /p busybox chmod -R o+w .

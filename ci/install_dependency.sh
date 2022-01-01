@@ -26,10 +26,14 @@ mkdir build
 cd build
 cmake .. -C ../cmake/caches/cn/cuda.cmake -DBUILD_CPP_API=ON -DBUILD_MONOLITHIC_LIBONEFLOW_CPP_SO=ON -DBUILD_SHARED_LIBS=OFF -DWITH_MLIR=ON -G Ninja
 ninja
+export ONEFLOW_BUILD=$(pwd)
 
 # build oneflow-backend
 cd /ofserving
 mkdir build
 cd build
-cmake -DCMAKE_INSTALL_PREFIX:PATH=`pwd`/install  -DTRITON_BACKEND_REPO_TAG=r21.10 -DTRITON_CORE_REPO_TAG=r21.10 -DTRITON_COMMON_REPO_TAG=r21.10 -G Ninja -DCMAKE_PREFIX_PATH=/oneflow/build/liboneflow_cpp/share -DTRITON_ENABLE_GPU=ON ..
+cmake -DCMAKE_INSTALL_PREFIX:PATH=`pwd`/install  -DTRITON_BACKEND_REPO_TAG=r21.10 -DTRITON_CORE_REPO_TAG=r21.10 -DTRITON_COMMON_REPO_TAG=r21.10 -G Ninja -DCMAKE_PREFIX_PATH=ONEFLOW_BUILD/liboneflow_cpp/share -DTRITON_ENABLE_GPU=ON ..
 ninja
+mkdir /opt/tritonserver/backends
+mkdir /opt/tritonserver/backends/oneflow
+cp libtriton_oneflow.so /opt/tritonserver/backends/oneflow

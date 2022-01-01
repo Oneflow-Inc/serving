@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import time
 import argparse
 import numpy as np
 import oneflow as flow
@@ -53,6 +54,8 @@ if __name__ == '__main__':
     inputs[0].set_data_from_numpy(image, binary_data=True)
     outputs = []
     outputs.append(httpclient.InferRequestedOutput('OUTPUT_0', binary_data=True, class_count=3))
+    now = time.time()
     results = triton_client.infer("resnet50_oneflow", inputs=inputs, outputs=outputs)
+    print(time.time() - now)
     output_data0 = results.as_numpy('OUTPUT_0')
     print(output_data0)

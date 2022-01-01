@@ -49,7 +49,7 @@ jobs:
           extra_docker_args+=" -w /ofserving/ci"
           echo "extra_docker_args=${extra_docker_args}" >> $GITHUB_ENV
           echo "container_name=${container_name}" >> $GITHUB_ENV
-          echo "image_tag=oneflow-serving-ci" >> $GITHUB_ENV
+          echo "image_tag=oneflow-serving-ci:0.1" >> $GITHUB_ENV
       # - name: Load image
       #   if: env.should_load_img == '1'
       #   run: |

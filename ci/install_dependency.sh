@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+set -xe
+
 pip3 install flowvision
 
 # TODO(zzk0): remove this
@@ -27,6 +29,7 @@ cd build
 cmake .. -C ../cmake/caches/cn/cuda.cmake -DBUILD_CPP_API=ON -DBUILD_MONOLITHIC_LIBONEFLOW_CPP_SO=ON -DBUILD_SHARED_LIBS=OFF -DWITH_MLIR=ON -G Ninja
 ninja
 export ONEFLOW_BUILD=$(pwd)
+echo $ONEFLOW_BUILD
 
 # build oneflow-backend
 cd /ofserving

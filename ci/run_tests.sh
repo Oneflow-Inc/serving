@@ -12,4 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-docker build --build-arg http_proxy=$http_proxy --build-arg https_proxy=$https_proxy -t triton-oneflow .
+set -xe
+
+./install_dependency.sh
+
+DIRS=(test_*/)
+
+passed=0
+failed=0
+for dir in "${DIRS[@]}"; do
+    echo -e "Running test: $dir...\n"
+    (cd $dir && ./test.sh)
+    rc=$?
+    if (( $rc == 0 )); then
+        (( passed++ ))
+    else
+        echo -e "Failed\n"
+        (( failed++ ))
+    fi
+done
+
+echo -e "\n***\n***\nPassed: ${passed}\nFailed: ${failed}\n***\n***\n"
+exit $failed

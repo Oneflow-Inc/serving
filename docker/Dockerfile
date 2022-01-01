@@ -32,7 +32,7 @@ RUN git clone https://github.com/Oneflow-Inc/oneflow --depth=1 && \
     cd oneflow && \
     mkdir build  && \
     cd build && \
-    cmake .. -C ../cmake/caches/cn/fast/cuda-75.cmake -DBUILD_CPP_API=ON -DBUILD_MONOLITHIC_LIBONEFLOW_CPP_SO=ON -DBUILD_SHARED_LIBS=OFF -DWITH_MLIR=ON && \
+    cmake .. -C ../cmake/caches/cn/cuda.cmake -DBUILD_CPP_API=ON -DBUILD_MONOLITHIC_LIBONEFLOW_CPP_SO=ON -DBUILD_SHARED_LIBS=OFF -DWITH_MLIR=ON && \
     ninja
 
 # build oneflow-backend, need authentication

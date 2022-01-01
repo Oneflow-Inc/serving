@@ -12,21 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-DIRS=(test_*/)
+pip3 install flowvision
 
-passed=0
-failed=0
-for dir in "${DIRS[@]}"; do
-    echo -e "Running $dir...\n"
-    (cd $dir && ./test.sh)
-    rc=$?
-    if (( $rc == 0 )); then
-        (( passed++ ))
-    else
-        echo -e "Failed\n"
-        (( failed++ ))
-    fi
-done
+# build oneflow
+git clone https://github.com/Oneflow-Inc/oneflow --depth=1
+cd oneflow
+mkdir build
+cd build
+cmake .. -C ../cmake/caches/cn/cuda.cmake -DBUILD_CPP_API=ON -DBUILD_MONOLITHIC_LIBONEFLOW_CPP_SO=ON -DBUILD_SHARED_LIBS=OFF -DWITH_MLIR=ON
+ninja
 
-echo -e "\n***\n***\nPassed: ${passed}\nFailed: ${failed}\n***\n***\n"
-# return (( $failed == 0 ))
+# build oneflow-backend
+cd /ofserving/oneflow-backend
+mkdir build
+cd build
+cmake -DCMAKE_INSTALL_PREFIX:PATH=`pwd`/install  -DTRITON_BACKEND_REPO_TAG=r21.10 -DTRITON_CORE_REPO_TAG=r21.10 -DTRITON_COMMON_REPO_TAG=r21.10 -G Ninja -DCMAKE_PREFIX_PATH=/oneflow/build/liboneflow_cpp/share -DTRITON_ENABLE_GPU=ON ..
+ninja

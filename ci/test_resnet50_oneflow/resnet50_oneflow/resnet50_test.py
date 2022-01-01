@@ -54,6 +54,4 @@ if __name__ == '__main__':
     outputs.append(httpclient.InferRequestedOutput('OUTPUT_0', binary_data=True))
     results = triton_client.infer(FLAGS.model, inputs=inputs, outputs=outputs)
     output_data0 = results.as_numpy('OUTPUT_0')
-    print(flow_output[0][0:10])
-    print(output_data0[0][0:10])
     assert np.allclose(flow_output, output_data0, rtol=1e-03, atol=1e-03)

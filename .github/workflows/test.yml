@@ -60,7 +60,7 @@ jobs:
           docker run $extra_docker_args \
             ${{ env.image_tag }} \
             /bin/bash run_tests.sh
-      - name: Remove container
-        if: always()
-        run: |
-          docker rm -f ${{ env.container_name }} || true
+      # - name: Remove container
+      #   if: always()
+      #   run: |
+      #     docker rm -f ${{ env.container_name }} || true

@@ -17,7 +17,7 @@ set -xe
 pip3 install flowvision
 
 # TODO(zzk0): remove this
-export HTTP_PROXY="http://192.168.1.12:10609"
+export HTTP_PROXY="http://192.168.1.11:8118"
 git config --global http.proxy ${HTTP_PROXY}
 git config --global https.proxy ${HTTP_PROXY}
 

@@ -31,6 +31,11 @@ ninja
 export ONEFLOW_BUILD=$(pwd)
 echo $ONEFLOW_BUILD
 
+echo "------------------------------------------"
+ls -al $ONEFLOW_BUILD/liboneflow_cpp
+ls -al $ONEFLOW_BUILD/liboneflow_cpp/include/oneflow/
+echo "------------------------------------------"
+
 # build oneflow-backend
 cd /ofserving
 mkdir build

@@ -15,6 +15,7 @@
 export CUDA_VISIBLE_DEVICES=0
 
 # download model
+echo $PYTHONPATH
 (cd ./resnet50_oneflow/ && python3 model.py)
 
 rm -rf ./models

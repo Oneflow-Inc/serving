@@ -24,6 +24,7 @@ git config --global https.proxy ${HTTP_PROXY}
 # build oneflow
 git clone https://github.com/Oneflow-Inc/oneflow --depth=1
 cd oneflow
+export PYTHONPATH=$(pwd)/python
 mkdir build
 cd build
 cmake .. -C ../cmake/caches/cn/cuda.cmake -DBUILD_CPP_API=ON -DBUILD_MONOLITHIC_LIBONEFLOW_CPP_SO=ON -DBUILD_SHARED_LIBS=OFF -DWITH_MLIR=ON -G Ninja

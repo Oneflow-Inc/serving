@@ -1,6 +1,6 @@
 name: OneFlow Serving
 
-on: [push]
+on:
   pull_request:
     types: [review_requested]
     branches:

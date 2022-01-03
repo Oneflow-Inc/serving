@@ -48,15 +48,30 @@ OneFlow Backend For Triton Inference Server
 
 ## Quick Start
 
-拉取镜像
+Pull Docker image
 
 ```
 docker pull oneflow-serving:0.1
+```
+
+Download and save model
+
+```
 cd examples
 python3 model.py
 cd ..
+```
+
+Launch triton server
+
+```
 docker run --runtime=nvidia --rm -p8000:8000 -p8001:8001 -p8002:8002 -v$(pwd)/examples:/models oneflow-serving:0.1 /opt/tritonserver/bin/tritonserver --model-repository=/models
 curl -v localhost:8000/v2/health/ready  # ready check
+```
+
+Send image and predict
+
+```
 cd examples
 python3 client.py images/cat.jpg
 python3 client.py images/dog.jpg

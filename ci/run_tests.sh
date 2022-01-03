@@ -18,19 +18,14 @@ set -xe
 
 DIRS=(test_*/)
 
-passed=0
-failed=0
 for dir in "${DIRS[@]}"; do
     echo -e "Running test: $dir...\n"
     (cd $dir && ./test.sh)
     rc=$?
-    if (( $rc == 0 )); then
-        (( passed++ ))
-    else
-        echo -e "Failed\n"
-        (( failed++ ))
+    if (( $rc != 0 )); then
+        echo -e "Failed: $dir\n"
+        exit 1
     fi
 done
 
-echo -e "\n***\n***\nPassed: ${passed}\nFailed: ${failed}\n***\n***\n"
-exit $failed
+exit 0

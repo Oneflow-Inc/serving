@@ -2,7 +2,7 @@ name: OneFlow Serving
 
 on:
   pull_request:
-    types: [review_requested]
+    # types: [review_requested]
     branches:
       - "*"
   workflow_dispatch:

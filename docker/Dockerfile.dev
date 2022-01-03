@@ -1,10 +1,9 @@
 FROM nvidia/cuda:10.2-cudnn7-devel-ubuntu18.04
 
 # Uncomment it if you are in China
-RUN sed -i 's/security.ubuntu.com/mirrors.ustc.edu.cn/g' /etc/apt/sources.list
-RUN sed -i 's/archive.ubuntu.com/mirrors.ustc.edu.cn/g' /etc/apt/sources.list
+# RUN sed -i 's/security.ubuntu.com/mirrors.ustc.edu.cn/g' /etc/apt/sources.list && \
+#     sed -i 's/archive.ubuntu.com/mirrors.ustc.edu.cn/g' /etc/apt/sources.list
 
-# Add common tools available in apt repository. We choose not to support python2
 RUN apt update && \
     apt -o Acquire::http::proxy=false install -y apt-utils software-properties-common && \
     apt update && \
@@ -12,14 +11,15 @@ RUN apt update && \
     apt clean
 
 # cmake, dcgm
-RUN mkdir /environment && \
-    cd /environment  && \
+RUN mkdir /tools && \
+    cd /tools  && \
     wget -O cmake.tar.gz https://github.com/Kitware/CMake/releases/download/v3.21.4/cmake-3.21.4-linux-x86_64.tar.gz && \
-    tar -xvf cmake.tar.gz
-ENV PATH="/environment/cmake-3.21.4-linux-x86_64/bin/:${PATH}"
-RUN cd /environment  && \
+    tar -xvf cmake.tar.gz && \
     wget https://developer.download.nvidia.cn/compute/cuda/repos/ubuntu1804/x86_64/datacenter-gpu-manager_2.3.1_amd64.deb && \
-    dpkg -i datacenter-gpu-manager_2.3.1_amd64.deb
+    dpkg -i datacenter-gpu-manager_2.3.1_amd64.deb && \
+    rm -rf datacenter-gpu-manager_2.3.1_amd64.deb && \
+    rm -rf cmake.tar.gz
+ENV PATH="/tools/cmake-3.21.4-linux-x86_64/bin/:${PATH}"
 
 # build tritonserver
 RUN git clone https://github.com/triton-inference-server/server && \
@@ -36,8 +36,7 @@ RUN git clone https://github.com/Oneflow-Inc/oneflow --depth=1 && \
     ninja
 
 # build oneflow-backend, need authentication
-RUN git clone https://github.com/Oneflow-Inc/ofserving  && \
-    cd ofserving/oneflow-backend && \
+RUN git clone https://github.com/Oneflow-Inc/serving  && \
     mkdir build && \
     cd build && \
     cmake -DCMAKE_INSTALL_PREFIX:PATH=`pwd`/install  -DTRITON_BACKEND_REPO_TAG=r21.10 -DTRITON_CORE_REPO_TAG=r21.10 -DTRITON_COMMON_REPO_TAG=r21.10 -G Ninja -DCMAKE_PREFIX_PATH=/triton/oneflow/build-clang/liboneflow/share -DTRITON_ENABLE_GPU=ON .. && \

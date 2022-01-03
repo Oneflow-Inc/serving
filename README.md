@@ -59,8 +59,7 @@ Download and save model
 
 ```
 cd examples/resnet50_oneflow/
-python3 model.py
-docker run --runtime=nvidia --rm  -v$(pwd):$(pwd) -w $(pwd) oneflow-serving:0.1 python3 model.py
+docker run --runtime=nvidia --rm  -v$(pwd):$(pwd) -w $(pwd) oneflow-serving:0.1 python3 export_model.py
 cd ../..
 ```
 

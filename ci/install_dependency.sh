@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -xe
+set -uex
 
 pip3 install flowvision
 pip3 install tritonclient[all] -i https://pypi.tuna.tsinghua.edu.cn/simple

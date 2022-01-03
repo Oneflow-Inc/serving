@@ -22,7 +22,7 @@ jobs:
         with:
           access_token: ${{ github.token }}
   build:
-    if: github.event.pull_request.draft == false && github.base_ref == 'main' && contains(github.event.pull_request.requested_reviewers.*.login, 'oneflow-ci-bot')
+    # if: github.event.pull_request.draft == false && github.base_ref == 'main' && contains(github.event.pull_request.requested_reviewers.*.login, 'oneflow-ci-bot')
     # runs-on: [self-hosted, linux, provision]
     runs-on: self-hosted
     needs: [cancel_previous]

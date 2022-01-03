@@ -17,19 +17,8 @@ limitations under the License.
 import time
 import argparse
 import numpy as np
-import oneflow as flow
-import oneflow.nn as nn
 import tritonclient.http as httpclient
 from PIL import Image
-
-
-class MyGraph(nn.Graph):
-  def __init__(self, model):
-      super().__init__()
-      self.model = model
-
-  def build(self, *input):
-      return self.model(*input)
 
 
 if __name__ == '__main__':

@@ -40,7 +40,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 
-[![License](https://img.shields.io/badge/License-BSD3-lightgrey.svg)](https://opensource.org/licenses/BSD-3-Clause)
+
 
 # Triton Inference Server OneFlow Backend
 
@@ -57,9 +57,10 @@ docker pull oneflow-serving:0.1
 Download and save model
 
 ```
-cd examples
+cd examples/resnet50_oneflow/
 python3 model.py
-cd ..
+docker run --runtime=nvidia --rm  -v$(pwd):$(pwd) -w $(pwd) oneflow-serving:0.1 python3 model.py
+cd ../..
 ```
 
 Launch triton server
@@ -69,12 +70,13 @@ docker run --runtime=nvidia --rm -p8000:8000 -p8001:8001 -p8002:8002 -v$(pwd)/ex
 curl -v localhost:8000/v2/health/ready  # ready check
 ```
 
-Send image and predict
+Send images and predict
 
 ```
-cd examples
-python3 client.py images/cat.jpg
-python3 client.py images/dog.jpg
+cd examples/resnet50_oneflow/
+pip3 install tritonclient[all]
+python3 client.py --image images/cat.jpg
+python3 client.py --image images/dog.jpg
 ```
 
 ## Build

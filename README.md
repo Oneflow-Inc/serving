@@ -42,7 +42,6 @@ limitations under the License.
 
 # Triton Inference Server OneFlow Backend
 
-[![build](https://github.com/zzk0/oneflow_backend/blob/dev_triton_backend_test/.github/workflows/test.yml/badge.svg)](https://github.com/zzk0/oneflow_backend/blob/dev_triton_backend_test/.github/workflows/test.yml)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Oneflow-Inc/serving/pulls)
 
 OneFlow Backend For Triton Inference Server

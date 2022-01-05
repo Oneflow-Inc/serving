@@ -47,7 +47,7 @@ limitations under the License.
 #include <cstdint>
 #include <string>
 
-#include "oneflow/api/cpp/api.h"
+#include "oneflow/api.h"
 #include "oneflow_utils.h"
 #include "triton/backend/backend_common.h"
 #include "triton/backend/backend_memory.h"

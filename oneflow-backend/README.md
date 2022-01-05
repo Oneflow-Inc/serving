@@ -40,32 +40,52 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 
-[![License](https://img.shields.io/badge/License-BSD3-lightgrey.svg)](https://opensource.org/licenses/BSD-3-Clause)
-
 # Triton Inference Server OneFlow Backend
 
-Developing OneFlow Backend For Triton Inference Server
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Oneflow-Inc/serving/pulls)
+
+OneFlow Backend For Triton Inference Server
+
+## Quick Start
+
+Pull docker image and install oneflow
+
+```
+docker pull oneflowinc/oneflow-serving:0.1
+python3 -m pip install -f https://release.oneflow.info oneflow==0.6.0+cu102+mlir
+```
+
+Download and save model
+
+```
+cd examples/resnet50_oneflow/
+python3 export_model.py
+```
+
+Launch triton server
+
+```
+docker run --runtime=nvidia --rm -p8000:8000 -p8001:8001 -p8002:8002 -v$(pwd)/examples:/models oneflow-serving:0.1 /opt/tritonserver/bin/tritonserver --model-repository=/models
+curl -v localhost:8000/v2/health/ready  # ready check
+```
+
+Send images and predict
+
+```
+pip3 install tritonclient[all]
+cd examples/resnet50_oneflow/
+python3 client.py --image cat.jpg
+```
 
 ## Build
+
+build oneflow backend from source
 
 ```
 mkdir build
 cd build
-cmake -DCMAKE_INSTALL_PREFIX:PATH=`pwd`/install  -DTRITON_BACKEND_REPO_TAG=r21.10 -DTRITON_CORE_REPO_TAG=r21.10 -DTRITON_COMMON_REPO_TAG=r21.10 -G Ninja -DCMAKE_PREFIX_PATH=/triton/oneflow/build-clang/liboneflow/share -DTRITON_ENABLE_GPU=ON ..
+cmake -DCMAKE_INSTALL_PREFIX:PATH=`pwd`/install  -DTRITON_BACKEND_REPO_TAG=r21.10 -DTRITON_CORE_REPO_TAG=r21.10 -DTRITON_COMMON_REPO_TAG=r21.10 -G Ninja -DCMAKE_PREFIX_PATH=/path/to/liboneflow_cpp -DTRITON_ENABLE_GPU=ON ..
 ninja
-```
-
-## Model Repository
-
-The Model Examples are located here: `docs/examples/model_repository`
-
-## Run
-
-```
-nvidia-docker run --rm --runtime=nvidia --shm-size=2g --network=host -it --name triton-server -v `pwd`:/triton nvcr.io/nvidia/tritonserver:21.10-py3 bash
-apt update && apt install libopenblas-dev
-export LD_LIBRARY_PATH=/triton/  # /triton has liboneflow.so
-./bin/tritonserver --model-store ./models  # put your models in ./models
 ```
 
 ## Model Config Convention

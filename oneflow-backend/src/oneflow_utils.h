@@ -49,7 +49,7 @@ limitations under the License.
 #include <utility>
 #include <vector>
 
-#include "oneflow/api.h"
+#include "oneflow/api/cpp/api.h"
 #include "triton/backend/backend_common.h"
 #include "triton/core/tritonserver.h"
 

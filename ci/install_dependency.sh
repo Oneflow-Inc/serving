@@ -18,10 +18,11 @@ pip3 install flowvision
 pip3 install tritonclient[all]
 
 # build oneflow-backend
+export TRITON_VER=r20.12
 cd /ofserving
 mkdir build
 cd build
-cmake -DCMAKE_INSTALL_PREFIX:PATH=`pwd`/install  -DTRITON_BACKEND_REPO_TAG=r21.10 -DTRITON_CORE_REPO_TAG=r21.10 -DTRITON_COMMON_REPO_TAG=r21.10 -G Ninja -DCMAKE_PREFIX_PATH=/liboneflow/share -DTRITON_ENABLE_GPU=ON ..
+cmake -DCMAKE_INSTALL_PREFIX:PATH=`pwd`/install  -DTRITON_BACKEND_REPO_TAG=${TRITON_VER} -DTRITON_CORE_REPO_TAG=${TRITON_VER} -DTRITON_COMMON_REPO_TAG=${TRITON_VER} -G Ninja -DCMAKE_PREFIX_PATH=/oneflow/build/liboneflow_cpp/share -DTRITON_ENABLE_GPU=ON ..
 ninja
 mkdir /opt/tritonserver/backends
 mkdir /opt/tritonserver/backends/oneflow

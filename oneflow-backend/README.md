@@ -82,9 +82,10 @@ python3 client.py --image cat.jpg
 build oneflow backend from source
 
 ```
+export TRITON_VER=r20.12
 mkdir build
 cd build
-cmake -DCMAKE_INSTALL_PREFIX:PATH=`pwd`/install  -DTRITON_BACKEND_REPO_TAG=r21.10 -DTRITON_CORE_REPO_TAG=r21.10 -DTRITON_COMMON_REPO_TAG=r21.10 -G Ninja -DCMAKE_PREFIX_PATH=/path/to/liboneflow_cpp -DTRITON_ENABLE_GPU=ON ..
+cmake -DCMAKE_INSTALL_PREFIX:PATH=`pwd`/install  -DTRITON_BACKEND_REPO_TAG=${TRITON_VER} -DTRITON_CORE_REPO_TAG=${TRITON_VER} -DTRITON_COMMON_REPO_TAG=${TRITON_VER} -G Ninja -DCMAKE_PREFIX_PATH=/path/to/liboneflow_cpp -DTRITON_ENABLE_GPU=ON ..
 ninja
 ```
 

@@ -30,34 +30,34 @@ jobs:
       - name: touch a file
         run: touch a.txt
 
-  build_oneflow_backend:
-    name: Build OneFlow Backend
-    runs-on: self-hosted
-    needs: [build_oneflow]
-    steps:
-      - name: append a file
-        run: |
-          ls -alh
-          echo "hello" > a.txt
+  # build_oneflow_backend:
+  #   name: Build OneFlow Backend
+  #   runs-on: self-hosted
+  #   needs: [build_oneflow]
+  #   steps:
+  #     - name: append a file
+  #       run: |
+  #         ls -alh
+  #         echo "hello" > a.txt
 
-  build_user_image:
-    name: Build User Image
-    runs-on: self-hosted
-    needs: [build_oneflow_backend]
-    steps:
-      - name: cat a file and append
-        runs: |
-          ls -alh
-          cat a.txt
-          echo "asdfasfd" > a.txt
+  # build_user_image:
+  #   name: Build User Image
+  #   runs-on: self-hosted
+  #   needs: [build_oneflow_backend]
+  #   steps:
+  #     - name: cat a file and append
+  #       runs: |
+  #         ls -alh
+  #         cat a.txt
+  #         echo "asdfasfd" > a.txt
   
-  run_test:
-    name: Run Test
-    runs-on: self-hosted
-    needs: [build_user_image]
-    steps:
-      - name: cat a file and delete
-        runs: |
-          ls -alh
-          cat a.txt
-          rm a.txt
+  # run_test:
+  #   name: Run Test
+  #   runs-on: self-hosted
+  #   needs: [build_user_image]
+  #   steps:
+  #     - name: cat a file and delete
+  #       runs: |
+  #         ls -alh
+  #         cat a.txt
+  #         rm a.txt

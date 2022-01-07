@@ -23,6 +23,7 @@ jobs:
           access_token: ${{ github.token }}
 
   build_oneflow:
+    name: Build OneFlow
     runs-on: self-hosted
     needs: [cancel_previous]
     steps:
@@ -30,6 +31,7 @@ jobs:
         run: touch a.txt
 
   build_oneflow_backend:
+    name: Build OneFlow Backend
     runs-on: self-hosted
     needs: [build_oneflow]
     steps:
@@ -39,6 +41,7 @@ jobs:
           echo "hello" > a.txt
 
   build_user_image:
+    name: Build User Image
     runs-on: self-hosted
     needs: [build_oneflow_backend]
     steps:
@@ -49,6 +52,7 @@ jobs:
           echo "asdfasfd" > a.txt
   
   run_test:
+    name: Run Test
     runs-on: self-hosted
     needs: [build_user_image]
     steps:

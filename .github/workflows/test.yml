@@ -1,0 +1,98 @@
+name: OneFlow Serving
+
+on: [push]
+  # pull_request:
+  #   # types: [review_requested]
+  #   branches:
+  #     - "*"
+  # workflow_dispatch:
+  #   inputs:
+  #     placeholder:
+  #       description: "placeholder, no effect"
+  #       required: false
+
+jobs:
+  cancel_previous:
+    name: Cancel previous runs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cancel previous runs of outdated commit
+        if: github.ref != 'refs/heads/master'
+        uses: styfle/cancel-workflow-action@0.9.0
+        with:
+          access_token: ${{ github.token }}
+
+  build_oneflow:
+    runs-on: self-hosted
+    needs: [cancel_previous]
+    steps:
+      - name: touch a file
+        run: touch a.txt
+
+  build_oneflow_backend:
+    runs-on: self-hosted
+    needs: [build_oneflow]
+    steps:
+      - name: append a file
+        run: |
+          ls -alh
+          echo "hello" > a.txt
+
+  build_user_image:
+    runs-on: self-hosted
+    needs: [build_oneflow_backend]
+    steps:
+      - name: cat a file and append
+        runs: |
+          ls -alh
+          cat a.txt
+          echo "asdfasfd" > a.txt
+  
+  run_test:
+    runs-on: self-hosted
+    needs: [build_user_image]
+    steps:
+      - name: cat a file and delete
+          runs: |
+            ls -alh
+            cat a.txt
+            rm a.txt
+
+  # build:
+  #   # if: github.event.pull_request.draft == false && github.base_ref == 'main' && contains(github.event.pull_request.requested_reviewers.*.login, 'oneflow-ci-bot')
+  #   # runs-on: [self-hosted, linux, provision]
+  #   runs-on: self-hosted
+  #   needs: [cancel_previous]
+  #   steps:
+  #     - name: Fix permissions
+  #       run: |
+  #         docker run --rm -v $PWD:/p -w /p busybox chmod -R o+w .
+  #     - uses: actions/checkout@v2
+  #     - name: Set environment variables
+  #       env:
+  #         test_suite: 1 # ${{matrix.test_suite }}
+  #       run: |
+  #         set -x
+  #         extra_docker_args=""
+  #         container_name=serving-pr-${{ github.event.pull_request.number }}-run-id-${{ github.run_id }}-${test_suite}-test
+  #         extra_docker_args+=" --runtime=nvidia"
+  #         extra_docker_args+=" --name ${container_name}"
+  #         extra_docker_args+=" --shm-size=8g"
+  #         extra_docker_args+=" -v $(pwd):/ofserving"
+  #         extra_docker_args+=" -w /ofserving/ci"
+  #         echo "extra_docker_args=${extra_docker_args}" >> $GITHUB_ENV
+  #         echo "container_name=${container_name}" >> $GITHUB_ENV
+  #         echo "image_tag=oneflow-serving-ci:0.1" >> $GITHUB_ENV
+  #     - name: Load image
+  #       if: env.should_load_img == '1'
+  #       run: |
+  #         docker pull ${{ env.image_tag }}
+  #     - name: Test
+  #       run: |
+  #         docker run $extra_docker_args \
+  #           ${{ env.image_tag }} \
+  #           /bin/bash run_tests.sh
+  #     - name: Remove container
+  #       if: always()
+  #       run: |
+  #         docker rm -f ${{ env.container_name }} || true

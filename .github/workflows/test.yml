@@ -53,7 +53,7 @@ jobs:
     needs: [build_user_image]
     steps:
       - name: cat a file and delete
-          runs: |
-            ls -alh
-            cat a.txt
-            rm a.txt
+        runs: |
+          ls -alh
+          cat a.txt
+          rm a.txt

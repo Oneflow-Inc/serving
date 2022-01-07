@@ -14,10 +14,6 @@
 
 export CUDA_VISIBLE_DEVICES=0
 
-# download model
-export PYTHONPATH=/oneflow/python
-(cd ./resnet50_oneflow/ && python3 export_model.py)
-
 rm -rf ./models
 mkdir ./models
 cp -r ./resnet50_oneflow ./models

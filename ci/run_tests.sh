@@ -14,8 +14,6 @@
 
 set -uex
 
-./install_dependency.sh
-
 DIRS=(test_*/)
 
 for dir in "${DIRS[@]}"; do

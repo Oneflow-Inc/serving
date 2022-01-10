@@ -14,6 +14,11 @@
 
 set -uex
 
+# TODO(zzk0): remove this
+export HTTP_PROXY="http://192.168.1.12:10609"
+git config --global http.proxy ${HTTP_PROXY}
+git config --global https.proxy ${HTTP_PROXY}
+
 # build oneflow
 cd oneflow
 mkdir build

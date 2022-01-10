@@ -93,10 +93,10 @@ jobs:
         run: |
           docker container rm -f ${{ env.container_name }}
 
-  run_test:
-    name: Run Test
-    runs-on: self-hosted
-    needs: [build_user_image]
-    steps:
-      - name: Run Tests
-      # run tests
+  # run_test:
+  #   name: Run Test
+  #   runs-on: self-hosted
+  #   needs: [build_user_image]
+  #   steps:
+  #     - name: Run Tests
+  #     # run tests

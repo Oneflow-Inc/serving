@@ -12,6 +12,13 @@ on: [push]
   #       required: false
 
 jobs:
+  just_print:
+    name: Just Print
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print current directory
+        run: ls -al
+
   cancel_previous:
     name: Cancel previous runs
     runs-on: ubuntu-latest

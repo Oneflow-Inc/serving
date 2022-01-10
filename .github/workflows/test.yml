@@ -12,13 +12,6 @@ on: [push]
   #       required: false
 
 jobs:
-  just_print:
-    name: Just Print
-    runs-on: ubuntu-latest
-    steps:
-      - name: Print current directory
-        run: ls -al
-
   cancel_previous:
     name: Cancel previous runs
     runs-on: ubuntu-latest
@@ -31,87 +24,79 @@ jobs:
 
   build_oneflow:
     name: Build OneFlow and Backend
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: [cancel_previous]
     steps:
-      - name: Print current directory
-        run: ls -al
-      - name: Check out OneFlow
-        uses: actions/checkout@v2
-        with:
-          repository: Oneflow-Inc/oneflow
-      - name: Print current directory
-        run: ls -al
+      - name: Clone OneFlow
+        run: git clone https://github.com/Oneflow-Inc/oneflow --depth=1
+      - name: Set environment variables
+        env:
+          test_suite: 1 # ${{matrix.test_suite }}
+        run: |
+          set -x
+          extra_docker_args=""
+          container_name=serving-build-${{ github.event.pull_request.number }}-run-id-${{ github.run_id }}-${test_suite}-test
+          extra_docker_args+=" --runtime=nvidia"
+          extra_docker_args+=" --name ${container_name}"
+          extra_docker_args+=" --shm-size=8g --rm -w $PWD -v $PWD:$PWD"
+          echo "extra_docker_args=${extra_docker_args}" >> $GITHUB_ENV
+          echo "container_name=${container_name}" >> $GITHUB_ENV
+          echo "image_tag=triton-devel" >> $GITHUB_ENV
+      - name: Test
+        run: |
+          docker run $extra_docker_args \
+            ${{ env.image_tag }} \
+            /bin/bash ci/build.sh
+      - name: Copy tritonserver
+        run: |
+          docker cp ${{ env.container_name }}:/opt/tritonserver/bin/tritonserver .
+          docker cp ${{ env.container_name }}:/opt/tritonserver/lib .
+          docker cp ${{ env.container_name }}:/usr/lib/x86_64-linux-gnu/libb64.so ./oneflow/build/liboneflow_cpp/lib/
+          docker cp ${{ env.container_name }}:/usr/lib/x86_64-linux-gnu/libdcgm.so.2.2.9 ./oneflow/build/liboneflow_cpp/lib/
+          docker cp ${{ env.container_name }}:/usr/lib/x86_64-linux-gnu/libdcgm.so.2 ./oneflow/build/liboneflow_cpp/lib/
+          docker cp ${{ env.container_name }}:/usr/lib/x86_64-linux-gnu/libre2.so.5.0.0 ./oneflow/build/liboneflow_cpp/lib/
+          docker cp ${{ env.container_name }}:/usr/lib/x86_64-linux-gnu/libre2.so.5 ./oneflow/build/liboneflow_cpp/lib/
+      - name: Remove container
+        run: |
+          docker container rm ${{ env.container_name }}
 
-  # build_oneflow:
-  #   name: Build OneFlow and Backend
-  #   runs-on: self-hosted
-  #   needs: [cancel_previous]
-  #   steps:
-  #     - name: Clone OneFlow
-  #       run: git clone https://github.com/Oneflow-Inc/oneflow --depth=1
-  #     - name: Set environment variables
-  #       env:
-  #         test_suite: 1 # ${{matrix.test_suite }}
-  #       run: |
-  #         set -x
-  #         extra_docker_args=""
-  #         container_name=serving-build-${{ github.event.pull_request.number }}-run-id-${{ github.run_id }}-${test_suite}-test
-  #         extra_docker_args+=" --runtime=nvidia"
-  #         extra_docker_args+=" --name ${container_name}"
-  #         extra_docker_args+=" --shm-size=8g --rm -w $PWD -v $PWD:$PWD"
-  #         echo "extra_docker_args=${extra_docker_args}" >> $GITHUB_ENV
-  #         echo "container_name=${container_name}" >> $GITHUB_ENV
-  #         echo "image_tag=oneflow-serving-ci" >> $GITHUB_ENV
-  #     - name: Test
-  #       run: |
-  #         docker run $extra_docker_args \
-  #           ${{ env.image_tag }} \
-  #           /bin/bash ci/build.sh
-  #     - name: Copy tritonserver
-  #       run: |
-  #         docker cp ${{ env.container_name }}:/opt/tritonserver/bin/tritonserver .
-  #         docker cp ${{ env.container_name }}:/opt/tritonserver/lib .
-  #     - name: Remove container
-  #       run: |
-  #         docker container rm ${{ env.container_name }}
+  make_user_image:
+    name: Build User Image
+    runs-on: self-hosted
+    needs: [build_oneflow]
+    steps:
+      - name: Set environment variables
+        env:
+          test_suite: 1 # ${{matrix.test_suite }}
+        run: |
+          set -x
+          extra_docker_args=""
+          container_name=user-image-${{ github.event.pull_request.number }}-run-id-${{ github.run_id }}-${test_suite}-test
+          extra_docker_args+=" --runtime=nvidia"
+          extra_docker_args+=" --name ${container_name}"
+          extra_docker_args+=" --shm-size=8g --rm -w $PWD -v $PWD:$PWD"
+          echo "extra_docker_args=${extra_docker_args}" >> $GITHUB_ENV
+          echo "container_name=${container_name}" >> $GITHUB_ENV
+          echo "image_tag=nvcr.io/nvidia/tritonserver:21.10-py3-min" >> $GITHUB_ENV
+      - name: Test
+        run: |
+          docker run $extra_docker_args ${{ env.image_tag }} sleep 3600
+          docker exec ${{ env.container_name }} mkdir -p /opt/tritonserver/bin
+          docker exec ${{ env.container_name }} mkdir -p /opt/tritonserver/backends/oneflow
+          docker exec ${{ env.container_name }} mkdir -p /usr/local/nvidia/lib
+          docker cp ./oneflow/build/liboneflow_cpp/lib/ ${{ env.container_name }}:/usr/local/nvidia/
+          docker cp tritonserver ${{ env.container_name }}:/opt/tritonserver/bin
+          docker cp lib ${{ env.container_name }}:/opt/tritonserver/
+          docker cp ./build/libtriton_oneflow.so ${{ env.container_name }}:/opt/tritonserver/backends/oneflow
+          docker exec ${{ env.container_name }} bash ./ci/run_tests.sh
+      - name: Remove container
+        run: |
+          docker container rm -f ${{ env.container_name }}
 
-  # make_user_image:
-  #   name: Build User Image
-  #   runs-on: self-hosted
-  #   needs: [build_oneflow]
-  #   steps:
-  #     - name: Set environment variables
-  #       env:
-  #         test_suite: 1 # ${{matrix.test_suite }}
-  #       run: |
-  #         set -x
-  #         extra_docker_args=""
-  #         container_name=user-image-${{ github.event.pull_request.number }}-run-id-${{ github.run_id }}-${test_suite}-test
-  #         extra_docker_args+=" --runtime=nvidia"
-  #         extra_docker_args+=" --name ${container_name}"
-  #         extra_docker_args+=" --shm-size=8g --rm -w $PWD -v $PWD:$PWD"
-  #         echo "extra_docker_args=${extra_docker_args}" >> $GITHUB_ENV
-  #         echo "container_name=${container_name}" >> $GITHUB_ENV
-  #         echo "image_tag=nvcr.io/nvidia/tritonserver:21.10-py3-min" >> $GITHUB_ENV
-  #     - name: Test
-  #       run: |
-  #         docker run $extra_docker_args ${{ env.image_tag }} sleep 3600
-  #         docker exec ${{ env.container_name }} mkdir -p /opt/tritonserver/bin
-  #         docker exec ${{ env.container_name }} mkdir -p /opt/tritonserver/backends/oneflow
-  #         docker exec ${{ env.container_name }} mkdir -p /usr/local/nvidia/lib
-  #         docker cp ./oneflow/build/liboneflow_cpp/lib/ ${{ env.container_name }}:/usr/local/nvidia/
-  #         docker cp tritonserver ${{ env.container_name }}:/opt/tritonserver/bin
-  #         docker cp lib ${{ env.container_name }}:/opt/tritonserver/
-  #         docker cp ./build/libtriton_oneflow.so ${{ env.container_name }}:/opt/tritonserver/backends/oneflow
-  #     - name: Remove container
-  #       run: |
-  #         docker container rm -f ${{ env.container_name }}
-
-  # run_test:
-  #   name: Run Test
-  #   runs-on: self-hosted
-  #   needs: [build_user_image]
-  #   steps:
-  #     - name: Run Tests
-  #     # run tests
+  run_test:
+    name: Run Test
+    runs-on: self-hosted
+    needs: [build_user_image]
+    steps:
+      - name: Run Tests
+      # run tests

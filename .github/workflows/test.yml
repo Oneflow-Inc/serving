@@ -27,6 +27,14 @@ jobs:
     runs-on: self-hosted
     needs: [cancel_previous]
     steps:
+      - name: current directory
+        run: |
+          pwd
+          ls -al
+          docker images
+      - name: Fix permissions
+        run: |
+          docker run --rm -v $PWD:/p -w /p busybox chmod -R o+w .
       - uses: actions/checkout@v2
       - name: Clone OneFlow
         run: git clone https://github.com/Oneflow-Inc/oneflow --depth=1

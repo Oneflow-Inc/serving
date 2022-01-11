@@ -100,7 +100,8 @@ jobs:
           docker cp tritonserver ${{ env.container_name }}:/opt/tritonserver/bin
           docker cp lib ${{ env.container_name }}:/opt/tritonserver/
           docker cp ./oneflow-backend/build/libtriton_oneflow.so ${{ env.container_name }}:/opt/tritonserver/backends/oneflow
-          docker exec -w $(pwd)/ci ${{ env.container_name }} apt update && apt install -y python3 python3-pip
+          docker exec ${{ env.container_name }} apt update
+          docker exec ${{ env.container_name }} apt install -y python3 python3-pip
           docker exec -w $(pwd)/ci ${{ env.container_name }} pip3 install -r requirement.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
           docker exec -w $(pwd)/ci ${{ env.container_name }} bash ./run_tests.sh
       - name: Remove container

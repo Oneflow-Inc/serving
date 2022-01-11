@@ -45,6 +45,6 @@ cmake -DCMAKE_INSTALL_PREFIX:PATH=`pwd`/install  -DTRITON_BACKEND_REPO_TAG=$TRIT
 ninja
 
 # install flowvision, run export model
-pip3 install flowvision
+pip3 install flowvision -i https://pypi.tuna.tsinghua.edu.cn/simple
 cd ../../ci/test_resnet50_oneflow/resnet50_oneflow
 python3 export_model.py

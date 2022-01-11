@@ -58,6 +58,7 @@ jobs:
             /bin/bash ci/build.sh
       - name: Copy tritonserver
         run: |
+          docker container ls -a
           docker cp ${{ env.container_name }}:/opt/tritonserver/bin/tritonserver .
           docker cp ${{ env.container_name }}:/opt/tritonserver/lib .
           docker cp ${{ env.container_name }}:/usr/lib/x86_64-linux-gnu/libb64.so ./oneflow/build/liboneflow_cpp/lib/

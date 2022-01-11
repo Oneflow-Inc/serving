@@ -35,12 +35,9 @@ jobs:
       - name: Fix permissions
         run: |
           docker run --rm -v $PWD:/p -w /p busybox chmod -R o+w .
-      # - uses: actions/checkout@v2
-      # - name: Clone OneFlow
-      #   run: git clone https://github.com/Oneflow-Inc/oneflow --depth=1
       - name: Set environment variables
         env:
-          test_suite: 1 # ${{matrix.test_suite }}
+          test_suite: ${{ matrix.test_suite }}
         run: |
           set -x
           extra_docker_args=""

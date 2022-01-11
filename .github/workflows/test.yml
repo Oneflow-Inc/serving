@@ -91,7 +91,7 @@ jobs:
           docker cp lib ${{ env.container_name }}:/opt/tritonserver/
           docker cp ./oneflow-backend/build/libtriton_oneflow.so ${{ env.container_name }}:/opt/tritonserver/backends/oneflow
       - name: Make user docker image
-        if: ${{ github.event_name == 'release' }}
+        # if: ${{ github.event_name == 'release' }}
         run: |
           docker commit ${{ env.container_name }} oneflow-serving:${{ github.ref_name }}
       - name: Test

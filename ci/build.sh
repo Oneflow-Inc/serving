@@ -21,10 +21,10 @@ git config --global https.proxy ${HTTP_PROXY}
 
 # build oneflow
 cd oneflow
-# mkdir build
+mkdir build
 cd build
-# cmake .. -C ../cmake/caches/cn/cuda.cmake -DBUILD_CPP_API=ON -DBUILD_SHARED_LIBS=ON -DBUILD_MONOLITHIC_LIBONEFLOW_CPP_SO=OFF -DWITH_MLIR=ON -G Ninja
-# ninja
+cmake .. -C ../cmake/caches/cn/cuda.cmake -DBUILD_CPP_API=ON -DBUILD_SHARED_LIBS=ON -DBUILD_MONOLITHIC_LIBONEFLOW_CPP_SO=OFF -DWITH_MLIR=ON -G Ninja
+ninja
 export ONEFLOW_BUILD=$(pwd)
 export PYTHONPATH=$(pwd)/../python
 

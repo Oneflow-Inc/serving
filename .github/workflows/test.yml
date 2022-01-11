@@ -1,15 +1,12 @@
 name: OneFlow Serving
 
-on: [push]
-  # pull_request:
-  #   # types: [review_requested]
-  #   branches:
-  #     - "*"
-  # workflow_dispatch:
-  #   inputs:
-  #     placeholder:
-  #       description: "placeholder, no effect"
-  #       required: false
+on:
+  push:
+    branches:
+      - "*"
+  release:
+    types:
+      - published
 
 jobs:
   cancel_previous:
@@ -37,7 +34,7 @@ jobs:
         run: |
           set -x
           extra_docker_args=""
-          container_name=serving-build-${{ github.event.pull_request.number }}-run-id-${{ github.run_id }}-test
+          container_name=serving-build-run-id-${{ github.run_id }}-test
           extra_docker_args+=" --runtime=nvidia"
           extra_docker_args+=" --name ${container_name}"
           extra_docker_args+=" --shm-size=8g -w $PWD -v $PWD:$PWD"
@@ -70,18 +67,20 @@ jobs:
     needs: [build_oneflow]
     steps:
       - name: Set environment variables
+        env:
+          triton_version: 21.10
         run: |
           set -x
           extra_docker_args=""
-          container_name=user-image-${{ github.event.pull_request.number }}-run-id-${{ github.run_id }}-test
+          container_name=user-image-run-id-${{ github.run_id }}-test
           extra_docker_args+=" --runtime=nvidia"
           extra_docker_args+=" --detach"
           extra_docker_args+=" --name ${container_name}"
           extra_docker_args+=" --shm-size=8g --rm -w $PWD -v $PWD:$PWD"
           echo "extra_docker_args=${extra_docker_args}" >> $GITHUB_ENV
           echo "container_name=${container_name}" >> $GITHUB_ENV
-          echo "image_tag=nvcr.io/nvidia/tritonserver:21.10-py3-min" >> $GITHUB_ENV
-      - name: Test
+          echo "image_tag=nvcr.io/nvidia/tritonserver:${{ env.triton_version }}-py3-min" >> $GITHUB_ENV
+      - name: Copy Dependency
         run: |
           docker run $extra_docker_args ${{ env.image_tag }} sleep 3600
           docker exec ${{ env.container_name }} mkdir -p /opt/tritonserver/bin
@@ -91,7 +90,12 @@ jobs:
           docker cp tritonserver ${{ env.container_name }}:/opt/tritonserver/bin
           docker cp lib ${{ env.container_name }}:/opt/tritonserver/
           docker cp ./oneflow-backend/build/libtriton_oneflow.so ${{ env.container_name }}:/opt/tritonserver/backends/oneflow
-          docker commit ${{ env.container_name }} oneflow-serving
+      - name: Make user docker image
+        if: ${{ github.event_name == 'release' }}
+        run: |
+          docker commit ${{ env.container_name }} oneflow-serving:${{ github.ref_name }}
+      - name: Test
+        run: |
           docker exec ${{ env.container_name }} apt update
           docker exec ${{ env.container_name }} apt install -y python3 python3-pip
           docker exec -w $(pwd)/ci ${{ env.container_name }} pip3 install -r requirement.txt -i https://pypi.tuna.tsinghua.edu.cn/simple

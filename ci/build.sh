@@ -25,6 +25,14 @@ mkdir build
 cd build
 cmake .. -C ../cmake/caches/cn/cuda.cmake -DBUILD_CPP_API=ON -DBUILD_SHARED_LIBS=ON -DBUILD_MONOLITHIC_LIBONEFLOW_CPP_SO=OFF -DWITH_MLIR=ON -G Ninja
 ninja
+
+# copy dependencies
+cp oneflow/ir/lib/*.so liboneflow_cpp/lib/
+cp oneflow/ir/lib/*.so.VERSION liboneflow_cpp/lib/
+cp oneflow/ir/llvm_monorepo-build/lib/* liboneflow_cpp/lib/
+cp third_party_install/glog/install/lib/libglog.so* liboneflow_cpp/lib/
+cp third_party_install/protobuf/lib/libprotobuf.so* liboneflow_cpp/lib/
+cp third_party_install/nccl/lib/libnccl.so* liboneflow_cpp/lib/
 export ONEFLOW_BUILD=$(pwd)
 export PYTHONPATH=$(pwd)/../python
 

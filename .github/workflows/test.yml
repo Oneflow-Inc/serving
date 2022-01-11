@@ -84,6 +84,7 @@ jobs:
           extra_docker_args=""
           container_name=user-image-${{ github.event.pull_request.number }}-run-id-${{ github.run_id }}-${test_suite}-test
           extra_docker_args+=" --runtime=nvidia"
+          extra_docker_args+=" --detach"
           extra_docker_args+=" --name ${container_name}"
           extra_docker_args+=" --shm-size=8g --rm -w $PWD -v $PWD:$PWD"
           echo "extra_docker_args=${extra_docker_args}" >> $GITHUB_ENV

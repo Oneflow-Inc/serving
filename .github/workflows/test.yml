@@ -26,22 +26,18 @@ jobs:
     name: Build OneFlow and Backend
     runs-on: self-hosted
     needs: [cancel_previous]
-    steps:
-      - name: current directory
-        run: |
-          pwd
-          ls -al
-          docker images
+    steps: 
       - name: Fix permissions
         run: |
           docker run --rm -v $PWD:/p -w /p busybox chmod -R o+w .
+      - uses: actions/checkout@v2
+      - name: Clone OneFlow Source Code
+        run: git clone https://github.com/Oneflow-Inc/oneflow --depth=1
       - name: Set environment variables
-        env:
-          test_suite: ${{ matrix.test_suite }}
         run: |
           set -x
           extra_docker_args=""
-          container_name=serving-build-${{ github.event.pull_request.number }}-run-id-${{ github.run_id }}-${test_suite}-test
+          container_name=serving-build-${{ github.event.pull_request.number }}-run-id-${{ github.run_id }}-test
           extra_docker_args+=" --runtime=nvidia"
           extra_docker_args+=" --name ${container_name}"
           extra_docker_args+=" --shm-size=8g -w $PWD -v $PWD:$PWD"
@@ -74,12 +70,10 @@ jobs:
     needs: [build_oneflow]
     steps:
       - name: Set environment variables
-        env:
-          test_suite: 1 # ${{matrix.test_suite }}
         run: |
           set -x
           extra_docker_args=""
-          container_name=user-image-${{ github.event.pull_request.number }}-run-id-${{ github.run_id }}-${test_suite}-test
+          container_name=user-image-${{ github.event.pull_request.number }}-run-id-${{ github.run_id }}-test
           extra_docker_args+=" --runtime=nvidia"
           extra_docker_args+=" --detach"
           extra_docker_args+=" --name ${container_name}"

@@ -84,7 +84,7 @@ jobs:
           container_name=user-image-${{ github.event.pull_request.number }}-run-id-${{ github.run_id }}-${test_suite}-test
           extra_docker_args+=" --runtime=nvidia"
           extra_docker_args+=" --name ${container_name}"
-          extra_docker_args+=" --shm-size=8g --rm -w $PWD -v $PWD:$PWD"
+          extra_docker_args+=" --shm-size=8g -w $PWD -v $PWD:$PWD"
           echo "extra_docker_args=${extra_docker_args}" >> $GITHUB_ENV
           echo "container_name=${container_name}" >> $GITHUB_ENV
           echo "image_tag=nvcr.io/nvidia/tritonserver:21.10-py3-min" >> $GITHUB_ENV

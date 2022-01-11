@@ -31,10 +31,6 @@ jobs:
         run: |
           docker run --rm -v $PWD:/p -w /p busybox chmod -R o+w .
       - uses: actions/checkout@v2
-      - name: Print Current Directory
-        run: |
-          pwd
-          ls -alh
       - name: Clone OneFlow Source Code
         run: git clone https://github.com/Oneflow-Inc/oneflow --depth=1
       - name: Set environment variables

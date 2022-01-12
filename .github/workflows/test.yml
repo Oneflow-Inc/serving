@@ -32,7 +32,7 @@ jobs:
       #   run: git clone https://github.com/Oneflow-Inc/oneflow --depth=1
       - name: Set environment variables
         env:
-          TRITON_VERSION: 21.10
+          TRITON_VERSION: "21.10"
         run: |
           set -x
           extra_docker_args=""
@@ -69,7 +69,7 @@ jobs:
     steps:
       - name: Set environment variables
         env:
-          TRITON_VERSION: 21.10
+          TRITON_VERSION: "21.10"
         run: |
           set -x
           extra_docker_args=""

@@ -21,15 +21,16 @@ git config --global https.proxy ${HTTP_PROXY}
 
 # build oneflow
 cd oneflow
-mkdir build
+# mkdir build
 cd build
-cmake .. -C ../cmake/caches/cn/cuda.cmake -DBUILD_CPP_API=ON -DBUILD_SHARED_LIBS=ON -DBUILD_MONOLITHIC_LIBONEFLOW_CPP_SO=OFF -DWITH_MLIR=ON -G Ninja
-ninja
+# cmake .. -C ../cmake/caches/cn/cuda.cmake -DBUILD_CPP_API=ON -DBUILD_SHARED_LIBS=ON -DBUILD_MONOLITHIC_LIBONEFLOW_CPP_SO=OFF -DWITH_MLIR=ON -G Ninja
+# ninja
 
 # copy dependencies
 cp oneflow/ir/lib/*.so liboneflow_cpp/lib/
 cp oneflow/ir/lib/*.so.VERSION liboneflow_cpp/lib/
-cp oneflow/ir/llvm_monorepo-build/lib/* liboneflow_cpp/lib/
+cp oneflow/ir/llvm_monorepo-build/lib/*.so liboneflow_cpp/lib/
+cp oneflow/ir/llvm_monorepo-build/lib/*.so.14git liboneflow_cpp/lib/
 cp third_party_install/glog/install/lib/libglog.so* liboneflow_cpp/lib/
 cp third_party_install/protobuf/lib/libprotobuf.so* liboneflow_cpp/lib/
 cp third_party_install/nccl/lib/libnccl.so* liboneflow_cpp/lib/
@@ -37,11 +38,10 @@ export ONEFLOW_BUILD=$(pwd)
 export PYTHONPATH=$(pwd)/../python
 
 # build oneflow-backend
-export TRITON_VER=r21.10
 cd ../../oneflow-backend
 mkdir build
 cd build
-cmake -DCMAKE_INSTALL_PREFIX:PATH=`pwd`/install  -DTRITON_BACKEND_REPO_TAG=$TRITON_VER -DTRITON_CORE_REPO_TAG=$TRITON_VER -DTRITON_COMMON_REPO_TAG=$TRITON_VER -G Ninja -DCMAKE_PREFIX_PATH=$ONEFLOW_BUILD/liboneflow_cpp/share -DTRITON_ENABLE_GPU=ON ..
+cmake -DCMAKE_INSTALL_PREFIX:PATH=`pwd`/install  -DTRITON_BACKEND_REPO_TAG=r$TRITON_VERSION -DTRITON_CORE_REPO_TAG=r$TRITON_VERSION -DTRITON_COMMON_REPO_TAG=r$TRITON_VERSION -G Ninja -DCMAKE_PREFIX_PATH=$ONEFLOW_BUILD/liboneflow_cpp/share -DTRITON_ENABLE_GPU=ON ..
 ninja
 
 # install flowvision, run export model

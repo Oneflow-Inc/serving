@@ -21,10 +21,10 @@ git config --global https.proxy ${HTTP_PROXY}
 
 # build oneflow
 cd oneflow
-# mkdir build
+mkdir -p build
 cd build
-# cmake .. -C ../cmake/caches/cn/cuda.cmake -DBUILD_CPP_API=ON -DBUILD_SHARED_LIBS=ON -DBUILD_MONOLITHIC_LIBONEFLOW_CPP_SO=OFF -DWITH_MLIR=ON -G Ninja
-# ninja
+cmake .. -C ../cmake/caches/cn/cuda.cmake -DBUILD_CPP_API=ON -DBUILD_SHARED_LIBS=ON -DBUILD_MONOLITHIC_LIBONEFLOW_CPP_SO=OFF -DWITH_MLIR=ON -G Ninja
+ninja
 
 # copy dependencies
 cp oneflow/ir/lib/*.so liboneflow_cpp/lib/
@@ -39,12 +39,13 @@ export PYTHONPATH=$(pwd)/../python
 
 # build oneflow-backend
 cd ../../oneflow-backend
-mkdir build
+mkdir -p build
 cd build
 cmake -DCMAKE_INSTALL_PREFIX:PATH=`pwd`/install  -DTRITON_BACKEND_REPO_TAG=r$TRITON_VERSION -DTRITON_CORE_REPO_TAG=r$TRITON_VERSION -DTRITON_COMMON_REPO_TAG=r$TRITON_VERSION -G Ninja -DCMAKE_PREFIX_PATH=$ONEFLOW_BUILD/liboneflow_cpp/share -DTRITON_ENABLE_GPU=ON ..
 ninja
 
 # install flowvision, run export model
-pip3 install flowvision -i https://pypi.tuna.tsinghua.edu.cn/simple
-cd ../../ci/test_resnet50_oneflow/resnet50_oneflow
+cd ../../ci
+pip3 install -r oneflow-requirement.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+cd ./test_resnet50_oneflow/resnet50_oneflow
 python3 export_model.py

@@ -27,9 +27,9 @@ jobs:
       - name: Fix permissions
         run: |
           docker run --rm -v $PWD:/p -w /p busybox chmod -R o+w .
-      # - uses: actions/checkout@v2
-      # - name: Clone oneflow
-      #   run: git clone https://github.com/Oneflow-Inc/oneflow --depth=1
+      - uses: actions/checkout@v2
+      - name: Clone oneflow
+        run: git clone https://github.com/Oneflow-Inc/oneflow --depth=1
       - name: Set environment variables
         env:
           TRITON_VERSION: "21.10"
@@ -92,7 +92,7 @@ jobs:
           docker cp lib ${{ env.container_name }}:/opt/tritonserver/
           docker cp ./oneflow-backend/build/libtriton_oneflow.so ${{ env.container_name }}:/opt/tritonserver/backends/oneflow
       - name: Make user docker image
-        # if: ${{ github.event_name == 'release' }}
+        if: ${{ github.event_name == 'release' }}
         run: |
           docker commit ${{ env.container_name }} oneflow-serving:${{ github.ref_name }}
       - name: Test

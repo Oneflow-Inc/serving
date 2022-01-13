@@ -19,59 +19,6 @@ jobs:
         with:
           access_token: ${{ github.token }}
 
-  test_upload:
-    name: Test upload
-    runs-on: self-hosted
-    needs: [cancel_previous]
-    steps:
-      - echo "file to be upload" > 
-
-  # build_oneflow:
-  #   name: Build oneFlow
-  #   runs-on: self-hosted
-  #   needs: [cancel_previous]
-  #   steps: 
-  #     - name: Fix permissions
-  #       run: |
-  #         docker run --rm -v $PWD:/p -w /p busybox chmod -R o+w .
-  #     - name: Checkout oneflow
-  #       uses: actions/checkout@v2
-  #       with:
-  #         repository: 'Oneflow-Inc/oneflow'
-  #     - name: Set environment variables
-  #       env:
-  #         TRITON_VERSION: "21.10"
-  #       run: |
-  #         set -x
-  #         extra_docker_args=""
-  #         container_name=serving-build-run-id-${{ github.run_id }}-test
-  #         extra_docker_args+=" --runtime=nvidia"
-  #         extra_docker_args+=" --name ${container_name}"
-  #         extra_docker_args+=" --shm-size=8g -w $PWD -v $PWD:$PWD"
-  #         extra_docker_args+=" --env TRITON_VERSION=${{ env.TRITON_VERSION }}"
-  #         echo "extra_docker_args=${extra_docker_args}" >> $GITHUB_ENV
-  #         echo "container_name=${container_name}" >> $GITHUB_ENV
-  #         echo "image_tag=triton-devel" >> $GITHUB_ENV
-  #     - name: Build oneflow and backend
-  #       run: |
-  #         docker run $extra_docker_args ${{ env.image_tag }} /bin/bash ci/build.sh
-  #     - name: Fix permissions
-  #       run: |
-  #         docker run --rm -v $PWD:/p -w /p busybox chmod -R o+w .
-  #     - name: Copy tritonserver
-  #       run: |
-  #         docker cp ${{ env.container_name }}:/opt/tritonserver/bin/tritonserver .
-  #         docker cp ${{ env.container_name }}:/opt/tritonserver/lib .
-  #         docker cp ${{ env.container_name }}:/usr/lib/x86_64-linux-gnu/libb64.so.0d ./oneflow/build/liboneflow_cpp/lib/
-  #         docker cp ${{ env.container_name }}:/usr/lib/x86_64-linux-gnu/libb64.so ./oneflow/build/liboneflow_cpp/lib/
-  #         docker cp ${{ env.container_name }}:/usr/lib/x86_64-linux-gnu/libdcgm.so.2.2.9 ./oneflow/build/liboneflow_cpp/lib/
-  #         docker cp ${{ env.container_name }}:/usr/lib/x86_64-linux-gnu/libdcgm.so.2 ./oneflow/build/liboneflow_cpp/lib/
-  #         docker cp ${{ env.container_name }}:/usr/lib/x86_64-linux-gnu/libre2.so.5.0.0 ./oneflow/build/liboneflow_cpp/lib/
-  #         docker cp ${{ env.container_name }}:/usr/lib/x86_64-linux-gnu/libre2.so.5 ./oneflow/build/liboneflow_cpp/lib/
-  #     - name: Remove container
-  #       run: |
-  #         docker container rm ${{ env.container_name }}
-
   build_oneflow:
     name: Build oneFlow and backend
     runs-on: self-hosted

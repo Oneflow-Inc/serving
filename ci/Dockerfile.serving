@@ -7,5 +7,5 @@ RUN mkdir -p /opt/tritonserver/backends/oneflow
 RUN mkdir -p /usr/local/nvidia/lib
 COPY tritonserver /opt/tritonserver/bin
 COPY lib /opt/tritonserver/
-COPY ./liboneflow_cpp/lib/ /usr/local/nvidia/
+COPY ./liboneflow_cpp/lib/ /usr/local/nvidia/lib
 COPY ./libtriton_oneflow.so /opt/tritonserver/backends/oneflow

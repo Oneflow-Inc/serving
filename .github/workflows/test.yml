@@ -94,7 +94,7 @@ jobs:
           cp oneflow-backend/build/libtriton_oneflow.so context/
           cp tritonserver context/
           cp -r lib/ context/
-          docker build -f ci/Dockerfile.serving context/ -t ${{ env.SERVING_IMAGE }}
+          docker build -f ci/Dockerfile.serving context/ -t ${{ env.image_tag }}
       - name: Test
         run: |
           docker exec ${{ env.container_name }} apt update

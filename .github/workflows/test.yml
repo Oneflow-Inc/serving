@@ -27,9 +27,9 @@ jobs:
       - name: Fix permissions
         run: |
           docker run --rm -v $PWD:/p -w /p busybox chmod -R o+w .
-      # - uses: actions/checkout@v2
-      # - name: Clone oneflow
-      #   run: git clone https://github.com/Oneflow-Inc/oneflow --depth=1
+      - uses: actions/checkout@v2
+      - name: Clone oneflow
+        run: git clone https://github.com/Oneflow-Inc/oneflow --depth=1
       - name: Set environment variables
         env:
           TRITON_VERSION: "21.10"
@@ -106,6 +106,6 @@ jobs:
         run: |
           docker container rm -f ${{ env.container_name }}
       - name: Remove image
-        # if: ${{ github.event_name != 'release' }}
+        if: ${{ github.event_name != 'release' }}
         run: |
           docker rmi $(docker images '${{ env.SERVING_NAME }}' -a -q)

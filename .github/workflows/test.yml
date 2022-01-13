@@ -97,6 +97,7 @@ jobs:
           docker build -f ci/Dockerfile.serving context/ -t ${{ env.image_tag }}
       - name: Test
         run: |
+          docker run $extra_docker_args ${{ env.image_tag }} sleep 3600
           docker exec ${{ env.container_name }} apt update
           docker exec ${{ env.container_name }} apt install -y python3 python3-pip
           docker exec -w $(pwd)/ci ${{ env.container_name }} pip3 install -r requirement.txt -i https://pypi.tuna.tsinghua.edu.cn/simple

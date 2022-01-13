@@ -86,7 +86,7 @@ jobs:
           extra_docker_args+=" --shm-size=8g --rm -w $PWD -v $PWD:$PWD"
           echo "extra_docker_args=${extra_docker_args}" >> $GITHUB_ENV
           echo "container_name=${container_name}" >> $GITHUB_ENV
-          echo "image_tag=nvcr.io/nvidia/tritonserver:${{ env.TRITON_VERSION }}-py3-min" >> $GITHUB_ENV
+          echo "image_tag=${{ env.SERVING_IMAGE }}" >> $GITHUB_ENV
       - name: Make user docker image
         run: |
           mkdir -p context

@@ -3,9 +3,10 @@ ARG TRITON_VERSION=21.10
 FROM nvcr.io/nvidia/tritonserver:$TRITON_VERSION-py3-min
 
 RUN mkdir -p /opt/tritonserver/bin
+RUN mkdir -p /opt/tritonserver/lib
 RUN mkdir -p /opt/tritonserver/backends/oneflow
 RUN mkdir -p /usr/local/nvidia/lib
 COPY tritonserver /opt/tritonserver/bin
-COPY lib /opt/tritonserver/
+COPY lib/ /opt/tritonserver/lib
 COPY ./liboneflow_cpp/lib/ /usr/local/nvidia/lib
 COPY ./libtriton_oneflow.so /opt/tritonserver/backends/oneflow

@@ -8,6 +8,10 @@ on:
     types:
       - published
 
+env:
+  TRITON_VERSION: "21.10"
+  SERVING_IMAGE: "oneflow-serving:${{ github.ref_name }}"
+
 jobs:
   cancel_previous:
     name: Cancel previous runs
@@ -20,7 +24,7 @@ jobs:
           access_token: ${{ github.token }}
 
   build_oneflow:
-    name: Build oneFlow and backend
+    name: Build oneflow and backend
     runs-on: self-hosted
     needs: [cancel_previous]
     steps: 
@@ -31,8 +35,6 @@ jobs:
       - name: Clone oneflow
         run: git clone https://github.com/Oneflow-Inc/oneflow --depth=1
       - name: Set environment variables
-        env:
-          TRITON_VERSION: "21.10"
         run: |
           set -x
           extra_docker_args=""
@@ -73,9 +75,6 @@ jobs:
         run: |
           docker run --rm -v $PWD:/p -w /p busybox chmod -R o+w .
       - name: Set environment variables
-        env:
-          TRITON_VERSION: "21.10"
-          SERVING_IMAGE: "oneflow-serving:${{ github.ref_name }}"
         run: |
           set -x
           extra_docker_args=""
@@ -87,6 +86,7 @@ jobs:
           echo "extra_docker_args=${extra_docker_args}" >> $GITHUB_ENV
           echo "container_name=${container_name}" >> $GITHUB_ENV
           echo "image_tag=${{ env.SERVING_IMAGE }}" >> $GITHUB_ENV
+          echo "triton_version=${{ env.TRITON_VERSION }}" >> $GITHUB_ENV
       - name: Make user docker image
         run: |
           mkdir -p context
@@ -94,7 +94,7 @@ jobs:
           cp oneflow-backend/build/libtriton_oneflow.so context/
           cp tritonserver context/
           cp -r lib/ context/
-          docker build -f ci/Dockerfile.serving context/ -t ${{ env.image_tag }}
+          docker build -f ci/Dockerfile.serving context/ --build-arg TRITON_VERSION=${{ env.triton_version }} -t ${{ env.image_tag }}
       - name: Test
         run: |
           docker run $extra_docker_args ${{ env.image_tag }} sleep 3600

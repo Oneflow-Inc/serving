@@ -23,7 +23,7 @@ git config --global https.proxy ${HTTP_PROXY}
 cd oneflow
 mkdir -p build
 cd build
-cmake .. -C ../cmake/caches/cn/cuda.cmake -DBUILD_CPP_API=ON -DBUILD_SHARED_LIBS=ON -DWITH_MLIR=ON -G Ninja
+cmake .. -C ../cmake/caches/cn/cuda.cmake -DBUILD_CPP_API=ON -DBUILD_MONOLITHIC_LIBONEFLOW_CPP_SO =OFF -DBUILD_SHARED_LIBS=ON -DWITH_MLIR=ON -G Ninja
 ninja
 
 # copy dependencies

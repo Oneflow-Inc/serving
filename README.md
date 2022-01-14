@@ -44,7 +44,7 @@ Launch triton server
 
 ```
 cd ../../  # back to root of the serving
-docker run --runtime=nvidia --rm -p8000:8000 -p8001:8001 -p8002:8002 -v$(pwd)/oneflow-backend/examples:/models -v/path/to/oneflow-backend/build/libtriton_oneflow.so:/opt/tritonserver/backends/oneflow/libtriton_oneflow.so -v/path/to/oneflow/build/liboneflow_cpp/lib/:/mylib nvcr.io/nvidia/tritonserver:21.10-py3 bash -c 'LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/mylib  /opt/tritonserver/bin/tritonserver --model-repository=/models'
+docker run --runtime=nvidia --rm -p8000:8000 -p8001:8001 -p8002:8002 -v$(pwd)/oneflow-backend/examples:/models -v$(pwd)/oneflow-backend/build/libtriton_oneflow.so:/backends/oneflow/libtriton_oneflow.so -v$(pwd)/oneflow/build/liboneflow_cpp/lib/:/mylib nvcr.io/nvidia/tritonserver:21.10-py3 bash -c 'LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/mylib/ /opt/tritonserver/bin/tritonserver --model-repository=/models --backend-directory=/backends' 
 curl -v localhost:8000/v2/health/ready  # ready check
 ```
 
@@ -55,7 +55,6 @@ pip3 install tritonclient[all]
 cd examples/resnet50_oneflow/
 python3 client.py --image cat.jpg
 ```
-
 
 ## Model Config Convention
 
@@ -102,4 +101,14 @@ Model backend name must be `oneflow`.
 ```
 name: "identity"
 backend: "oneflow"
+```
+
+## Known Issues
+
+### llvm: Option already exists
+
+The tritonserver will load tensorflow1 backend by default, and oneflow backend conflits with tensorflow1 due to some mysterious reason. It is recommended not to use oneflow and tensorflow1 together.
+
+```
+.../llvm/include/llvm/Support/CommandLine.h:858: void llvm::cl::parser<DataType>::addLiteralOption(llvm::StringRef, const DT&, llvm::StringRef) [with DT = llvm::FunctionPass* (*)(); DataType = llvm::FunctionPass* (*)()]: Assertion `findOption(Name) == Values.size() && "Option already exists!"' failed.
 ```

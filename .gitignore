@@ -10,5 +10,6 @@ log
 *.pt
 *.plan
 *.engine
+*.bak
 
 compile_commands.json

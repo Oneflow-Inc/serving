@@ -43,7 +43,8 @@ python3 export_model.py
 Launch triton server
 
 ```
-docker run --runtime=nvidia --rm -p8000:8000 -p8001:8001 -p8002:8002 -v$(pwd)/oneflow-backend/examples:/models -v$(pwd)/oneflow-backend/build/libtriton_oneflow.so:/opt/tritonserver/backends/oneflow/libtriton_oneflow.so -v$(pwd)/oneflow/build/liboneflow_cpp/lib/:/mylib nvcr.io/nvidia/tritonserver:21.10-py3 bash -c 'LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/mylib  /opt/tritonserver/bin/tritonserver --model-repository=/models'
+cd ../../  # back to root of the serving
+docker run --runtime=nvidia --rm -p8000:8000 -p8001:8001 -p8002:8002 -v$(pwd)/oneflow-backend/examples:/models -v/path/to/oneflow-backend/build/libtriton_oneflow.so:/opt/tritonserver/backends/oneflow/libtriton_oneflow.so -v/path/to/oneflow/build/liboneflow_cpp/lib/:/mylib nvcr.io/nvidia/tritonserver:21.10-py3 bash -c 'LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/mylib  /opt/tritonserver/bin/tritonserver --model-repository=/models'
 curl -v localhost:8000/v2/health/ready  # ready check
 ```
 

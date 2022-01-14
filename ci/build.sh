@@ -24,7 +24,7 @@ cd oneflow
 mkdir -p build
 cd build
 cmake .. -C ../cmake/caches/cn/cuda.cmake -DBUILD_CPP_API=ON -DBUILD_MONOLITHIC_LIBONEFLOW_CPP_SO =OFF -DBUILD_SHARED_LIBS=ON -DWITH_MLIR=ON -G Ninja
-ninja
+ninja -j8
 
 # copy dependencies
 cp oneflow/ir/lib/*.so liboneflow_cpp/lib/
@@ -42,7 +42,7 @@ cd ../../oneflow-backend
 mkdir -p build
 cd build
 cmake -DCMAKE_INSTALL_PREFIX:PATH=`pwd`/install  -DTRITON_BACKEND_REPO_TAG=r$TRITON_VERSION -DTRITON_CORE_REPO_TAG=r$TRITON_VERSION -DTRITON_COMMON_REPO_TAG=r$TRITON_VERSION -G Ninja -DCMAKE_PREFIX_PATH=$ONEFLOW_BUILD/liboneflow_cpp/share -DTRITON_ENABLE_GPU=ON ..
-ninja
+ninja -j8
 
 # install flowvision, run export model
 cd ../../ci

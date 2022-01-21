@@ -49,7 +49,7 @@ jobs:
           echo "image_tag=triton-devel" >> $GITHUB_ENV
       - name: Build oneflow and backend
         run: |
-          docker run $extra_docker_args ${{ env.image_tag }} /bin/bash ci/build.sh
+          docker run $extra_docker_args ${{ env.image_tag }} /bin/bash ci/build/build.sh
       - name: Fix permissions
         run: |
           docker run --rm -v $PWD:/p -w /p busybox chmod -R o+w .
@@ -95,14 +95,14 @@ jobs:
           cp oneflow-backend/build/libtriton_oneflow.so context/
           cp tritonserver context/
           cp -r lib/ context/
-          docker build -f ci/Dockerfile.serving context/ --build-arg TRITON_VERSION=${{ env.triton_version }} -t ${{ env.image_tag }}
+          docker build -f ci/build/Dockerfile.serving context/ --build-arg TRITON_VERSION=${{ env.triton_version }} -t ${{ env.image_tag }}
       - name: Test
         run: |
           docker run $extra_docker_args ${{ env.image_tag }} sleep 3600
           docker exec ${{ env.container_name }} apt update
           docker exec ${{ env.container_name }} apt install -y python3 python3-pip
-          docker exec -w $(pwd)/ci ${{ env.container_name }} pip3 install -r requirement.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
-          docker exec -w $(pwd)/ci ${{ env.container_name }} bash ./run_tests.sh
+          docker exec -w $(pwd)/ci/test ${{ env.container_name }} pip3 install -r requirement.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+          docker exec -w $(pwd)/ci/test ${{ env.container_name }} bash ./run_tests.sh
       - name: Remove container
         run: |
           docker container rm -f ${{ env.container_name }}

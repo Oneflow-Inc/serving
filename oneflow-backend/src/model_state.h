@@ -48,7 +48,7 @@ limitations under the License.
 #include <unordered_map>
 #include <vector>
 
-#include "oneflow/api/cpp/api.h"
+#include "oneflow/api.h"
 #include "oneflow_utils.h"
 #include "triton/backend/backend_model.h"
 

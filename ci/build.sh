@@ -14,11 +14,6 @@
 
 set -uex
 
-# TODO(zzk0): remove this
-export HTTP_PROXY="http://192.168.1.12:10609"
-git config --global http.proxy ${HTTP_PROXY}
-git config --global https.proxy ${HTTP_PROXY}
-
 # build oneflow
 cd oneflow
 mkdir -p build
@@ -26,16 +21,13 @@ cd build
 cmake .. -C ../cmake/caches/cn/cuda.cmake -DBUILD_CPP_API=ON -DBUILD_MONOLITHIC_LIBONEFLOW_CPP_SO=OFF -DBUILD_SHARED_LIBS=ON -DWITH_MLIR=ON -G Ninja
 ninja -j8
 
-# copy dependencies
-cp oneflow/ir/lib/*.so liboneflow_cpp/lib/
-cp oneflow/ir/lib/*.so.VERSION liboneflow_cpp/lib/
-cp oneflow/ir/llvm_monorepo-build/lib/*.so liboneflow_cpp/lib/
-cp oneflow/ir/llvm_monorepo-build/lib/*.so.14git liboneflow_cpp/lib/
-cp third_party_install/glog/install/lib/libglog.so* liboneflow_cpp/lib/
-cp third_party_install/protobuf/lib/libprotobuf.so* liboneflow_cpp/lib/
-cp third_party_install/nccl/lib/libnccl.so* liboneflow_cpp/lib/
 export ONEFLOW_BUILD=$(pwd)
 export PYTHONPATH=$(pwd)/../python
+
+# TODO(zzk0): remove this
+export HTTP_PROXY="http://192.168.1.12:10609"
+git config --global http.proxy ${HTTP_PROXY}
+git config --global https.proxy ${HTTP_PROXY}
 
 # build oneflow-backend
 cd ../../oneflow-backend

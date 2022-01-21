@@ -1,7 +1,8 @@
 name: OneFlow Serving
 
 on:
-  push:
+  pull_request:
+    types: [review_requested]
     branches:
       - "*"
   release:
@@ -108,4 +109,4 @@ jobs:
       - name: Remove image
         if: ${{ github.event_name != 'release' }}
         run: |
-          docker rmi $(docker images '${{ env.SERVING_NAME }}' -a -q)
+          docker rmi $(docker images '${{ env.image_tag }}' -a -q)

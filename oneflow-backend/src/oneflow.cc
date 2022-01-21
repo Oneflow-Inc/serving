@@ -42,7 +42,7 @@ limitations under the License.
 
 #include "model_instance_state.h"
 #include "model_state.h"
-#include "oneflow/api/cpp/api.h"
+#include "oneflow/api.h"
 #include "oneflow_utils.h"
 #include "triton/backend/backend_common.h"
 #include "triton/backend/backend_input_collector.h"

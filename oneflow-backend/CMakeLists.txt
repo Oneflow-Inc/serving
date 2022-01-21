@@ -120,7 +120,7 @@ target_compile_options(
 
 target_link_libraries(
   triton-oneflow-backend
-  PRIVATE
+  PUBLIC
     triton-core-serverapi   # from repo-core
     triton-core-backendapi  # from repo-core
     triton-core-serverstub  # from repo-core
@@ -134,6 +134,31 @@ set_target_properties(
   OUTPUT_NAME triton_oneflow
   LINK_DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/libtriton_oneflow.ldscript
   LINK_FLAGS "-Wl,--version-script libtriton_oneflow.ldscript"
+)
+
+add_executable(
+  triton-exe
+  src/main.cpp
+  src/oneflow.cc
+  src/model_state.cpp
+  src/model_instance_state.cpp
+)
+
+target_include_directories(
+  triton-exe
+  PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+target_link_libraries(
+  triton-exe
+  PUBLIC
+    triton-oneflow-backend
+    # triton-core-serverapi   # from repo-core
+    # triton-core-backendapi  # from repo-core
+    # triton-core-serverstub  # from repo-core
+    # triton-backend-utils    # from repo-backend
+    # OneFlow::liboneflow
 )
 
 #

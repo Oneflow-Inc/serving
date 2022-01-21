@@ -38,6 +38,6 @@ ninja -j8
 
 # install flowvision, run export model
 cd ../../ci
-pip3 install -r requirement.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
-cd ./test_resnet50_oneflow/resnet50_oneflow
+pip3 install -r build/requirement.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+cd ./test/test_resnet50_oneflow/resnet50_oneflow
 python3 export_model.py

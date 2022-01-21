@@ -13,3 +13,5 @@ log
 *.bak
 
 compile_commands.json
+
+!ci/build

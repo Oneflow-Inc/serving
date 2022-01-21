@@ -16,19 +16,16 @@ Build liboneflow from source
 
 ```
 git clone https://github.com/Oneflow-Inc/oneflow --depth=1
-cd oneflow
-mkdir build
-cd build
-cmake .. -C ../cmake/caches/cn/cuda.cmake -DBUILD_CPP_API=ON -DBUILD_SHARED_LIBS=ON -DWITH_MLIR=ON -G Ninja
+cd oneflow && mkdir build && cd build
+cmake  -C ../cmake/caches/cn/cuda.cmake -DBUILD_CPP_API=ON -DBUILD_SHARED_LIBS=ON -DWITH_MLIR=ON -G Ninja ..
 ninja
 ```
 
 Build oneflow backend from source
 
 ```
-export TRITON_VER=r21.10
-mkdir build
-cd build
+git clone https://github.com/Oneflow-Inc/serving --depth=1
+cd serving && mkdir build && cd build
 cmake -DCMAKE_PREFIX_PATH=/path/to/liboneflow_cpp/share -DTRITON_RELATED_REPO_TAG=r21.10 -DTRITON_ENABLE_GPU=ON -G Ninja ..
 ninja
 ```

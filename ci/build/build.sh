@@ -5,8 +5,8 @@ set -euxo pipefail
 cd oneflow
 mkdir -p build
 cd build
-# cmake .. -C ../cmake/caches/cn/cuda.cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_CPP_API=ON -DBUILD_SHARED_LIBS=ON -DWITH_MLIR=ON -G Ninja
-# ninja -j16
+cmake .. -C ../cmake/caches/cn/cuda.cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_CPP_API=ON -DBUILD_SHARED_LIBS=ON -DWITH_MLIR=ON -G Ninja
+ninja -j16
 
 export ONEFLOW_BUILD=$(pwd)
 export PYTHONPATH=$(pwd)/../python

@@ -26,7 +26,7 @@ jobs:
 
   build_oneflow:
     name: Build oneflow and backend
-    runs-on: self-hosted
+    runs-on: [self-hosted, linux, provision]
     needs: [cancel_previous]
     steps: 
       - name: Fix permissions
@@ -69,7 +69,7 @@ jobs:
 
   make_user_image:
     name: Make user image
-    runs-on: self-hosted
+    runs-on: [self-hosted, linux, provision]
     needs: [build_oneflow]
     steps:
       - name: Fix permissions

@@ -30,7 +30,6 @@ jobs:
 
   build_oneflow:
     name: Build oneflow and backend
-    if: github.event.pull_request.draft == false && github.base_ref == 'main' && contains(github.event.pull_request.requested_reviewers.*.login, 'oneflow-ci-bot')
     runs-on: [self-hosted, linux, provision]
     needs: [cancel_previous]
     steps: 

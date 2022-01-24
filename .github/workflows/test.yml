@@ -36,9 +36,9 @@ jobs:
       - name: Fix permissions
         run: |
           docker run --rm -v $PWD:/p -w /p busybox chmod -R o+w .
-      - uses: actions/checkout@v2
-      - name: Clone oneflow
-        run: git clone https://github.com/Oneflow-Inc/oneflow --depth=1
+      # - uses: actions/checkout@v2
+      # - name: Clone oneflow
+      #   run: git clone https://github.com/Oneflow-Inc/oneflow --depth=1
       - name: Set environment variables
         run: |
           set -x
@@ -47,6 +47,8 @@ jobs:
           extra_docker_args+=" --runtime=nvidia"
           extra_docker_args+=" --name ${container_name}"
           extra_docker_args+=" --shm-size=8g --rm -w $PWD -v $PWD:$PWD"
+          extra_docker_args+=" --network=host"
+          extra_docker_args+=" -e HTTPS_PROXY -e HTTP_PROXY"
           extra_docker_args+=" --env TRITON_VERSION=${{ env.TRITON_VERSION }}"
           echo "extra_docker_args=${extra_docker_args}" >> $GITHUB_ENV
           echo "container_name=${container_name}" >> $GITHUB_ENV

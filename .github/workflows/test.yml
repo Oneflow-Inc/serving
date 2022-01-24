@@ -13,6 +13,10 @@ env:
   TRITON_VERSION: "21.10"
   SERVING_IMAGE: "oneflow-serving:${{ github.ref_name }}"
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   cancel_previous:
     name: Cancel previous runs
@@ -26,6 +30,7 @@ jobs:
 
   build_oneflow:
     name: Build oneflow and backend
+    if: github.event.pull_request.draft == false && github.base_ref == 'main' && contains(github.event.pull_request.requested_reviewers.*.login, 'oneflow-ci-bot')
     runs-on: [self-hosted, linux, provision]
     needs: [cancel_previous]
     steps: 

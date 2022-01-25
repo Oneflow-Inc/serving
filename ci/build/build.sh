@@ -30,12 +30,3 @@ cmake -S ${ONEFLOW_CI_SRC_DIR} -C ${ONEFLOW_CI_CMAKE_INIT_CACHE} -DPython3_EXECU
 # cmake build
 cd ${ONEFLOW_CI_BUILD_DIR}
 cmake --build . -j 8
-
-export ONEFLOW_BUILD=$(pwd)
-export PYTHONPATH=$(pwd)/../python
-
-# install flowvision, run export model
-cd ${ONEFLOW_CI_SRC_DIR}/../ci
-pip3 install -r build/requirement.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
-cd ./test/test_resnet50_oneflow/resnet50_oneflow
-python3 export_model.py

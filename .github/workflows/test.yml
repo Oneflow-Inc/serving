@@ -74,11 +74,12 @@ jobs:
           extra_docker_args+=" --shm-size=8g --rm -w $PWD -v $PWD:$PWD"
           extra_docker_args+=" --network=host"
           extra_docker_args+=" -e HTTPS_PROXY -e HTTP_PROXY"
-          extra_docker_args+=" --env TRITON_VERSION=${{ env.TRITON_VERSION }}"
+          extra_docker_args+=" --env ONEFLOW_CI_SRC_DIR=$PWD/oneflow"
+          extra_docker_args+=" --env ONEFLOW_CI_BUILD_DIR=${{ env.ONEFLOW_CI_BUILD_DIR }}/build"
           echo "extra_docker_args=${extra_docker_args}" >> $GITHUB_ENV
           echo "container_name=${container_name}" >> $GITHUB_ENV
           echo "image_tag=registry.cn-beijing.aliyuncs.com/oneflow/triton-devel" >> $GITHUB_ENV
-      - name: Copy tritonserver
+      - name: Build oneflow backend and copy tritonserver
         run: |
           docker run --rm -v $PWD:/p -w /p busybox chmod -R o+w .
           docker run --rm -v ${{ env.MANYLINUX_CACHE_DIR }}:/p -w /p busybox chmod -R o+w .

@@ -44,15 +44,14 @@ jobs:
       - name: Clone oneflow
         run: |
           git clone https://github.com/Oneflow-Inc/oneflow --depth=1
-          ls -alh
-          pwd
-          ls -alh ci
-          ls -alh ci/build
+          mkdir -p oneflow/ci/serving
+          cp ./ci/build/build.sh ./oneflow/ci/serving/build.sh
+          cp ./ci/build/mlir-cuda-75.cmake ./oneflow/ci/serving/mlir-cuda-75.cmake
       - uses: Oneflow-Inc/get-oneflow@support-clang-12
         name: Build triton cu114
         with:
-          cmake-init-cache: ./ci/build/mlir-cuda-75.cmake
-          build-script: ./ci/build/build.sh
+          cmake-init-cache: ./oneflow/ci/serving/mlir-cuda-75.cmake
+          build-script: ./oneflow/ci/serving/build.sh
           oneflow-src: ./oneflow
           oneflow-build-env: manylinux
           wheelhouse-dir: ${{ env.WHEELHOUSE_DIR }}

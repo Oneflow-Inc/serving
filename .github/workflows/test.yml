@@ -36,7 +36,7 @@ jobs:
     runs-on: [self-hosted, linux, provision]
     needs: [cancel_previous]
     if: github.event.pull_request.draft == false && github.base_ref == 'main' && contains(github.event.pull_request.requested_reviewers.*.login, 'oneflow-ci-bot')
-    steps: 
+    steps:
       - name: Fix permissions
         run: |
           docker run --rm -v $PWD:/p -w /p busybox chmod -R o+w .
@@ -47,7 +47,7 @@ jobs:
           mkdir -p oneflow/ci/serving
           cp ./ci/build/build.sh ./oneflow/ci/serving/build.sh
           cp ./ci/build/mlir-cuda-75.cmake ./oneflow/ci/serving/mlir-cuda-75.cmake
-      - uses: Oneflow-Inc/get-oneflow@support-clang-12
+      - uses: Oneflow-Inc/get-oneflow@refactor-release
         name: Build triton cu114
         with:
           cmake-init-cache: ./oneflow/ci/serving/mlir-cuda-75.cmake

@@ -5,9 +5,12 @@ on:
     types: [review_requested]
     branches:
       - "*"
-  release:
-    types:
-      - published
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Docker image tag"
+        required: true
+        type: string
 
 env:
   TRITON_VERSION: "21.10"
@@ -23,7 +26,7 @@ jobs:
   cancel_previous:
     name: Cancel previous runs
     runs-on: ubuntu-latest
-    if: github.event.pull_request.draft == false && github.base_ref == 'main' && contains(github.event.pull_request.requested_reviewers.*.login, 'oneflow-ci-bot')
+    if: github.event == 'workflow_dispatch' || (github.event.pull_request.draft == false && github.base_ref == 'main' && contains(github.event.pull_request.requested_reviewers.*.login, 'oneflow-ci-bot'))
     steps:
       - name: Cancel previous runs of outdated commit
         if: github.ref != 'refs/heads/main'
@@ -35,7 +38,7 @@ jobs:
     name: Build oneflow and backend
     runs-on: [self-hosted, linux, provision]
     needs: [cancel_previous]
-    if: github.event.pull_request.draft == false && github.base_ref == 'main' && contains(github.event.pull_request.requested_reviewers.*.login, 'oneflow-ci-bot')
+    if: github.event == 'workflow_dispatch' || (github.event.pull_request.draft == false && github.base_ref == 'main' && contains(github.event.pull_request.requested_reviewers.*.login, 'oneflow-ci-bot'))
     steps: 
       - name: Fix permissions
         run: |
@@ -129,6 +132,6 @@ jobs:
         run: |
           docker container rm -f ${{ env.container_name }}
       - name: Remove image
-        if: ${{ github.event_name != 'release' }}
+        if: github.event_name != 'workflow_dispatch'
         run: |
           docker rmi $(docker images '${{ env.image_tag }}' -a -q)

@@ -13,7 +13,6 @@ env:
   TRITON_VERSION: "21.10"
   SERVING_IMAGE: "oneflow-serving:${{ github.ref_name }}"
   MANYLINUX_CACHE_DIR: ~/manylinux-cache-dir/triton-cu114
-  WHEELHOUSE_DIR: manylinux-wheelhouse
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -54,8 +53,6 @@ jobs:
           build-script: ./oneflow/ci/serving/build.sh
           oneflow-src: ./oneflow
           oneflow-build-env: manylinux
-          wheelhouse-dir: ${{ env.WHEELHOUSE_DIR }}
-          clear-wheelhouse-dir: true
           self-hosted: true
           cuda-version: "11.4"
           manylinux-cache-dir: ${{ env.MANYLINUX_CACHE_DIR }}

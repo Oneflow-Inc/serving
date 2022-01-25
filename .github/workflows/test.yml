@@ -49,7 +49,7 @@ jobs:
           cmake-init-cache: ./ci/build/mlir-cuda-75.cmake
           build-script: ./ci/build/build.sh
           oneflow-src: ./oneflow
-          oneflow-build-env: registry.cn-beijing.aliyuncs.com/oneflow/triton-devel
+          oneflow-build-env: manylinux
           wheelhouse-dir: ${{ env.WHEELHOUSE_DIR }}
           clear-wheelhouse-dir: true
           self-hosted: ${{ contains(matrix.runs-on, 'self-hosted') }}
@@ -79,6 +79,7 @@ jobs:
           docker run --rm -v $PWD:/p -w /p busybox chmod -R o+w .
           docker run --rm -v ${{ env.MANYLINUX_CACHE_DIR }}:/p -w /p busybox chmod -R o+w .
           docker run $extra_docker_args ${{ env.image_tag }} sleep 3600
+          docker exec ${{ env.container_name }} /bin/bash ci/build/backend.sh
           docker cp ${{ env.container_name }}:/opt/tritonserver/bin/tritonserver .
           docker cp ${{ env.container_name }}:/opt/tritonserver/lib .
           docker cp ${{ env.container_name }}:/usr/lib/x86_64-linux-gnu/libb64.so.0d ${{ env.MANYLINUX_CACHE_DIR }}/build/liboneflow_cpp/lib/

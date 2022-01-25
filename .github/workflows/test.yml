@@ -40,96 +40,97 @@ jobs:
       - name: Fix permissions
         run: |
           docker run --rm -v $PWD:/p -w /p busybox chmod -R o+w .
-      - uses: actions/checkout@v2
-      - name: Clone oneflow
-        run: |
-          git clone https://github.com/Oneflow-Inc/oneflow --depth=1
-          mkdir -p oneflow/ci/serving
-          cp ./ci/build/build.sh ./oneflow/ci/serving/build.sh
-          cp ./ci/build/mlir-cuda-75.cmake ./oneflow/ci/serving/mlir-cuda-75.cmake
-      - uses: Oneflow-Inc/get-oneflow@refactor-release
-        name: Build triton cu114
-        with:
-          cmake-init-cache: ./oneflow/ci/serving/mlir-cuda-75.cmake
-          build-script: ./oneflow/ci/serving/build.sh
-          oneflow-src: ./oneflow
-          oneflow-build-env: manylinux
-          wheelhouse-dir: ${{ env.WHEELHOUSE_DIR }}
-          clear-wheelhouse-dir: false
-          wheel-audit: false
-          self-hosted: true
-          cuda-version: "11.4"
-          manylinux-cache-dir: ${{ env.MANYLINUX_CACHE_DIR }}
-          docker-run-use-system-http-proxy: true
-          clean-ccache: ${{ contains(github.event.pull_request.labels.*.name, 'need-clean-ccache') }}
-          python-versions: |
-            3.8
-      - name: Set environment variables
-        run: |
-          set -x
-          extra_docker_args=""
-          container_name=serving-build-run-id-${{ github.run_id }}-test
-          extra_docker_args+=" --runtime=nvidia"
-          extra_docker_args+=" --detach"
-          extra_docker_args+=" --name ${container_name}"
-          extra_docker_args+=" --shm-size=8g --rm -w $PWD -v $PWD:$PWD"
-          extra_docker_args+=" --network=host"
-          extra_docker_args+=" -e HTTPS_PROXY -e HTTP_PROXY"
-          extra_docker_args+=" --env ONEFLOW_CI_SRC_DIR=$PWD/oneflow"
-          extra_docker_args+=" --env ONEFLOW_CI_BUILD_DIR=${{ env.ONEFLOW_CI_BUILD_DIR }}/build"
-          echo "extra_docker_args=${extra_docker_args}" >> $GITHUB_ENV
-          echo "container_name=${container_name}" >> $GITHUB_ENV
-          echo "image_tag=registry.cn-beijing.aliyuncs.com/oneflow/triton-devel" >> $GITHUB_ENV
-      - name: Build oneflow backend and copy tritonserver
-        run: |
-          docker run --rm -v $PWD:/p -w /p busybox chmod -R o+w .
-          docker run --rm -v ${{ env.MANYLINUX_CACHE_DIR }}:/p -w /p busybox chmod -R o+w .
-          docker run $extra_docker_args ${{ env.image_tag }} sleep 3600
-          docker exec ${{ env.container_name }} /bin/bash ci/build/backend.sh
-          docker cp ${{ env.container_name }}:/opt/tritonserver/bin/tritonserver .
-          docker cp ${{ env.container_name }}:/opt/tritonserver/lib .
-          docker cp ${{ env.container_name }}:/usr/lib/x86_64-linux-gnu/libb64.so.0d ${{ env.MANYLINUX_CACHE_DIR }}/build/liboneflow_cpp/lib/
-          docker cp ${{ env.container_name }}:/usr/lib/x86_64-linux-gnu/libb64.so ${{ env.MANYLINUX_CACHE_DIR }}/build/liboneflow_cpp/lib/
-          docker cp ${{ env.container_name }}:/usr/lib/x86_64-linux-gnu/libdcgm.so.2.2.9 ${{ env.MANYLINUX_CACHE_DIR }}/build/liboneflow_cpp/lib/
-          docker cp ${{ env.container_name }}:/usr/lib/x86_64-linux-gnu/libdcgm.so.2 ${{ env.MANYLINUX_CACHE_DIR }}/build/liboneflow_cpp/lib/
-          docker cp ${{ env.container_name }}:/usr/lib/x86_64-linux-gnu/libre2.so.5.0.0 ${{ env.MANYLINUX_CACHE_DIR }}/build/liboneflow_cpp/lib/
-          docker cp ${{ env.container_name }}:/usr/lib/x86_64-linux-gnu/libre2.so.5 ${{ env.MANYLINUX_CACHE_DIR }}/build/liboneflow_cpp/lib/
-      - name: Remove container
-        run: |
-          docker container rm -f ${{ env.container_name }}
+          ls ${{ env.WHEELHOUSE_DIR }}
+      # - uses: actions/checkout@v2
+      # - name: Clone oneflow
+      #   run: |
+      #     git clone https://github.com/Oneflow-Inc/oneflow --depth=1
+      #     mkdir -p oneflow/ci/serving
+      #     cp ./ci/build/build.sh ./oneflow/ci/serving/build.sh
+      #     cp ./ci/build/mlir-cuda-75.cmake ./oneflow/ci/serving/mlir-cuda-75.cmake
+      # - uses: Oneflow-Inc/get-oneflow@refactor-release
+      #   name: Build triton cu114
+      #   with:
+      #     cmake-init-cache: ./oneflow/ci/serving/mlir-cuda-75.cmake
+      #     build-script: ./oneflow/ci/serving/build.sh
+      #     oneflow-src: ./oneflow
+      #     oneflow-build-env: manylinux
+      #     wheelhouse-dir: ${{ env.WHEELHOUSE_DIR }}
+      #     clear-wheelhouse-dir: false
+      #     wheel-audit: false
+      #     self-hosted: true
+      #     cuda-version: "11.4"
+      #     manylinux-cache-dir: ${{ env.MANYLINUX_CACHE_DIR }}
+      #     docker-run-use-system-http-proxy: true
+      #     clean-ccache: ${{ contains(github.event.pull_request.labels.*.name, 'need-clean-ccache') }}
+      #     python-versions: |
+      #       3.8
+      # - name: Set environment variables
+      #   run: |
+      #     set -x
+      #     extra_docker_args=""
+      #     container_name=serving-build-run-id-${{ github.run_id }}-test
+      #     extra_docker_args+=" --runtime=nvidia"
+      #     extra_docker_args+=" --detach"
+      #     extra_docker_args+=" --name ${container_name}"
+      #     extra_docker_args+=" --shm-size=8g --rm -w $PWD -v $PWD:$PWD"
+      #     extra_docker_args+=" --network=host"
+      #     extra_docker_args+=" -e HTTPS_PROXY -e HTTP_PROXY"
+      #     extra_docker_args+=" --env ONEFLOW_CI_SRC_DIR=$PWD/oneflow"
+      #     extra_docker_args+=" --env ONEFLOW_CI_BUILD_DIR=${{ env.ONEFLOW_CI_BUILD_DIR }}/build"
+      #     echo "extra_docker_args=${extra_docker_args}" >> $GITHUB_ENV
+      #     echo "container_name=${container_name}" >> $GITHUB_ENV
+      #     echo "image_tag=registry.cn-beijing.aliyuncs.com/oneflow/triton-devel" >> $GITHUB_ENV
+      # - name: Build oneflow backend and copy tritonserver
+      #   run: |
+      #     docker run --rm -v $PWD:/p -w /p busybox chmod -R o+w .
+      #     docker run --rm -v ${{ env.MANYLINUX_CACHE_DIR }}:/p -w /p busybox chmod -R o+w .
+      #     docker run $extra_docker_args ${{ env.image_tag }} sleep 3600
+      #     docker exec ${{ env.container_name }} /bin/bash ci/build/backend.sh
+      #     docker cp ${{ env.container_name }}:/opt/tritonserver/bin/tritonserver .
+      #     docker cp ${{ env.container_name }}:/opt/tritonserver/lib .
+      #     docker cp ${{ env.container_name }}:/usr/lib/x86_64-linux-gnu/libb64.so.0d ${{ env.MANYLINUX_CACHE_DIR }}/build/liboneflow_cpp/lib/
+      #     docker cp ${{ env.container_name }}:/usr/lib/x86_64-linux-gnu/libb64.so ${{ env.MANYLINUX_CACHE_DIR }}/build/liboneflow_cpp/lib/
+      #     docker cp ${{ env.container_name }}:/usr/lib/x86_64-linux-gnu/libdcgm.so.2.2.9 ${{ env.MANYLINUX_CACHE_DIR }}/build/liboneflow_cpp/lib/
+      #     docker cp ${{ env.container_name }}:/usr/lib/x86_64-linux-gnu/libdcgm.so.2 ${{ env.MANYLINUX_CACHE_DIR }}/build/liboneflow_cpp/lib/
+      #     docker cp ${{ env.container_name }}:/usr/lib/x86_64-linux-gnu/libre2.so.5.0.0 ${{ env.MANYLINUX_CACHE_DIR }}/build/liboneflow_cpp/lib/
+      #     docker cp ${{ env.container_name }}:/usr/lib/x86_64-linux-gnu/libre2.so.5 ${{ env.MANYLINUX_CACHE_DIR }}/build/liboneflow_cpp/lib/
+      # - name: Remove container
+      #   run: |
+      #     docker container rm -f ${{ env.container_name }}
 
-      - name: Set environment variables
-        run: |
-          set -x
-          extra_docker_args=""
-          container_name=user-image-run-id-${{ github.run_id }}-test
-          extra_docker_args+=" --runtime=nvidia"
-          extra_docker_args+=" --detach"
-          extra_docker_args+=" --name ${container_name}"
-          extra_docker_args+=" --shm-size=8g --rm -w $PWD -v $PWD:$PWD"
-          echo "extra_docker_args=${extra_docker_args}" >> $GITHUB_ENV
-          echo "container_name=${container_name}" >> $GITHUB_ENV
-          echo "image_tag=${{ env.SERVING_IMAGE }}" >> $GITHUB_ENV
-          echo "triton_version=${{ env.TRITON_VERSION }}" >> $GITHUB_ENV
-      - name: Make user docker image
-        run: |
-          mkdir -p context
-          cp -r ${{ env.MANYLINUX_CACHE_DIR }}/build/liboneflow_cpp/ context/
-          cp oneflow-backend/build/libtriton_oneflow.so context/
-          cp tritonserver context/
-          cp -r lib/ context/
-          docker build -f ci/build/Dockerfile.serving context/ --build-arg TRITON_VERSION=${{ env.triton_version }} -t ${{ env.image_tag }}
-      - name: Test
-        run: |
-          docker run $extra_docker_args ${{ env.image_tag }} sleep 3600
-          docker exec ${{ env.container_name }} apt update
-          docker exec ${{ env.container_name }} apt install -y python3 python3-pip
-          docker exec -w $(pwd)/ci/test ${{ env.container_name }} pip3 install -r requirement.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
-          docker exec -w $(pwd)/ci/test ${{ env.container_name }} bash ./run_tests.sh
-      - name: Remove container
-        run: |
-          docker container rm -f ${{ env.container_name }}
-      - name: Remove image
-        if: ${{ github.event_name != 'release' }}
-        run: |
-          docker rmi $(docker images '${{ env.image_tag }}' -a -q)
+      # - name: Set environment variables
+      #   run: |
+      #     set -x
+      #     extra_docker_args=""
+      #     container_name=user-image-run-id-${{ github.run_id }}-test
+      #     extra_docker_args+=" --runtime=nvidia"
+      #     extra_docker_args+=" --detach"
+      #     extra_docker_args+=" --name ${container_name}"
+      #     extra_docker_args+=" --shm-size=8g --rm -w $PWD -v $PWD:$PWD"
+      #     echo "extra_docker_args=${extra_docker_args}" >> $GITHUB_ENV
+      #     echo "container_name=${container_name}" >> $GITHUB_ENV
+      #     echo "image_tag=${{ env.SERVING_IMAGE }}" >> $GITHUB_ENV
+      #     echo "triton_version=${{ env.TRITON_VERSION }}" >> $GITHUB_ENV
+      # - name: Make user docker image
+      #   run: |
+      #     mkdir -p context
+      #     cp -r ${{ env.MANYLINUX_CACHE_DIR }}/build/liboneflow_cpp/ context/
+      #     cp oneflow-backend/build/libtriton_oneflow.so context/
+      #     cp tritonserver context/
+      #     cp -r lib/ context/
+      #     docker build -f ci/build/Dockerfile.serving context/ --build-arg TRITON_VERSION=${{ env.triton_version }} -t ${{ env.image_tag }}
+      # - name: Test
+      #   run: |
+      #     docker run $extra_docker_args ${{ env.image_tag }} sleep 3600
+      #     docker exec ${{ env.container_name }} apt update
+      #     docker exec ${{ env.container_name }} apt install -y python3 python3-pip
+      #     docker exec -w $(pwd)/ci/test ${{ env.container_name }} pip3 install -r requirement.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+      #     docker exec -w $(pwd)/ci/test ${{ env.container_name }} bash ./run_tests.sh
+      # - name: Remove container
+      #   run: |
+      #     docker container rm -f ${{ env.container_name }}
+      # - name: Remove image
+      #   if: ${{ github.event_name != 'release' }}
+      #   run: |
+      #     docker rmi $(docker images '${{ env.image_tag }}' -a -q)

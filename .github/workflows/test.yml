@@ -42,7 +42,9 @@ jobs:
           docker run --rm -v $PWD:/p -w /p busybox chmod -R o+w .
       - uses: actions/checkout@v2
       - name: Clone oneflow
-        run: git clone https://github.com/Oneflow-Inc/oneflow --depth=1
+        run: |
+          git clone https://github.com/Oneflow-Inc/oneflow --depth=1
+          ls -alh
       - uses: Oneflow-Inc/get-oneflow@support-clang-12
         name: Build triton cu114
         with:

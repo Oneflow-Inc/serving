@@ -107,5 +107,8 @@ backend: "oneflow"
 Oneflow backend conflits with tensorflow1 due to some mysterious reason. It is recommended not to use oneflow and tensorflow1 together.
 
 ```
-.../llvm/include/llvm/Support/CommandLine.h:858: void llvm::cl::parser<DataType>::addLiteralOption(llvm::StringRef, const DT&, llvm::StringRef) [with DT = llvm::FunctionPass* (*)(); DataType = llvm::FunctionPass* (*)()]: Assertion `findOption(Name) == Values.size() && "Option already exists!"' failed.
+.../llvm/include/llvm/Support/CommandLine.h:858: void llvm::cl::parser<DataType>::addLiteralOption
+(llvm::StringRef, const DT&, llvm::StringRef) [with DT = llvm::FunctionPass* (*)(); DataType = 
+llvm::FunctionPass* (*)()]: Assertion `findOption(Name) == Values.size() && "Option already 
+exists!"' failed.
 ```

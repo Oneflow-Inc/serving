@@ -2,7 +2,7 @@
 set -euxo pipefail
 
 # install flowvision, run export model
-export PYTHONPATH=$ONEFLOW_CI_SRC_DIR/python
+(cd $WHEELHOUSE_DIR && python3 setup.py install)
 cd ./ci
 pip3 install -r build/requirement.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 cd ./test/test_resnet50_oneflow/resnet50_oneflow

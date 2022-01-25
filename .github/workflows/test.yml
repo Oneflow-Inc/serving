@@ -12,7 +12,7 @@ on:
 env:
   TRITON_VERSION: "21.10"
   SERVING_IMAGE: "oneflow-serving:${{ github.ref_name }}"
-  MANYLINUX_CACHE_DIR: ~/manylinux-cache-dir/triton-cu114
+  MANYLINUX_CACHE_DIR: ~/manylinux-cache-dir/triton-cuda-114
 
 concurrency:
   group: ci-${{ github.ref }}

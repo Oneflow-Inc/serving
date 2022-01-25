@@ -13,21 +13,27 @@ env:
   TRITON_VERSION: "21.10"
   SERVING_IMAGE: "oneflow-serving:${{ github.ref_name }}"
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   cancel_previous:
     name: Cancel previous runs
     runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false && github.base_ref == 'main' && contains(github.event.pull_request.requested_reviewers.*.login, 'oneflow-ci-bot')
     steps:
       - name: Cancel previous runs of outdated commit
-        if: github.ref != 'refs/heads/master'
+        if: github.ref != 'refs/heads/main'
         uses: styfle/cancel-workflow-action@0.9.0
         with:
           access_token: ${{ github.token }}
 
   build_oneflow:
     name: Build oneflow and backend
-    runs-on: self-hosted
+    runs-on: [self-hosted, linux, provision]
     needs: [cancel_previous]
+    if: github.event.pull_request.draft == false && github.base_ref == 'main' && contains(github.event.pull_request.requested_reviewers.*.login, 'oneflow-ci-bot')
     steps: 
       - name: Fix permissions
         run: |
@@ -41,15 +47,19 @@ jobs:
           extra_docker_args=""
           container_name=serving-build-run-id-${{ github.run_id }}-test
           extra_docker_args+=" --runtime=nvidia"
+          extra_docker_args+=" --detach"
           extra_docker_args+=" --name ${container_name}"
-          extra_docker_args+=" --shm-size=8g -w $PWD -v $PWD:$PWD"
+          extra_docker_args+=" --shm-size=8g --rm -w $PWD -v $PWD:$PWD"
+          extra_docker_args+=" --network=host"
+          extra_docker_args+=" -e HTTPS_PROXY -e HTTP_PROXY"
           extra_docker_args+=" --env TRITON_VERSION=${{ env.TRITON_VERSION }}"
           echo "extra_docker_args=${extra_docker_args}" >> $GITHUB_ENV
           echo "container_name=${container_name}" >> $GITHUB_ENV
-          echo "image_tag=triton-devel" >> $GITHUB_ENV
+          echo "image_tag=registry.cn-beijing.aliyuncs.com/oneflow/triton-devel" >> $GITHUB_ENV
       - name: Build oneflow and backend
         run: |
-          docker run $extra_docker_args ${{ env.image_tag }} /bin/bash ci/build/build.sh
+          docker run $extra_docker_args ${{ env.image_tag }} sleep 3600
+          docker exec ${{ env.container_name }} /bin/bash ci/build/build.sh
       - name: Fix permissions
         run: |
           docker run --rm -v $PWD:/p -w /p busybox chmod -R o+w .
@@ -65,16 +75,8 @@ jobs:
           docker cp ${{ env.container_name }}:/usr/lib/x86_64-linux-gnu/libre2.so.5 ./oneflow/build/liboneflow_cpp/lib/
       - name: Remove container
         run: |
-          docker container rm ${{ env.container_name }}
+          docker container rm -f ${{ env.container_name }}
 
-  make_user_image:
-    name: Make user image
-    runs-on: self-hosted
-    needs: [build_oneflow]
-    steps:
-      - name: Fix permissions
-        run: |
-          docker run --rm -v $PWD:/p -w /p busybox chmod -R o+w .
       - name: Set environment variables
         run: |
           set -x

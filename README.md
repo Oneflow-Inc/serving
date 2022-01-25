@@ -19,7 +19,7 @@ git clone https://github.com/Oneflow-Inc/oneflow --depth=1
 cd oneflow
 mkdir build
 cd build
-cmake .. -C ../cmake/caches/cn/cuda.cmake -DBUILD_CPP_API=ON -DBUILD_MONOLITHIC_LIBONEFLOW_CPP_SO=OFF -DBUILD_SHARED_LIBS=ON -DWITH_MLIR=ON -G Ninja
+cmake .. -C ../cmake/caches/cn/cuda.cmake -DBUILD_CPP_API=ON -DBUILD_SHARED_LIBS=ON -DWITH_MLIR=ON -G Ninja
 ninja
 ```
 
@@ -110,5 +110,8 @@ backend: "oneflow"
 Oneflow backend conflits with tensorflow1 due to some mysterious reason. It is recommended not to use oneflow and tensorflow1 together.
 
 ```
-.../llvm/include/llvm/Support/CommandLine.h:858: void llvm::cl::parser<DataType>::addLiteralOption(llvm::StringRef, const DT&, llvm::StringRef) [with DT = llvm::FunctionPass* (*)(); DataType = llvm::FunctionPass* (*)()]: Assertion `findOption(Name) == Values.size() && "Option already exists!"' failed.
+.../llvm/include/llvm/Support/CommandLine.h:858: void llvm::cl::parser<DataType>::addLiteralOption
+(llvm::StringRef, const DT&, llvm::StringRef) [with DT = llvm::FunctionPass* (*)(); DataType = 
+llvm::FunctionPass* (*)()]: Assertion `findOption(Name) == Values.size() && "Option already 
+exists!"' failed.
 ```

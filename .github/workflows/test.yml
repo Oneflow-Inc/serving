@@ -5,6 +5,8 @@ on:
     types: [review_requested]
     branches:
       - "*"
+  release:
+    types: [published]
   workflow_dispatch:
     inputs:
       tag:
@@ -14,7 +16,7 @@ on:
 
 env:
   TRITON_VERSION: "21.10"
-  SERVING_IMAGE: "oneflow-serving:${{ github.ref_name }}"
+  SERVING_IMAGE: "oneflow-serving"
   MANYLINUX_CACHE_DIR: ~/manylinux-cache-dir/triton-cu114
   WHEELHOUSE_DIR: manylinux-wheelhouse
 
@@ -102,12 +104,6 @@ jobs:
       - name: Remove container
         run: |
           docker container rm -f ${{ env.container_name }}
-
-      - name: Login to DockerHub
-        uses: docker/login-action@v1
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Make user docker image
         run: |
           mkdir -p context
@@ -128,6 +124,13 @@ jobs:
           echo "container_name=${container_name}" >> $GITHUB_ENV
           echo "image_tag=${{ env.SERVING_IMAGE }}" >> $GITHUB_ENV
           echo "triton_version=${{ env.TRITON_VERSION }}" >> $GITHUB_ENV
+      - name: Export docker image name
+        if: github.event_name == 'pull_request' || github.event_name == 'release'
+        run: echo "image_tag=${{ env.SERVING_IMAGE }}:${{ github.ref_name }}" >> $GITHUB_ENV
+      - name: Export docker image name
+        if: github.event_name == 'workflow_dispatch'
+        run: echo "image_tag=${{ env.SERVING_IMAGE }}:${{ github.event.inputs.tag }}" >> $GITHUB_ENV
+
       - name: Build and export to Docker
         uses: docker/build-push-action@v2
         with:
@@ -144,13 +147,6 @@ jobs:
           docker exec ${{ env.container_name }} apt install -y python3 python3-pip
           docker exec -w $(pwd)/ci/test ${{ env.container_name }} pip3 install -r requirement.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
           docker exec -w $(pwd)/ci/test ${{ env.container_name }} bash ./run_tests.sh
-      - name: Remove container
-        run: |
-          docker container rm -f ${{ env.container_name }}
-      - name: Remove image
-        if: github.event_name != 'workflow_dispatch'
-        run: |
-          docker rmi $(docker images '${{ env.image_tag }}' -a -q)
       - name: Build and push to docker hub
         if: github.event_name == 'workflow_dispatch'
         uses: docker/build-push-action@v2
@@ -161,4 +157,8 @@ jobs:
           push: true
           build-args: |
             TRITON_VERSION=${{ env.triton_version }}
-          tags: ${{ env.image_tag }}      
+          tags: ${{ env.image_tag }}
+      - name: Remove container
+        run: docker container rm -f ${{ env.container_name }}
+      - name: Remove image
+        run: docker rmi $(docker images '${{ env.image_tag }}' -a -q)

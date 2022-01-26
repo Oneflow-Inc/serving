@@ -7,6 +7,8 @@ on:
       - "*"
   release:
     types: [published]
+  schedule:
+    - cron: "0 2 * * *"
   workflow_dispatch:
     inputs:
       tag:
@@ -123,6 +125,9 @@ jobs:
       - name: Export docker image name
         if: github.event_name == 'workflow_dispatch'
         run: echo "image_tag=${{ env.SERVING_IMAGE }}:${{ github.event.inputs.tag }}" >> $GITHUB_ENV
+      - name: Export docker image name
+        if: github.event_name == 'schedule'
+        run: echo "image_tag=${{ env.SERVING_IMAGE }}:nightly" >> $GITHUB_ENV
       - name: Make user docker image
         run: |
           mkdir -p context
@@ -130,6 +135,7 @@ jobs:
           cp oneflow-backend/build/libtriton_oneflow.so context/
           cp tritonserver context/
           cp -r lib/ context/
+          docker build -f ci/build/Dockerfile.serving context/ --build-arg TRITON_VERSION=${{ env.triton_version }} -t ${{ env.image_tag }}
       - name: Test
         run: |
           docker run $extra_docker_args ${{ env.image_tag }} sleep 3600
@@ -142,6 +148,9 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: docker push
+        if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
+        run: docker push ${{ env.image_tag }}
       - name: Remove container
         run: docker container rm -f ${{ env.container_name }}
       - name: Remove image

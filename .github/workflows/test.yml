@@ -61,6 +61,7 @@ jobs:
           manylinux-cache-dir: ${{ env.MANYLINUX_CACHE_DIR }}
           docker-run-use-system-http-proxy: true
           clean-ccache: ${{ contains(github.event.pull_request.labels.*.name, 'need-clean-ccache') }}
+          retry-failed-build: true
           python-versions: |
             3.8
       - name: Set environment variables

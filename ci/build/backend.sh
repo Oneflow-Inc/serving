@@ -4,7 +4,6 @@ set -euxo pipefail
 # install flowvision, run export model
 python3 -m pip install -r ci/build/requirement.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 python3 -m pip install --no-index --find-links=$WHEELHOUSE_DIR oneflow
-python3 -m pip install flowvision -i https://pypi.tuna.tsinghua.edu.cn/simple
 cd ./ci
 pip3 install -r build/requirement.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 cd ./test/test_resnet50_oneflow/resnet50_oneflow

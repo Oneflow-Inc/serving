@@ -2,11 +2,6 @@
 set -euxo pipefail
 
 # build oneflow
-echo "${ONEFLOW_CI_SRC_DIR}"
-echo "${ONEFLOW_CI_BUILD_DIR}"
-echo "${ONEFLOW_CI_PYTHON_EXE}"
-echo "${ONEFLOW_CI_CMAKE_INIT_CACHE}"
-echo "${HTTP_PROXY}"
 gcc --version
 ld --version
 
@@ -14,6 +9,7 @@ ld --version
 cd ${ONEFLOW_CI_SRC_DIR}
 ${ONEFLOW_CI_PYTHON_EXE} -m pip install -i https://mirrors.aliyun.com/pypi/simple --user -r ci/fixed-dev-requirements.txt
 cd python
+mkdir dist
 git clean -nXd -e \!dist -e \!dist/**
 git clean -fXd -e \!dist -e \!dist/**
 
@@ -29,4 +25,9 @@ fi
 cmake -S ${ONEFLOW_CI_SRC_DIR} -C ${ONEFLOW_CI_CMAKE_INIT_CACHE} -DPython3_EXECUTABLE=${ONEFLOW_CI_PYTHON_EXE}
 # cmake build
 cd ${ONEFLOW_CI_BUILD_DIR}
-cmake --build . -j 8
+cmake --build . -j 16
+
+# build pip
+cd ${ONEFLOW_CI_SRC_DIR}
+cd python
+${ONEFLOW_CI_PYTHON_EXE} setup.py bdist_wheel

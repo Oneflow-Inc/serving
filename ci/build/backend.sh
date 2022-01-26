@@ -2,6 +2,7 @@
 set -euxo pipefail
 
 # install flowvision, run export model
+python3 -m pip install --find-links https://release.oneflow.info oneflow==0.6.0+cpu
 cd ./ci
 pip3 install -r build/requirement.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 cd ./test/test_resnet50_oneflow/resnet50_oneflow

@@ -104,6 +104,12 @@ jobs:
       - name: Remove container
         run: |
           docker container rm -f ${{ env.container_name }}
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Make user docker image
         run: |
           mkdir -p context

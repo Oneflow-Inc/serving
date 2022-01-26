@@ -85,6 +85,8 @@ jobs:
           docker run --rm -v $PWD:/p -w /p busybox chmod -R o+w .
           docker run --rm -v ${{ env.MANYLINUX_CACHE_DIR }}:/p -w /p busybox chmod -R o+w .
           docker run $extra_docker_args ${{ env.image_tag }} sleep 3600
+          ls ${{ env.WHEELHOUSE_DIR }}
+          docker exec ${{ env.container_name }} python3 -m pip install --find-links=${{ env.WHEELHOUSE_DIR }} oneflow
           docker exec ${{ env.container_name }} /bin/bash ci/build/backend.sh
           docker cp ${{ env.container_name }}:/opt/tritonserver/bin/tritonserver .
           docker cp ${{ env.container_name }}:/opt/tritonserver/lib .
@@ -124,9 +126,7 @@ jobs:
           docker run $extra_docker_args ${{ env.image_tag }} sleep 3600
           docker exec ${{ env.container_name }} apt update
           docker exec ${{ env.container_name }} apt install -y python3 python3-pip
-          ls ${{ env.WHEELHOUSE_DIR }}
           docker exec -w $(pwd)/ci/test ${{ env.container_name }} pip3 install -r requirement.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
-          docker exec ${{ env.container_name }} python3 -m pip install --find-links=${{ env.WHEELHOUSE_DIR }} oneflow
           docker exec -w $(pwd)/ci/test ${{ env.container_name }} bash ./run_tests.sh
       - name: Remove container
         run: |

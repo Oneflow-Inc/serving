@@ -40,30 +40,30 @@ jobs:
       - name: Fix permissions
         run: |
           docker run --rm -v $PWD:/p -w /p busybox chmod -R o+w .
-      - uses: actions/checkout@v2
-      - name: Clone oneflow
-        run: |
-          git clone https://github.com/Oneflow-Inc/oneflow --depth=1
-          mkdir -p oneflow/ci/serving
-          cp ./ci/build/build.sh ./oneflow/ci/serving/build.sh
-          cp ./ci/build/mlir-cuda-75.cmake ./oneflow/ci/serving/mlir-cuda-75.cmake
-      - uses: Oneflow-Inc/get-oneflow@refactor-release
-        name: Build triton cu114
-        with:
-          cmake-init-cache: ./oneflow/ci/serving/mlir-cuda-75.cmake
-          build-script: ./oneflow/ci/serving/build.sh
-          oneflow-src: ./oneflow
-          oneflow-build-env: manylinux
-          wheelhouse-dir: ${{ env.WHEELHOUSE_DIR }}
-          clear-wheelhouse-dir: false
-          self-hosted: true
-          cuda-version: "11.4"
-          manylinux-cache-dir: ${{ env.MANYLINUX_CACHE_DIR }}
-          docker-run-use-system-http-proxy: true
-          clean-ccache: ${{ contains(github.event.pull_request.labels.*.name, 'need-clean-ccache') }}
-          retry-failed-build: true
-          python-versions: |
-            3.8
+      # - uses: actions/checkout@v2
+      # - name: Clone oneflow
+      #   run: |
+      #     git clone https://github.com/Oneflow-Inc/oneflow --depth=1
+      #     mkdir -p oneflow/ci/serving
+      #     cp ./ci/build/build.sh ./oneflow/ci/serving/build.sh
+      #     cp ./ci/build/mlir-cuda-75.cmake ./oneflow/ci/serving/mlir-cuda-75.cmake
+      # - uses: Oneflow-Inc/get-oneflow@refactor-release
+      #   name: Build triton cu114
+      #   with:
+      #     cmake-init-cache: ./oneflow/ci/serving/mlir-cuda-75.cmake
+      #     build-script: ./oneflow/ci/serving/build.sh
+      #     oneflow-src: ./oneflow
+      #     oneflow-build-env: manylinux
+      #     wheelhouse-dir: ${{ env.WHEELHOUSE_DIR }}
+      #     clear-wheelhouse-dir: false
+      #     self-hosted: true
+      #     cuda-version: "11.4"
+      #     manylinux-cache-dir: ${{ env.MANYLINUX_CACHE_DIR }}
+      #     docker-run-use-system-http-proxy: true
+      #     clean-ccache: ${{ contains(github.event.pull_request.labels.*.name, 'need-clean-ccache') }}
+      #     retry-failed-build: true
+      #     python-versions: |
+      #       3.8
       - name: Set environment variables
         run: |
           set -x
@@ -73,11 +73,12 @@ jobs:
           extra_docker_args+=" --detach"
           extra_docker_args+=" --name ${container_name}"
           extra_docker_args+=" --shm-size=8g --rm -w $PWD -v $PWD:$PWD"
+          extra_docker_args+=" -v ${{ env.MANYLINUX_CACHE_DIR }}:/manylinux-cache-dir"
           extra_docker_args+=" --network=host"
           extra_docker_args+=" -e HTTPS_PROXY -e HTTP_PROXY"
           extra_docker_args+=" --env TRITON_VERSION=${{ env.TRITON_VERSION }}"
           extra_docker_args+=" --env ONEFLOW_CI_SRC_DIR=$PWD/oneflow"
-          extra_docker_args+=" --env ONEFLOW_CI_BUILD_DIR=${{ env.MANYLINUX_CACHE_DIR }}/build"
+          extra_docker_args+=" --env ONEFLOW_CI_BUILD_DIR=/manylinux-cache-dir/build"
           extra_docker_args+=" --env WHEELHOUSE_DIR=${{ env.WHEELHOUSE_DIR }}"
           echo "extra_docker_args=${extra_docker_args}" >> $GITHUB_ENV
           echo "container_name=${container_name}" >> $GITHUB_ENV

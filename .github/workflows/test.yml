@@ -68,12 +68,13 @@ jobs:
         run: |
           set -x
           extra_docker_args=""
+          manylinux_cache_dir=${{ env.MANYLINUX_CACHE_DIR }}
           container_name=serving-build-run-id-${{ github.run_id }}-test
           extra_docker_args+=" --runtime=nvidia"
           extra_docker_args+=" --detach"
           extra_docker_args+=" --name ${container_name}"
           extra_docker_args+=" --shm-size=8g --rm -w $PWD -v $PWD:$PWD"
-          extra_docker_args+=" -v ${{ env.MANYLINUX_CACHE_DIR }}:/manylinux-cache-dir"
+          extra_docker_args+=" -v $manylinux_cache_dir:/manylinux-cache-dir"
           extra_docker_args+=" --network=host"
           extra_docker_args+=" -e HTTPS_PROXY -e HTTP_PROXY"
           extra_docker_args+=" --env TRITON_VERSION=${{ env.TRITON_VERSION }}"

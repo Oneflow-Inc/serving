@@ -112,6 +112,7 @@ jobs:
           echo "image_tag=registry.cn-beijing.aliyuncs.com/oneflow/triton-devel" >> $GITHUB_ENV
       - name: Copy tritonserver and its dependencies
         run: |
+          docker run $extra_docker_args ${{ env.image_tag }} sleep 3600
           docker exec ${{ env.container_name }} python3 -m pip install -r ci/build/requirement.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
           docker exec ${{ env.container_name }} python3 -m pip install --no-index --find-links=$WHEELHOUSE_DIR oneflow
           docker exec ${{ env.container_name }} (cd ./ci/test/test_resnet50_oneflow/resnet50_oneflow && python3 export_model.py)

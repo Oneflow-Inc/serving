@@ -115,7 +115,7 @@ jobs:
           docker run $extra_docker_args ${{ env.image_tag }} sleep 3600
           docker exec ${{ env.container_name }} python3 -m pip install -r ci/build/requirement.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
           docker exec ${{ env.container_name }} python3 -m pip install --no-index --find-links=$WHEELHOUSE_DIR oneflow
-          docker exec ${{ env.container_name }} (cd ./ci/test/test_resnet50_oneflow/resnet50_oneflow && python3 export_model.py)
+          docker exec ${{ env.container_name }} cd ./ci/test/test_resnet50_oneflow/resnet50_oneflow && python3 export_model.py
           docker cp ${{ env.container_name }}:/opt/tritonserver/bin/tritonserver .
           docker cp ${{ env.container_name }}:/opt/tritonserver/lib .
           docker cp ${{ env.container_name }}:/usr/lib/x86_64-linux-gnu/libb64.so.0d ${{ env.MANYLINUX_CACHE_DIR }}/build/liboneflow_cpp/lib/

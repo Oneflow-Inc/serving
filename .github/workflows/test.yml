@@ -125,6 +125,9 @@ jobs:
           docker cp ${{ env.container_name }}:/usr/lib/x86_64-linux-gnu/libdcgm.so.2 ${{ env.MANYLINUX_CACHE_DIR }}/build/liboneflow_cpp/lib/
           docker cp ${{ env.container_name }}:/usr/lib/x86_64-linux-gnu/libre2.so.5.0.0 ${{ env.MANYLINUX_CACHE_DIR }}/build/liboneflow_cpp/lib/
           docker cp ${{ env.container_name }}:/usr/lib/x86_64-linux-gnu/libre2.so.5 ${{ env.MANYLINUX_CACHE_DIR }}/build/liboneflow_cpp/lib/
+      - name: Remove container
+        run: |
+          docker container rm -f ${{ env.container_name }}
 
       - name: Set environment variables
         run: |

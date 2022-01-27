@@ -56,6 +56,7 @@ jobs:
           oneflow-build-env: manylinux
           wheelhouse-dir: ${{ env.WHEELHOUSE_DIR }}
           clear-wheelhouse-dir: false
+          wheel-audit: false
           self-hosted: true
           cuda-version: "11.4"
           manylinux-cache-dir: ${{ env.MANYLINUX_CACHE_DIR }}
@@ -63,7 +64,7 @@ jobs:
           clean-ccache: ${{ contains(github.event.pull_request.labels.*.name, 'need-clean-ccache') }}
           retry-failed-build: true
           python-versions: |
-            3.8
+            3.6
 
       - name: Set environment variables
         run: |
@@ -91,7 +92,10 @@ jobs:
           docker run --rm -v ${{ env.MANYLINUX_CACHE_DIR }}:/p -w /p busybox chmod -R o+w .
           docker run $extra_docker_args ${{ env.image_tag }} sleep 3600
           ls ${{ env.WHEELHOUSE_DIR }}
-          docker exec ${{ env.container_name }} yum install -y rapidjson-devel
+          docker exec ${{ env.container_name }} yum install -y rapidjson-devel libjpeg-devel python3 python3-pip python3-devel
+          docker exec ${{ env.container_name }} python3 -m pip install -r ci/build/requirement.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+          docker exec ${{ env.container_name }} python3 -m pip install --no-index --find-links=$WHEELHOUSE_DIR oneflow
+          docker exec -w $PWD/ci/test/test_resnet50_oneflow/resnet50_oneflow ${{ env.container_name }} python3 export_model.py
           docker exec ${{ env.container_name }} /bin/bash ci/build/backend.sh
       - name: Remove container
         run: |
@@ -113,9 +117,6 @@ jobs:
       - name: Copy tritonserver and its dependencies
         run: |
           docker run $extra_docker_args ${{ env.image_tag }} sleep 3600
-          docker exec ${{ env.container_name }} python3 -m pip install -r ci/build/requirement.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
-          docker exec ${{ env.container_name }} python3 -m pip install --no-index --find-links=$WHEELHOUSE_DIR oneflow
-          docker exec -w $PWD/ci/test/test_resnet50_oneflow/resnet50_oneflow ${{ env.container_name }} python3 export_model.py
           docker cp ${{ env.container_name }}:/opt/tritonserver/bin/tritonserver .
           docker cp ${{ env.container_name }}:/opt/tritonserver/lib .
           docker cp ${{ env.container_name }}:/usr/lib/x86_64-linux-gnu/libb64.so.0d ${{ env.MANYLINUX_CACHE_DIR }}/build/liboneflow_cpp/lib/

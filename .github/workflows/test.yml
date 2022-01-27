@@ -76,13 +76,14 @@ jobs:
           extra_docker_args+=" --detach"
           extra_docker_args+=" --name ${container_name}"
           extra_docker_args+=" --shm-size=8g --rm -w $PWD -v $PWD:$PWD"
-          extra_docker_args+=" -v $manylinux_cache_dir:/manylinux-cache-dir"
+          extra_docker_args+=" -v $manylinux_cache_dir:$manylinux_cache_dir"
           extra_docker_args+=" --network=host"
           extra_docker_args+=" -e HTTPS_PROXY -e HTTP_PROXY"
           extra_docker_args+=" --env TRITON_VERSION=${{ env.TRITON_VERSION }}"
           extra_docker_args+=" --env ONEFLOW_CI_SRC_DIR=$PWD/oneflow"
-          extra_docker_args+=" --env ONEFLOW_CI_BUILD_DIR=/manylinux-cache-dir/build"
+          extra_docker_args+=" --env ONEFLOW_CI_BUILD_DIR=$manylinux_cache_dir/build"
           extra_docker_args+=" --env WHEELHOUSE_DIR=${{ env.WHEELHOUSE_DIR }}"
+          extra_docker_args+=" --env PYTHONPATH=$PWD/oneflow/python"
           echo "extra_docker_args=${extra_docker_args}" >> $GITHUB_ENV
           echo "container_name=${container_name}" >> $GITHUB_ENV
           echo "image_tag=registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.4" >> $GITHUB_ENV
@@ -93,7 +94,6 @@ jobs:
           docker run $extra_docker_args ${{ env.image_tag }} sleep 3600
           docker exec ${{ env.container_name }} yum install -y rapidjson-devel libjpeg-devel python3 python3-pip python3-devel
           docker exec ${{ env.container_name }} python3 -m pip install -r ci/build/requirement.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
-          docker exec ${{ env.container_name }} python3 -m pip install --no-index --find-links=$PWD/oneflow/python/dist oneflow
           docker exec -w $PWD/ci/test/test_resnet50_oneflow/resnet50_oneflow ${{ env.container_name }} python3 export_model.py
           docker exec ${{ env.container_name }} /bin/bash ci/build/backend.sh
       - name: Remove container

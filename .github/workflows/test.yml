@@ -91,10 +91,9 @@ jobs:
           docker run --rm -v $PWD:/p -w /p busybox chmod -R o+w .
           docker run --rm -v ${{ env.MANYLINUX_CACHE_DIR }}:/p -w /p busybox chmod -R o+w .
           docker run $extra_docker_args ${{ env.image_tag }} sleep 3600
-          ls ${{ env.WHEELHOUSE_DIR }}
           docker exec ${{ env.container_name }} yum install -y rapidjson-devel libjpeg-devel python3 python3-pip python3-devel
           docker exec ${{ env.container_name }} python3 -m pip install -r ci/build/requirement.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
-          docker exec ${{ env.container_name }} python3 -m pip install --no-index --find-links=$WHEELHOUSE_DIR oneflow
+          docker exec ${{ env.container_name }} python3 -m pip install --no-index --find-links=$PWD/oneflow/python/dist oneflow
           docker exec -w $PWD/ci/test/test_resnet50_oneflow/resnet50_oneflow ${{ env.container_name }} python3 export_model.py
           docker exec ${{ env.container_name }} /bin/bash ci/build/backend.sh
       - name: Remove container

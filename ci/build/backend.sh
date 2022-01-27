@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
 set -euxo pipefail
 
-# install flowvision, run export model
-(cd ./ci/test/test_resnet50_oneflow/resnet50_oneflow && python3 export_model.py)
-
 # build oneflow-backend
 git config --global http.proxy ${HTTP_PROXY}
 git config --global https.proxy ${HTTP_PROXY}

@@ -193,8 +193,8 @@ jobs:
           docker images
       - name: Remove container
         run: docker container rm -f ${{ env.container_name }}
-      - name: Remove image
-        run: docker rmi $(docker images '${{ env.image_tag }}' -a -q)
+      # - name: Remove image
+      #   run: docker rmi $(docker images '${{ env.image_tag }}' -a -q)
 
   docker_push:
     name: Push to docker hub

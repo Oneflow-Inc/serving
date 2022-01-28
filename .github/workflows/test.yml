@@ -166,7 +166,7 @@ jobs:
           else
             echo "image_tag=${{ env.SERVING_IMAGE }}:run-id-${{ github.run_id }}" >> $GITHUB_ENV
           fi
-      - name: Export acr docker image name
+      - name: Export ACR docker image name
         run: |
           echo "acr_image_tag=${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.image_tag }}" >> $GITHUB_ENV
       - name: Make user docker image
@@ -191,7 +191,7 @@ jobs:
           login-server: https://registry.${{ env.REGION_ID }}.aliyuncs.com
           username: "${{ secrets.ACR_USERNAME }}"
           password: "${{ secrets.ACR_PASSWORD }}"
-      - name: docker push
+      - name: Docker push to ACR
         if: github.event_name == 'release' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
         run: |
           docker tag ${{ env.image_tag }} ${{ env.acr_image_tag }}
@@ -218,12 +218,12 @@ jobs:
           login-server: https://registry.${{ env.REGION_ID }}.aliyuncs.com
           username: "${{ secrets.ACR_USERNAME }}"
           password: "${{ secrets.ACR_PASSWORD }}"
-      - name: login to docker hub
+      - name: Login to docker hub
         uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: pull, tag and push
+      - name: Pull, tag and push
         run: |
           docker pull ${{ env.acr_image_tag }}
           docker tag ${{ env.acr_image_tag }} ${{ env.image_tag }}

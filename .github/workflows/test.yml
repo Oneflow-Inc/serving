@@ -82,7 +82,7 @@ jobs:
           set -x
           extra_docker_args=""
           manylinux_cache_dir=${{ env.MANYLINUX_CACHE_DIR }}
-          container_name=serving-build-run-id-${{ github.run_id }}-test
+          container_name=serving-build-run-id-${{ github.run_id }}-${{ github.run_number }}-test
           extra_docker_args+=" --runtime=nvidia"
           extra_docker_args+=" --detach"
           extra_docker_args+=" --name ${container_name}"
@@ -115,7 +115,7 @@ jobs:
         run: |
           set -x
           extra_docker_args=""
-          container_name=serving-tritonserver-run-id-${{ github.run_id }}-test
+          container_name=serving-tritonserver-run-id-${{ github.run_id }}-${{ github.run_number }}-test
           extra_docker_args+=" --runtime=nvidia"
           extra_docker_args+=" --detach"
           extra_docker_args+=" --name ${container_name}"
@@ -142,7 +142,7 @@ jobs:
         run: |
           set -x
           extra_docker_args=""
-          container_name=user-image-run-id-${{ github.run_id }}-test
+          container_name=user-image-run-id-${{ github.run_id }}-${{ github.run_number }}-test
           extra_docker_args+=" --runtime=nvidia"
           extra_docker_args+=" --detach"
           extra_docker_args+=" --name ${container_name}"
@@ -152,7 +152,10 @@ jobs:
           echo "image_tag=${{ env.SERVING_IMAGE }}" >> $GITHUB_ENV
           echo "triton_version=${{ env.TRITON_VERSION }}" >> $GITHUB_ENV
       - name: Export docker image name
-        if: github.event_name == 'pull_request' || github.event_name == 'release'
+        if: github.event_name == 'pull_request'
+        run: echo "image_tag=${{ env.SERVING_IMAGE }}:pr-${{ github.run_id }}" >> $GITHUB_ENV
+      - name: Export docker image name
+        if: github.event_name == 'release'
         run: echo "image_tag=${{ env.SERVING_IMAGE }}:${{ github.ref_name }}" >> $GITHUB_ENV
       - name: Export docker image name
         if: github.event_name == 'workflow_dispatch'
@@ -189,12 +192,14 @@ jobs:
         run: |
           docker images
           docker tag ${{ env.image_tag }} "${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.image_tag }}"
-          # docker push "${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.image_tag }}"
+          docker push "${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.image_tag }}"
           docker images
       - name: Remove container
         run: docker container rm -f ${{ env.container_name }}
       # - name: Remove image
-      #   run: docker rmi $(docker images '${{ env.image_tag }}' -a -q)
+      #   run: |
+      #     # [ -z "${{ env.image_tag }}" ] && echo "image_tag is empty" && exit 1
+      #     # docker rmi $(docker images '${{ env.image_tag }}' -a -q)
 
   docker_push:
     name: Push to docker hub

@@ -205,9 +205,13 @@ jobs:
         run: |
           set -x
           [ -z "${{ env.image_tag }}" ] && exit 0
-          docker rmi ${{ env.image_tag }}
+          if [[ "$(docker images -q ${{ env.image_tag }} 2> /dev/null)" != "" ]]; then
+            docker rmi ${{ env.image_tag }}
+          fi
           [ -z "${{ env.acr_image_tag }}" ] && exit 0
-          docker rmi ${{ env.acr_image_tag }}
+          if [[ "$(docker images -q ${{ env.acr_image_tag }} 2> /dev/null)" != "" ]]; then
+            docker rmi ${{ env.acr_image_tag }}
+          fi
       - name: Output environment variables
         id: output-step
         run: |

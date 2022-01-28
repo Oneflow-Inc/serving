@@ -152,19 +152,23 @@ jobs:
           echo "image_tag=${{ env.SERVING_IMAGE }}" >> $GITHUB_ENV
           echo "triton_version=${{ env.TRITON_VERSION }}" >> $GITHUB_ENV
       - name: Export docker image name
-        if: github.event_name == 'pull_request'
-        run: echo "image_tag=${{ env.SERVING_IMAGE }}:pr-${{ github.run_id }}" >> $GITHUB_ENV
-      - name: Export docker image name
-        if: github.event_name == 'release'
-        run: echo "image_tag=${{ env.SERVING_IMAGE }}:${{ github.ref_name }}" >> $GITHUB_ENV
-      - name: Export docker image name
-        if: github.event_name == 'workflow_dispatch'
-        run: echo "image_tag=${{ env.SERVING_IMAGE }}:${{ github.event.inputs.tag }}" >> $GITHUB_ENV
-      - name: Export docker image name
-        if: github.event_name == 'schedule'
-        run: echo "image_tag=${{ env.SERVING_IMAGE }}:nightly" >> $GITHUB_ENV
+        run: |
+          set -x
+          if [[ "${{ github.event_name }}" == "release" ]]
+          then
+            echo "image_tag=${{ env.SERVING_IMAGE }}:${{ github.ref_name }}" >> $GITHUB_ENV
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]
+          then
+            echo "image_tag=${{ env.SERVING_IMAGE }}:${{ github.event.inputs.tag }}" >> $GITHUB_ENV
+          elif [[ "${{ github.event_name }}" == "schedule" ]]
+          then
+            echo "image_tag=${{ env.SERVING_IMAGE }}:nightly" >> $GITHUB_ENV
+          else
+            echo "image_tag=${{ env.SERVING_IMAGE }}:run-id-${{ github.run_id }}" >> $GITHUB_ENV
+          fi
       - name: Export acr docker image name
-        run: echo "acr_image_tag=${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.image_tag }}" >> $GITHUB_ENV
+        run: |
+          echo "acr_image_tag=${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.image_tag }}" >> $GITHUB_ENV
       - name: Make user docker image
         run: |
           echo ${{ env.image_tag }}

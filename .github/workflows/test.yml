@@ -224,6 +224,8 @@ jobs:
         run: |
           echo "image_tag=${{ needs.build_test.outputs.image_tag }}" >> $GITHUB_ENV
           echo "acr_image_tag=${{ needs.build_test.outputs.acr_image_tag }}" >> $GITHUB_ENV
+      - name: Output environment variables
+        run: |
           echo ${{ env.acr_image_tag }}
           echo ${{ env.image_tag }}
       - name: Login to ACR with the AccessKey pair

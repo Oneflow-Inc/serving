@@ -201,9 +201,9 @@ jobs:
       - name: Remove image
         run: |
           set -x
-          [ -z "${{ env.image_tag }}" ] && exit 1
-          [ -z "${{ env.acr_image_tag }}" ] && exit 1
+          [ -z "${{ env.image_tag }}" ] && exit 0
           docker rmi ${{ env.image_tag }}
+          [ -z "${{ env.acr_image_tag }}" ] && exit 0
           docker rmi ${{ env.acr_image_tag }}
 
   docker_push:

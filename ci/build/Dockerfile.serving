@@ -10,3 +10,4 @@ COPY tritonserver /opt/tritonserver/bin
 COPY lib/ /opt/tritonserver/lib
 COPY ./liboneflow_cpp/lib/ /usr/local/nvidia/lib
 COPY ./libtriton_oneflow.so /opt/tritonserver/backends/oneflow
+COPY ./nvidia_entrypoint.sh /opt/nvidia/nvidia_entrypoint.sh

@@ -176,6 +176,7 @@ jobs:
         run: |
           echo ${{ env.image_tag }}
           mkdir -p context
+          cp ci/build/nvidia_entrypoint.sh context/
           cp -r ${{ env.MANYLINUX_CACHE_DIR }}/build/liboneflow_cpp/ context/
           cp oneflow-backend/build/libtriton_oneflow.so context/
           cp tritonserver context/

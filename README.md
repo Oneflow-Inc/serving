@@ -1,4 +1,4 @@
-# Oneflow Serving
+# OneFlow Serving
 
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Oneflow-Inc/serving/pulls)
 

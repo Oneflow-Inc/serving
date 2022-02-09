@@ -21,7 +21,7 @@ Launch triton server
 
 ```
 cd ../../  # back to root of the serving
-docker run --rm --runtime=nvidia --network=host -v$(pwd)/oneflow-backend/examples:/models 
+docker run --rm --runtime=nvidia --network=host -v$(pwd)/oneflow-backend/examples:/models \
 oneflowinc/oneflow-serving:0.0.1 /opt/tritonserver/bin/tritonserver --model-store /models
 curl -v localhost:8000/v2/health/ready  # ready check
 ```
@@ -56,8 +56,8 @@ Build oneflow backend from source
 export TRITON_VER=r21.10
 mkdir build
 cd build
-cmake -DCMAKE_INSTALL_PREFIX:PATH=`pwd`/install  -DTRITON_BACKEND_REPO_TAG=${TRITON_VER}
--DTRITON_CORE_REPO_TAG=${TRITON_VER} -DTRITON_COMMON_REPO_TAG=${TRITON_VER} -G Ninja
+cmake -DCMAKE_INSTALL_PREFIX:PATH=`pwd`/install  -DTRITON_BACKEND_REPO_TAG=${TRITON_VER} \
+-DTRITON_CORE_REPO_TAG=${TRITON_VER} -DTRITON_COMMON_REPO_TAG=${TRITON_VER} -G Ninja \
 -DCMAKE_PREFIX_PATH=/path/to/liboneflow_cpp -DTRITON_ENABLE_GPU=ON ..
 ninja
 ```
@@ -66,11 +66,11 @@ Launch triton server
 
 ```
 cd ../../  # back to root of the serving
-docker run --runtime=nvidia --rm -p8000:8000 -p8001:8001 -p8002:8002 
--v$(pwd)/oneflow-backend/examples:/models 
--v$(pwd)/oneflow-backend/build/libtriton_oneflow.so:/backends/oneflow/libtriton_oneflow.so 
--v$(pwd)/oneflow/build/liboneflow_cpp/lib/:/mylib nvcr.io/nvidia/tritonserver:21.10-py3 
-bash -c 'LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/mylib/ /opt/tritonserver/bin/tritonserver 
+docker run --runtime=nvidia --rm -p8000:8000 -p8001:8001 -p8002:8002 \
+-v$(pwd)/oneflow-backend/examples:/models \
+-v$(pwd)/oneflow-backend/build/libtriton_oneflow.so:/backends/oneflow/libtriton_oneflow.so \
+-v$(pwd)/oneflow/build/liboneflow_cpp/lib/:/mylib nvcr.io/nvidia/tritonserver:21.10-py3 \
+bash -c 'LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/mylib/ /opt/tritonserver/bin/tritonserver \
 --model-repository=/models --backend-directory=/backends' 
 curl -v localhost:8000/v2/health/ready  # ready check
 ```

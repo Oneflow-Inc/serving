@@ -115,7 +115,7 @@ instance_group [
 OneFlow Serving 提供了 Docker 镜像，使用 Docker 启动模型服务。按照上面的目录结构组织好文件之后，就可以映射路径到容器中，启动服务。您可以在[这里](https://github.com/Oneflow-Inc/serving/tree/main/oneflow-backend/examples)找到完整的目录。
 
 ```
-docker run --rm --runtime=nvidia --network=host -v$(pwd)/model_repository:/models
+docker run --rm --runtime=nvidia --network=host -v$(pwd)/model_repository:/models \
 oneflowinc/oneflow-serving:0.0.1 /opt/tritonserver/bin/tritonserver --model-store /models
 ```
 

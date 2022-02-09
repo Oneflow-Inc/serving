@@ -45,7 +45,7 @@ git clone https://github.com/Oneflow-Inc/oneflow --depth=1
 cd oneflow
 mkdir build
 cd build
-cmake .. -C ../cmake/caches/cn/cuda.cmake -DBUILD_CPP_API=ON -DBUILD_SHARED_LIBS=ON 
+cmake .. -C ../cmake/caches/cn/cuda.cmake -DBUILD_CPP_API=ON -DBUILD_SHARED_LIBS=ON \
 -DWITH_MLIR=ON -G Ninja
 ninja
 ```

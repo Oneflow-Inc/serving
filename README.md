@@ -1,4 +1,4 @@
-# Oneflow Serving
+# OneFlow Serving
 
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Oneflow-Inc/serving/pulls)
 
@@ -10,7 +10,32 @@ OneFlow Backend For Triton Inference Server
 
 ## Get Started
 
-If you want to try it, you need to build liboneflow and oneflow-backend from source. An out-of-the-box docker image will be released soon.
+Download and save model
+
+```
+cd examples/resnet50_oneflow/
+python3 export_model.py
+```
+
+Launch triton server
+
+```
+cd ../../  # back to root of the serving
+docker run --rm --runtime=nvidia --network=host -v$(pwd)/oneflow-backend/examples:/models oneflowinc/oneflow-serving:0.0.1 /opt/tritonserver/bin/tritonserver --model-store /models
+curl -v localhost:8000/v2/health/ready  # ready check
+```
+
+Send images and predict
+
+```
+pip3 install tritonclient[all]
+cd examples/resnet50_oneflow/
+python3 client.py --image cat.jpg
+```
+
+## Build From Source
+
+To build from source, you need to build liboneflow first.
 
 Build liboneflow from source
 
@@ -33,27 +58,12 @@ cmake -DCMAKE_INSTALL_PREFIX:PATH=`pwd`/install  -DTRITON_BACKEND_REPO_TAG=${TRI
 ninja
 ```
 
-Download and save model
-
-```
-cd examples/resnet50_oneflow/
-python3 export_model.py
-```
-
 Launch triton server
 
 ```
 cd ../../  # back to root of the serving
 docker run --runtime=nvidia --rm -p8000:8000 -p8001:8001 -p8002:8002 -v$(pwd)/oneflow-backend/examples:/models -v$(pwd)/oneflow-backend/build/libtriton_oneflow.so:/backends/oneflow/libtriton_oneflow.so -v$(pwd)/oneflow/build/liboneflow_cpp/lib/:/mylib nvcr.io/nvidia/tritonserver:21.10-py3 bash -c 'LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/mylib/ /opt/tritonserver/bin/tritonserver --model-repository=/models --backend-directory=/backends' 
 curl -v localhost:8000/v2/health/ready  # ready check
-```
-
-Send images and predict
-
-```
-pip3 install tritonclient[all]
-cd examples/resnet50_oneflow/
-python3 client.py --image cat.jpg
 ```
 
 ## Model Config Convention

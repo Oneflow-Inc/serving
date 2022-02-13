@@ -86,6 +86,7 @@ jobs:
           docker run --rm -v $PWD:/p -w /p busybox chmod -R o+w .
           docker run --rm -v ${{ env.MANYLINUX_CACHE_DIR }}:/p -w /p busybox chmod -R o+w .
           docker pull ${{ env.image_tag }}
+          docker container rm -f ${{ env.container_name }} || true
           docker run $extra_docker_args ${{ env.image_tag }} sleep 3600
           docker exec ${{ env.container_name }} /bin/bash $PWD/oneflow/ci/manylinux/build-gcc7.sh
       - name: Build oneflow backend for triton
@@ -95,7 +96,6 @@ jobs:
           docker exec ${{ env.container_name }} /bin/bash ci/build/backend.sh
       - name: Remove container
         run: |
-          if: ${{ always() }}
           docker container rm -f ${{ env.container_name }}
       - name: Export docker image name
         run: |
@@ -139,6 +139,7 @@ jobs:
           echo "triton_version=${{ env.TRITON_VERSION }}" >> $GITHUB_ENV
       - name: Test
         run: |
+          docker container rm -f ${{ env.container_name }} || true
           docker run $extra_docker_args ${{ env.image_tag }} sleep 3600
           docker exec ${{ env.container_name }} apt update
           docker exec ${{ env.container_name }} apt install -y python3 python3-pip
@@ -156,7 +157,6 @@ jobs:
           docker tag ${{ env.image_tag }} ${{ env.acr_image_tag }}
           docker push ${{ env.acr_image_tag }}
       - name: Remove container
-        if: ${{ always() }}
         run: docker container rm -f ${{ env.container_name }}
       - name: Remove image
         run: |

@@ -22,3 +22,9 @@ instance_group [
     gpus: [ 0 ]
   }
 ]
+parameters {
+  key: "xrt"
+  value: {
+    string_value: "tensorrt"
+  }
+}

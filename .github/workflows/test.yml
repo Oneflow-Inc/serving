@@ -95,6 +95,7 @@ jobs:
           docker exec ${{ env.container_name }} /bin/bash ci/build/backend.sh
       - name: Remove container
         run: |
+          if: ${{ always() }}
           docker container rm -f ${{ env.container_name }}
       - name: Export docker image name
         run: |
@@ -155,6 +156,7 @@ jobs:
           docker tag ${{ env.image_tag }} ${{ env.acr_image_tag }}
           docker push ${{ env.acr_image_tag }}
       - name: Remove container
+        if: ${{ always() }}
         run: docker container rm -f ${{ env.container_name }}
       - name: Remove image
         run: |

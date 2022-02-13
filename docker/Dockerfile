@@ -88,5 +88,5 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 COPY --chown=1000:1000 --from=full /usr/bin/serve /usr/bin/.
 
 # Copying over oneflow
-COPY ./liboneflow_cpp/lib/ /usr/local/nvidia/lib
-COPY ./libtriton_oneflow.so /opt/tritonserver/backends/oneflow
+COPY ./liboneflow_cpp/lib/ /usr/local/nvidia/lib/
+COPY ./libtriton_oneflow.so /opt/tritonserver/backends/oneflow/

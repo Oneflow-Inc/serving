@@ -1,4 +1,3 @@
-
 #
 # Multistage build.
 #
@@ -63,26 +62,18 @@ RUN wget https://oneflow-static.oss-cn-beijing.aliyuncs.com/tensorrt/nv-tensorrt
     rm -rf /var/lib/apt/lists/* && \
     rm -f nv-tensorrt-repo-ubuntu2004-cuda11.3-trt8.0.3.4-ga-20210831_1-1_amd64.deb
 
-
-
-WORKDIR /opt/tritonserver
-RUN rm -rf /opt/tritonserver/*
-COPY --chown=1000:1000 --from=full /opt/tritonserver/nvidia_entrypoint.sh .
-ENTRYPOINT ["/opt/tritonserver/nvidia_entrypoint.sh"]
-
 ENV NVIDIA_BUILD_ID 28453983
 LABEL com.nvidia.build.id=28453983
 LABEL com.nvidia.build.ref=a8c3497c460014286e5293d32fcd8df9c99621c7
 
 WORKDIR /opt/tritonserver
+RUN rm -rf /opt/tritonserver/*
 COPY --chown=1000:1000 --from=full /opt/tritonserver/LICENSE .
 COPY --chown=1000:1000 --from=full /opt/tritonserver/TRITON_VERSION .
 COPY --chown=1000:1000 --from=full /opt/tritonserver/NVIDIA_Deep_Learning_Container_License.pdf .
 COPY --chown=1000:1000 --from=full /opt/tritonserver/bin bin/
 COPY --chown=1000:1000 --from=full /opt/tritonserver/lib lib/
 COPY --chown=1000:1000 --from=full /opt/tritonserver/include include/
-# Copying over backends 
-# Copying over repoagents 
 
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 COPY --chown=1000:1000 --from=full /usr/bin/serve /usr/bin/.
@@ -90,3 +81,5 @@ COPY --chown=1000:1000 --from=full /usr/bin/serve /usr/bin/.
 # Copying over oneflow
 COPY ./liboneflow_cpp/lib/ /usr/local/nvidia/lib/
 COPY ./libtriton_oneflow.so /opt/tritonserver/backends/oneflow/
+COPY ./oneflow_serving_triton_entrypoint.sh .
+ENTRYPOINT ["/opt/tritonserver/oneflow_serving_triton_entrypoint.sh"]

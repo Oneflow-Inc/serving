@@ -132,7 +132,7 @@ jobs:
         run: |
           echo ${{ env.image_tag }}
           mkdir -p context
-          cp ci/build/nvidia_entrypoint.sh context/
+          cp ci/build/oneflow_serving_triton_entrypoint.sh context/
           cp -r ${{ env.MANYLINUX_CACHE_DIR }}/build/liboneflow_cpp/ context/
           cp oneflow-backend/build/libtriton_oneflow.so context/
           docker build -f docker/Dockerfile context/ --build-arg TRITON_CONTAINER_VERSION=${{ env.triton_version }} -t ${{ env.image_tag }}

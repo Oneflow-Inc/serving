@@ -58,28 +58,6 @@ jobs:
       - name: Clone oneflow
         run: |
           git clone https://github.com/Oneflow-Inc/oneflow --depth=1
-          mkdir -p oneflow/ci/serving
-          cp ./ci/build/build.sh ./oneflow/ci/serving/build.sh
-          cp ./ci/build/oneflow-mlir-cuda-75.cmake ./oneflow/ci/serving/oneflow-mlir-cuda-75.cmake
-      - uses: Oneflow-Inc/get-oneflow@refactor-release
-        name: Build triton cu114
-        with:
-          cmake-init-cache: ./oneflow/ci/serving/oneflow-mlir-cuda-75.cmake
-          build-script: ./oneflow/ci/serving/build.sh
-          oneflow-src: ./oneflow
-          oneflow-build-env: manylinux
-          wheelhouse-dir: ${{ env.WHEELHOUSE_DIR }}
-          clear-wheelhouse-dir: false
-          wheel-audit: false
-          self-hosted: true
-          cuda-version: "11.4"
-          manylinux-cache-dir: ${{ env.MANYLINUX_CACHE_DIR }}
-          docker-run-use-system-http-proxy: true
-          clean-ccache: ${{ contains(github.event.pull_request.labels.*.name, 'need-clean-ccache') }}
-          retry-failed-build: true
-          python-versions: |
-            3.6
-
       - name: Set environment variables
         run: |
           set -x
@@ -98,46 +76,24 @@ jobs:
           extra_docker_args+=" --env ONEFLOW_CI_BUILD_DIR=$manylinux_cache_dir/build"
           extra_docker_args+=" --env WHEELHOUSE_DIR=${{ env.WHEELHOUSE_DIR }}"
           extra_docker_args+=" --env PYTHONPATH=$PWD/oneflow/python"
+          extra_docker_args+=" --env ONEFLOW_CI_CMAKE_INIT_CACHE=$PWD/oneflow/cmake/caches/ci/serving/cuda-75.cmake"
+          extra_docker_args+=" --env ONEFLOW_CI_PYTHON_EXE=python3"
           echo "extra_docker_args=${extra_docker_args}" >> $GITHUB_ENV
           echo "container_name=${container_name}" >> $GITHUB_ENV
-          echo "image_tag=registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.4" >> $GITHUB_ENV
-      - name: Build oneflow backend
+          echo "image_tag=registry.cn-beijing.aliyuncs.com/oneflow/triton-devel:latest" >> $GITHUB_ENV
+      - name: Build oneflow
         run: |
           docker run --rm -v $PWD:/p -w /p busybox chmod -R o+w .
           docker run --rm -v ${{ env.MANYLINUX_CACHE_DIR }}:/p -w /p busybox chmod -R o+w .
+          docker pull ${{ env.image_tag }}
+          docker container rm -f ${{ env.container_name }} || true
           docker run $extra_docker_args ${{ env.image_tag }} sleep 3600
-          docker exec ${{ env.container_name }} yum install -y rapidjson-devel libjpeg-devel python3 python3-pip python3-devel
+          docker exec ${{ env.container_name }} /bin/bash $PWD/oneflow/ci/manylinux/build-gcc7.sh
+      - name: Build oneflow backend for triton
+        run: |
           docker exec ${{ env.container_name }} python3 -m pip install -r ci/build/requirement.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
           docker exec -w $PWD/ci/test/test_resnet50_oneflow/resnet50_oneflow ${{ env.container_name }} python3 export_model.py
           docker exec ${{ env.container_name }} /bin/bash ci/build/backend.sh
-      - name: Remove container
-        run: |
-          docker container rm -f ${{ env.container_name }}
-
-      - name: Set environment variables
-        run: |
-          set -x
-          extra_docker_args=""
-          container_name=serving-tritonserver-run-id-${{ github.run_id }}-${{ github.run_number }}-test
-          extra_docker_args+=" --runtime=nvidia"
-          extra_docker_args+=" --detach"
-          extra_docker_args+=" --name ${container_name}"
-          extra_docker_args+=" --shm-size=8g --rm -w $PWD -v $PWD:$PWD"
-          extra_docker_args+=" --network=host"
-          echo "extra_docker_args=${extra_docker_args}" >> $GITHUB_ENV
-          echo "container_name=${container_name}" >> $GITHUB_ENV
-          echo "image_tag=registry.cn-beijing.aliyuncs.com/oneflow/triton-devel" >> $GITHUB_ENV
-      - name: Copy tritonserver and its dependencies
-        run: |
-          docker run $extra_docker_args ${{ env.image_tag }} sleep 3600
-          docker cp ${{ env.container_name }}:/opt/tritonserver/bin/tritonserver .
-          docker cp ${{ env.container_name }}:/opt/tritonserver/lib .
-          docker cp ${{ env.container_name }}:/usr/lib/x86_64-linux-gnu/libb64.so.0d ${{ env.MANYLINUX_CACHE_DIR }}/build/liboneflow_cpp/lib/
-          docker cp ${{ env.container_name }}:/usr/lib/x86_64-linux-gnu/libb64.so ${{ env.MANYLINUX_CACHE_DIR }}/build/liboneflow_cpp/lib/
-          docker cp ${{ env.container_name }}:/usr/lib/x86_64-linux-gnu/libdcgm.so.2.2.9 ${{ env.MANYLINUX_CACHE_DIR }}/build/liboneflow_cpp/lib/
-          docker cp ${{ env.container_name }}:/usr/lib/x86_64-linux-gnu/libdcgm.so.2 ${{ env.MANYLINUX_CACHE_DIR }}/build/liboneflow_cpp/lib/
-          docker cp ${{ env.container_name }}:/usr/lib/x86_64-linux-gnu/libre2.so.5.0.0 ${{ env.MANYLINUX_CACHE_DIR }}/build/liboneflow_cpp/lib/
-          docker cp ${{ env.container_name }}:/usr/lib/x86_64-linux-gnu/libre2.so.5 ${{ env.MANYLINUX_CACHE_DIR }}/build/liboneflow_cpp/lib/
       - name: Remove container
         run: |
           docker container rm -f ${{ env.container_name }}
@@ -179,14 +135,11 @@ jobs:
           cp ci/build/nvidia_entrypoint.sh context/
           cp -r ${{ env.MANYLINUX_CACHE_DIR }}/build/liboneflow_cpp/ context/
           cp oneflow-backend/build/libtriton_oneflow.so context/
-          cp tritonserver context/
-          cp -r lib/ context/
-          docker build -f ci/build/Dockerfile.serving context/ --build-arg TRITON_VERSION=${{ env.triton_version }} -t ${{ env.image_tag }}
+          docker build -f docker/Dockerfile context/ --build-arg TRITON_CONTAINER_VERSION=${{ env.triton_version }} -t ${{ env.image_tag }}
       - name: Test
         run: |
+          docker container rm -f ${{ env.container_name }} || true
           docker run $extra_docker_args ${{ env.image_tag }} sleep 3600
-          docker exec ${{ env.container_name }} apt update
-          docker exec ${{ env.container_name }} apt install -y python3 python3-pip
           docker exec -w $(pwd)/ci/test ${{ env.container_name }} pip3 install -r requirement.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
           docker exec -w $(pwd)/ci/test ${{ env.container_name }} bash ./run_tests.sh
       - name: Login to ACR with the AccessKey pair

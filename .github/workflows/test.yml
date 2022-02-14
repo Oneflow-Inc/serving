@@ -179,7 +179,7 @@ jobs:
     steps:
       - name: Set environment variables
         run: |
-          echo "image_tag=${{ needs.build_test.outputs.image_tag }}" >> $GITHUB_ENV
+          echo "image_tag=oneflowinc/${{ needs.build_test.outputs.image_tag }}" >> $GITHUB_ENV
           echo "acr_image_tag=${{ needs.build_test.outputs.acr_image_tag }}" >> $GITHUB_ENV
       - name: Output environment variables
         run: |

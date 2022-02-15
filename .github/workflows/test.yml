@@ -92,7 +92,7 @@ jobs:
       - name: Build oneflow backend for triton
         run: |
           docker exec ${{ env.container_name }} python3 -m pip install -r ci/build/requirement.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
-          docker exec -w $PWD/ci/test/test_resnet50_oneflow/resnet50_oneflow ${{ env.container_name }} python3 export_model.py
+          docker exec -w $PWD/test/test_resnet50 ${{ env.container_name }} python3 export_model.py
           docker exec ${{ env.container_name }} /bin/bash ci/build/backend.sh
       - name: Remove container
         run: |
@@ -139,8 +139,8 @@ jobs:
         run: |
           docker container rm -f ${{ env.container_name }} || true
           docker run $extra_docker_args ${{ env.image_tag }} sleep 3600
-          docker exec -w $(pwd)/ci/test ${{ env.container_name }} pip3 install -r requirement.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
-          docker exec -w $(pwd)/ci/test ${{ env.container_name }} bash ./run_tests.sh
+          docker exec -w $(pwd) ${{ env.container_name }} pip3 install -r ./ci/test/requirement.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+          docker exec -w $(pwd) ${{ env.container_name }} bash ./ci/test/run_tests.sh
       - name: Login to ACR with the AccessKey pair
         uses: aliyun/acr-login@v1
         with:

@@ -34,4 +34,4 @@ if __name__ == "__main__":
     model.eval()
     graph = MyGraph(model)
     out = graph(image)
-    flow.save(graph, "1/model")
+    flow.save(graph, "model")

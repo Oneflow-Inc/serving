@@ -1,1 +1,2 @@
 tritonclient[all]
+Jinja2

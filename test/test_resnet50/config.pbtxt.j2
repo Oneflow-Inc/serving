@@ -1,0 +1,36 @@
+{%- if batching -%}
+name: "resnet50_batching"
+max_batch_size: 5
+dynamic_batching { max_queue_delay_microseconds: 1000000 }
+{%- else -%}
+name: "resnet50"
+max_batch_size: 1
+{% endif %}
+backend: "oneflow"
+input [
+    {
+        name: "INPUT_0"
+        data_type: TYPE_FP32
+        dims: [ 3, 224, 224 ]
+    }
+]
+output [
+    {
+        name: "OUTPUT_0"
+        data_type: TYPE_FP32
+        dims: [ 1000 ]
+    }
+]
+instance_group [
+    {
+        count: 1
+        kind: KIND_GPU
+        gpus: [ 0 ]
+    }
+]
+parameters {
+    key: "xrt"
+    value: {
+        string_value: "tensorrt"
+    }
+}

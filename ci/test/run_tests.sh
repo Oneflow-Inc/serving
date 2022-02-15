@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euxo pipefail
 
-DIRS=(test_*/)
+DIRS=($(pwd)/test/test_*/)
 
 for dir in "${DIRS[@]}"; do
     echo -e "Running test: $dir...\n"

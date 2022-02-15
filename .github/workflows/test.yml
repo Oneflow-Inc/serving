@@ -134,7 +134,7 @@ jobs:
           mkdir -p context
           cp ci/build/oneflow_serving_triton_entrypoint.sh context/
           cp -r ${{ env.MANYLINUX_CACHE_DIR }}/build/liboneflow_cpp/ context/
-          cp oneflow-backend/build/libtriton_oneflow.so context/
+          cp build/libtriton_oneflow.so context/
           docker build -f docker/Dockerfile context/ --build-arg TRITON_CONTAINER_VERSION=${{ env.triton_version }} -t ${{ env.image_tag }}
       - name: Test
         run: |

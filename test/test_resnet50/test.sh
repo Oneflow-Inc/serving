@@ -26,10 +26,10 @@ if [ "$SERVER_PID" == "0" ]; then
 fi
 
 echo "running resnet50 basic test"
-python3 ../common/test_model.py --model resnet50_oneflow --target-output ./resnet50_output.npy
+python3 ../common/test_model.py --model resnet50 --target-output ./resnet50_output.npy
 
 echo "running resnet50 batching test"
-python3 ../common/test_model.py --model resnet50_oneflow_batching --target-output ./resnet50_output.npy
+python3 ../common/test_model.py --model resnet50_batching --target-output ./resnet50_output.npy
 
 
 kill $SERVER_PID

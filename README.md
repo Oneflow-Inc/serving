@@ -21,7 +21,7 @@ Launch triton server
 
 ```
 cd ../../  # back to root of the serving
-docker run --rm --runtime=nvidia --network=host -v$(pwd)/oneflow-backend/examples:/models oneflowinc/oneflow-serving:0.0.1 /opt/tritonserver/bin/tritonserver --model-store /models
+docker run --rm --runtime=nvidia --network=host -v$(pwd)/oneflow-backend/examples:/models oneflowinc/oneflow-serving:0.0.1
 curl -v localhost:8000/v2/health/ready  # ready check
 ```
 

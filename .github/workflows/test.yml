@@ -21,7 +21,7 @@ env:
   TRITON_VERSION: "21.10"
   SERVING_IMAGE: "oneflow-serving"
   MANYLINUX_CACHE_DIR: ~/manylinux-cache-dir/triton-cu114
-  WHEELHOUSE_DIR: manylinux-wheelhouse
+  WHEELHOUSE_DIR: ~/manylinux-cache-dir/triton-cu114/manylinux-wheelhouse
   REGION_ID: cn-beijing
   REGISTRY: registry.cn-beijing.aliyuncs.com
   NAMESPACE: oneflow

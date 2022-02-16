@@ -74,6 +74,7 @@ jobs:
           extra_docker_args+=" --env TRITON_VERSION=${{ env.TRITON_VERSION }}"
           extra_docker_args+=" --env ONEFLOW_CI_SRC_DIR=$PWD/oneflow"
           extra_docker_args+=" --env ONEFLOW_CI_BUILD_DIR=$manylinux_cache_dir/build"
+          extra_docker_args+=" --env ONEFLOW_CI_BUILD_SCRIPT=$PWD/oneflow/ci/manylinux/build-gcc7.sh"
           extra_docker_args+=" --env WHEELHOUSE_DIR=${{ env.WHEELHOUSE_DIR }}"
           extra_docker_args+=" --env PYTHONPATH=$PWD/oneflow/python"
           extra_docker_args+=" --env ONEFLOW_CI_CMAKE_INIT_CACHE=$PWD/cmake/ci/oneflow-cuda.cmake"
@@ -88,7 +89,7 @@ jobs:
           docker pull ${{ env.image_tag }}
           docker container rm -f ${{ env.container_name }} || true
           docker run $extra_docker_args ${{ env.image_tag }} sleep 3600
-          docker exec ${{ env.container_name }} /bin/bash $PWD/oneflow/ci/manylinux/build-gcc7.sh
+          docker exec -w $PWD ${{ env.container_name }} /bin/bash ci/build/oneflow.sh
       - name: Build oneflow backend for triton
         run: |
           docker exec ${{ env.container_name }} python3 -m pip install -r ci/build/requirement.txt -i https://pypi.tuna.tsinghua.edu.cn/simple

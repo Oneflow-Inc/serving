@@ -76,7 +76,7 @@ jobs:
           extra_docker_args+=" --env ONEFLOW_CI_BUILD_DIR=$manylinux_cache_dir/build"
           extra_docker_args+=" --env WHEELHOUSE_DIR=${{ env.WHEELHOUSE_DIR }}"
           extra_docker_args+=" --env PYTHONPATH=$PWD/oneflow/python"
-          extra_docker_args+=" --env ONEFLOW_CI_CMAKE_INIT_CACHE=$PWD/oneflow/cmake/caches/ci/serving/cuda-75.cmake"
+          extra_docker_args+=" --env ONEFLOW_CI_CMAKE_INIT_CACHE=$PWD/cmake/ci/oneflow-cuda.cmake"
           extra_docker_args+=" --env ONEFLOW_CI_PYTHON_EXE=python3"
           echo "extra_docker_args=${extra_docker_args}" >> $GITHUB_ENV
           echo "container_name=${container_name}" >> $GITHUB_ENV

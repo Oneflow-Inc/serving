@@ -1,0 +1,2 @@
+include(${CMAKE_CURRENT_LIST_DIR}/oneflow-cuda.cmake)
+set(CMAKE_CUDA_ARCHITECTURES "75" CACHE STRING "")

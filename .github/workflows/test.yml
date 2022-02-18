@@ -82,19 +82,19 @@ jobs:
           echo "extra_docker_args=${extra_docker_args}" >> $GITHUB_ENV
           echo "container_name=${container_name}" >> $GITHUB_ENV
           echo "image_tag=registry.cn-beijing.aliyuncs.com/oneflow/triton-devel:latest" >> $GITHUB_ENV
-      - name: Build oneflow
+      - name: Build oneflow and oneflow backend for triton
         run: |
           docker run --rm -v $PWD:/p -w /p busybox chmod -R o+w .
           docker run --rm -v ${{ env.MANYLINUX_CACHE_DIR }}:/p -w /p busybox chmod -R o+w .
           docker pull ${{ env.image_tag }}
           docker container rm -f ${{ env.container_name }} || true
           docker run $extra_docker_args ${{ env.image_tag }} sleep 3600
-          docker exec -w $PWD ${{ env.container_name }} /bin/bash ci/build/oneflow.sh
-      - name: Build oneflow backend for triton
-        run: |
           docker exec ${{ env.container_name }} python3 -m pip install -r ci/build/requirement.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
-          docker exec -w $PWD/test/test_resnet50 ${{ env.container_name }} python3 export_model.py
+          docker exec -w $PWD ${{ env.container_name }} /bin/bash ci/build/oneflow.sh
           docker exec ${{ env.container_name }} /bin/bash ci/build/backend.sh
+      - name: Prepare for test
+        run: |
+          docker exec -w $PWD/test/test_resnet50 ${{ env.container_name }} python3 export_model.py
       - name: Remove container
         run: |
           docker container rm -f ${{ env.container_name }}

@@ -21,7 +21,6 @@ env:
   TRITON_VERSION: "21.10"
   SERVING_IMAGE: "oneflow-serving"
   MANYLINUX_CACHE_DIR: ~/manylinux-cache-dir/triton-cu114
-  WHEELHOUSE_DIR: ~/manylinux-cache-dir/triton-cu114/manylinux-wheelhouse
   REGION_ID: cn-beijing
   REGISTRY: registry.cn-beijing.aliyuncs.com
   NAMESPACE: oneflow
@@ -75,7 +74,7 @@ jobs:
           extra_docker_args+=" --env ONEFLOW_CI_SRC_DIR=$PWD/oneflow"
           extra_docker_args+=" --env ONEFLOW_CI_BUILD_DIR=$manylinux_cache_dir/build"
           extra_docker_args+=" --env ONEFLOW_CI_BUILD_SCRIPT=$PWD/oneflow/ci/manylinux/build-gcc7.sh"
-          extra_docker_args+=" --env WHEELHOUSE_DIR=${{ env.WHEELHOUSE_DIR }}"
+          extra_docker_args+=" --env WHEELHOUSE_DIR=$manylinux_cache_dir/wheelhouse"
           extra_docker_args+=" --env PYTHONPATH=$PWD/oneflow/python"
           extra_docker_args+=" --env ONEFLOW_CI_CMAKE_INIT_CACHE=$PWD/cmake/ci/oneflow-cuda.cmake"
           extra_docker_args+=" --env ONEFLOW_CI_PYTHON_EXE=python3"

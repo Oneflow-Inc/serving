@@ -93,7 +93,7 @@ jobs:
       - name: Prepare for test
         run: |
           manylinux_cache_dir=${{ env.MANYLINUX_CACHE_DIR }}
-          docker exec -w $PWD/test/test_resnet50 ${{ env.container_name }} pwd && /bin/bash -c "source $manylinux_cache_dir/build/ci_source.sh" && pwd && python3 export_model.py
+          docker exec -w $PWD ${{ env.container_name }} /bin/bash -c "source $manylinux_cache_dir/build/ci_source.sh" && python3 test/test_resnet50/export_model.py
       - name: Remove container
         run: |
           docker container rm -f ${{ env.container_name }}

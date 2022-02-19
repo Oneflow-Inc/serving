@@ -75,7 +75,6 @@ jobs:
           extra_docker_args+=" --env ONEFLOW_CI_BUILD_DIR=$manylinux_cache_dir/build"
           extra_docker_args+=" --env ONEFLOW_CI_BUILD_SCRIPT=$PWD/oneflow/ci/manylinux/build-gcc7.sh"
           extra_docker_args+=" --env WHEELHOUSE_DIR=$manylinux_cache_dir/wheelhouse"
-          extra_docker_args+=" --env PYTHONPATH=$PWD/oneflow/python"
           extra_docker_args+=" --env ONEFLOW_CI_CMAKE_INIT_CACHE=$PWD/cmake/ci/oneflow-cuda.cmake"
           extra_docker_args+=" --env ONEFLOW_CI_PYTHON_EXE=python3"
           echo "extra_docker_args=${extra_docker_args}" >> $GITHUB_ENV
@@ -93,7 +92,7 @@ jobs:
           docker exec -w $PWD ${{ env.container_name }} /bin/bash ci/build/backend.sh
       - name: Prepare for test
         run: |
-          docker exec -w $PWD/test/test_resnet50 ${{ env.container_name }} python3 export_model.py
+          docker exec -w $PWD/test/test_resnet50 ${{ env.container_name }} source $ONEFLOW_CI_BUILD_DIR/ci_source.sh && $python3 export_model.py
       - name: Remove container
         run: |
           docker container rm -f ${{ env.container_name }}

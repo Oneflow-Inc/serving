@@ -31,7 +31,7 @@ else
         build_oneflow
     else
         cached_whl=$(ls $WHEELHOUSE_DIR)
-        pip3 install $WHEELHOUSE_DIR/$cached_whl
+        python3 -m pip install $WHEELHOUSE_DIR/$cached_whl
         > $export_pythonpath_script
         echo "Use build cache for oneflow."
     fi

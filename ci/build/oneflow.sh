@@ -14,7 +14,7 @@ build_oneflow() {
     whls_arr=(${whls// /})
     whls_len=${#whls_arr[*]}
     if [ $whls_len == 1 ]; then
-        auditwheel repair $whl_src_dir/$whls --wheel-dir $WHEELHOUSE_DIR
+        cp $whl_src_dir/$whls $WHEELHOUSE_DIR/
     else
         echo "Please clean $whl_src_dir first"
         exit 1

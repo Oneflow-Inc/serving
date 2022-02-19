@@ -92,7 +92,7 @@ jobs:
           docker exec -w $PWD ${{ env.container_name }} /bin/bash ci/build/backend.sh
       - name: Prepare for test
         run: |
-          docker exec -w $PWD/test/test_resnet50 ${{ env.container_name }} /bin/bash -c "source $ONEFLOW_CI_BUILD_DIR/ci_source.sh" && python3 export_model.py
+          docker exec -w $PWD/test/test_resnet50 ${{ env.container_name }} /bin/bash -c "source ${{ env.ONEFLOW_CI_BUILD_DIR }}/ci_source.sh" && python3 export_model.py
       - name: Remove container
         run: |
           docker container rm -f ${{ env.container_name }}

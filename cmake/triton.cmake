@@ -1,25 +1,42 @@
 include(FetchContent)
 
+set(REPO_COMMON_URL https://github.com/triton-inference-server/common/archive/refs/heads/${TRITON_RELATED_REPO_TAG}.zip)
+set(REPO_CORE_URL https://github.com/triton-inference-server/core/archive/refs/heads/${TRITON_RELATED_REPO_TAG}.zip)
+set(REPO_BACKEND_URL https://github.com/triton-inference-server/backend/archive/refs/heads/${TRITON_RELATED_REPO_TAG}.zip)
+
+if(DEFINED THIRD_PARTY_MIRROR)
+  use_mirror(VARIABLE REPO_COMMON_URL URL ${REPO_COMMON_URL})
+  use_mirror(VARIABLE REPO_CORE_URL URL ${REPO_CORE_URL})
+  use_mirror(VARIABLE REPO_BACKEND_URL URL ${REPO_BACKEND_URL})
+endif()
+
+if(${TRITON_RELATED_REPO_TAG} STREQUAL "r21.10")
+    set(REPO_COMMON_MD5 72bf32b638fe6a9e9877630cb099fc1a)
+    set(REPO_CORE_MD5 59d97b3e5d40ea58c9f685b6ecb0771a)
+    set(REPO_BACKEND_MD5 2ae374cf913fc5b348b6552858fb7e7b)
+else()
+  message(FATAL_ERROR "Only support triton with tag r21.10.")
+endif()
+
+
 FetchContent_Declare(
   repo-common
-  GIT_REPOSITORY https://github.com/triton-inference-server/common.git
-  GIT_TAG ${TRITON_RELATED_REPO_TAG}
-  GIT_SHALLOW ON
+  URL ${REPO_COMMON_URL}
+  URL_HASH MD5=${REPO_COMMON_MD5}
 )
 
 FetchContent_Declare(
   repo-core
-  GIT_REPOSITORY https://github.com/triton-inference-server/core.git
-  GIT_TAG ${TRITON_RELATED_REPO_TAG}
-  GIT_SHALLOW ON
+  URL ${REPO_CORE_URL}
+  URL_HASH MD5=${REPO_CORE_MD5}
 )
 
 FetchContent_Declare(
   repo-backend
-  GIT_REPOSITORY https://github.com/triton-inference-server/backend.git
-  GIT_TAG ${TRITON_RELATED_REPO_TAG}
-  GIT_SHALLOW ON
+  URL ${REPO_BACKEND_URL}
+  URL_HASH MD5=${REPO_BACKEND_MD5}
 )
+
 
 FetchContent_MakeAvailable(repo-common repo-core repo-backend)
 

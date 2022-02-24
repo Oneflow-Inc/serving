@@ -1,4 +1,4 @@
-name: "resnet50_oneflow"
+name: "resnet50"
 backend: "oneflow"
 max_batch_size: 1
 input [

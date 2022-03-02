@@ -42,8 +42,11 @@ limitations under the License.
 
 #pragma once
 
+#include <oneflow/framework/shape.h>
+
 #include <cstddef>
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -51,6 +54,7 @@ limitations under the License.
 #include "oneflow/api.h"
 #include "oneflow_utils.h"
 #include "triton/backend/backend_model.h"
+#include "triton/core/tritonserver.h"
 
 namespace triton { namespace backend { namespace oneflow {
 
@@ -86,6 +90,18 @@ class ModelState : public BackendModel {
       std::unique_ptr<oneflow_api::Graph>* graph);
 
  private:
+  TRITONSERVER_Error* AutoCompleteConfig();
+  TRITONSERVER_Error* ParseModelInputsAndOutputs(
+      std::unordered_map<std::string, std::shared_ptr<oneflow_api::Tensor>>&
+          input_name_to_tensor,
+      std::unordered_map<std::string, std::shared_ptr<oneflow_api::Tensor>>&
+          output_name_to_tensor);
+  TRITONSERVER_Error* AutoCompleteInputsAndOutputs(
+      const char* key,
+      std::unordered_map<std::string, std::shared_ptr<oneflow_api::Tensor>>&
+          name_to_tensor);
+  TRITONSERVER_Error* AutoCompleteMaxBatchSize();
+
   ModelState(TRITONBACKEND_Model* triton_model);
   TRITONSERVER_Error* ValidateAndParseInputs();
   TRITONSERVER_Error* ValidateAndParseOutputs();

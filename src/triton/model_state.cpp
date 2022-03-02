@@ -1,15 +1,23 @@
 #include "model_state.h"
 
+#include <oneflow/framework/shape.h>
+#include <oneflow/framework/tensor.h>
+
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
 #include <exception>
 #include <iostream>
+#include <memory>
 #include <ostream>
 #include <string>
+#include <unordered_map>
+#include <utility>
 #include <vector>
 
+#include "oneflow_utils.h"
 #include "triton/backend/backend_common.h"
+#include "triton/common/triton_json.h"
 #include "triton/core/tritonserver.h"
 
 namespace triton { namespace backend { namespace oneflow {
@@ -19,6 +27,15 @@ ModelState::Create(TRITONBACKEND_Model* triton_model, ModelState** state)
 {
   try {
     *state = new ModelState(triton_model);
+    bool auto_complete_config = false;
+    LOG_MESSAGE(TRITONSERVER_LOG_INFO, "Try to get auto complate config");
+    RETURN_IF_ERROR(TRITONBACKEND_ModelAutoCompleteConfig(
+        triton_model, &auto_complete_config));
+    if (auto_complete_config) {
+      LOG_MESSAGE(
+          TRITONSERVER_LOG_INFO, "auto complete config is not implemented yet");
+      RETURN_IF_ERROR((*state)->AutoCompleteConfig());
+    }
   }
   catch (const BackendModelException& ex) {
     RETURN_ERROR_IF_TRUE(
@@ -82,6 +99,111 @@ const std::unordered_map<std::string, InputOutputAttribute>&
 ModelState::OutputAttributes() const
 {
   return output_attribute_;
+}
+
+TRITONSERVER_Error*
+ModelState::AutoCompleteConfig()
+{
+  std::unordered_map<std::string, std::shared_ptr<oneflow_api::Tensor>>
+      input_name_to_tensor;
+  std::unordered_map<std::string, std::shared_ptr<oneflow_api::Tensor>>
+      output_name_to_tensor;
+  ParseModelInputsAndOutputs(input_name_to_tensor, output_name_to_tensor);
+
+  // TODO(zzk0): remove this after implement ParseModelInputsAndOutputs
+  oneflow_api::Tensor input_tensor(oneflow_api::Shape{3, 224, 224});
+  oneflow_api::Tensor output_tensor(oneflow_api::Shape{1000});
+  input_name_to_tensor["INPUT_0"] =
+      std::make_shared<oneflow_api::Tensor>(input_tensor);
+  output_name_to_tensor["OUTPUT_0"] =
+      std::make_shared<oneflow_api::Tensor>(output_tensor);
+
+  AutoCompleteInputsAndOutputs("input", input_name_to_tensor);
+  AutoCompleteInputsAndOutputs("output", output_name_to_tensor);
+  AutoCompleteMaxBatchSize();
+
+  triton::common::TritonJson::WriteBuffer buffer;
+  ModelConfig().PrettyWrite(&buffer);
+  LOG_MESSAGE(
+      TRITONSERVER_LOG_INFO,
+      std::string("Auto-completed config: " + buffer.Contents()).c_str());
+  return nullptr;
+}
+
+TRITONSERVER_Error*
+ModelState::ParseModelInputsAndOutputs(
+    std::unordered_map<std::string, std::shared_ptr<oneflow_api::Tensor>>&
+        input_name_to_tensor,
+    std::unordered_map<std::string, std::shared_ptr<oneflow_api::Tensor>>&
+        output_name_to_tensor)
+{
+  // TODO(zzk0): just call oneflow cpp api
+  return nullptr;
+}
+
+TRITONSERVER_Error*
+ModelState::AutoCompleteInputsAndOutputs(
+    const char* key,
+    std::unordered_map<std::string, std::shared_ptr<oneflow_api::Tensor>>&
+        name_to_tensor)
+{
+  triton::common::TritonJson::Value ios(
+      ModelConfig(), triton::common::TritonJson::ValueType::ARRAY);
+  int index = 0;
+  for (const auto& info : name_to_tensor) {
+    TRITONSERVER_DataType data_type =
+        ConvertOneFlowTypeToTritonType(info.second->dtype());
+    const char* data_type_str = TRITONSERVER_DataTypeString(data_type);
+    std::vector<int64_t> dims_vector = OfShapeToVector(info.second->shape());
+
+    triton::common::TritonJson::Value io(
+        ModelConfig(), triton::common::TritonJson::ValueType::OBJECT);
+    if (std::string(key) == "input") {
+      RETURN_IF_ERROR(
+        io.AddString("name", std::string("INPUT_") + std::to_string(index)));
+    }
+    else if (std::string(key) == "output") {
+      RETURN_IF_ERROR(
+        io.AddString("name", std::string("OUTPUT_") + std::to_string(index)));
+    }
+    
+    RETURN_IF_ERROR(io.AddString("data_type", ("TYPE_" + std::string(data_type_str)).c_str()));
+    triton::common::TritonJson::Value dims(
+        ModelConfig(), triton::common::TritonJson::ValueType::ARRAY);
+    for (const int64_t& dim : dims_vector) {
+      RETURN_IF_ERROR(dims.AppendInt(dim));
+    }
+    RETURN_IF_ERROR(io.Add("dims", std::move(dims)));
+    RETURN_IF_ERROR(ios.Append(std::move(io)));
+
+    index += 1;
+  }
+  triton::common::TritonJson::WriteBuffer buffer;
+  ios.PrettyWrite(&buffer);
+  LOG_MESSAGE(TRITONSERVER_LOG_INFO, "ModelConfig().Add Key Input Outputs");
+  LOG_MESSAGE(TRITONSERVER_LOG_INFO, buffer.Contents().c_str());
+  LOG_MESSAGE(TRITONSERVER_LOG_INFO, (std::to_string(index) + " " + std::to_string(name_to_tensor.size())).c_str());
+
+  triton::common::TritonJson::Value existing_ios;
+  bool found_ios = ModelConfig().Find(key, &existing_ios);
+
+  if (found_ios) {
+    existing_ios.Swap(ios);
+  }
+  else {
+    ModelConfig().Add(key, std::move(ios));
+  }
+
+  return nullptr;
+}
+
+TRITONSERVER_Error* 
+ModelState::AutoCompleteMaxBatchSize() {
+  triton::common::TritonJson::Value mbs_value;
+  ModelConfig().Find("max_batch_size", &mbs_value);
+  mbs_value.SetInt(1);
+  SetMaxBatchSize(1);
+  return nullptr;
 }
 
 TRITONSERVER_Error*

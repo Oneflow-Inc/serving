@@ -40,6 +40,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+#include <string>
 #include "model_instance_state.h"
 #include "model_state.h"
 #include "oneflow/api.h"

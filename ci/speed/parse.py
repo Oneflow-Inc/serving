@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 
 SPEED_TEST_DETAILED = "speed_test_detailed.txt"
 SPEED_TEST_SUMMARY = "speed_test_summary.txt"
@@ -33,6 +34,8 @@ def parse_speed(model_names):
 
 
 if __name__ == "__main__":
-    model_names = ["alexnet", "efficientnet_b7", "mobilenet_v3_large", "resnet50", 
-                   "resnet101", "vgg19", "vit_base_patch16_224", "mlp_mixer_b16_224"]
+    if len(sys.argv) != 2:
+        print('usage: python3 models.py "model_names"')
+        exit()
+    model_names = sys.argv[1].split()
     parse_speed(model_names)

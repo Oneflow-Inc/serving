@@ -1,4 +1,5 @@
 import os
+import sys
 
 
 BOOT_RETRY_TIMES=20
@@ -41,6 +42,9 @@ def speed_test(model_names, model_repo_root):
 
 
 if __name__ == "__main__":
-    model_names = ["alexnet", "efficientnet_b7", "mobilenet_v3_large", "resnet50", 
-                   "resnet101", "vgg19", "vit_base_patch16_224", "mlp_mixer_b16_224"]
-    speed_test(model_names, "/home/percent1/code/serving/repos/")
+    if len(sys.argv) != 3:
+        print('usage: python3 models.py "working_dir" "model_names"')
+        exit()
+    model_names = sys.argv[1].split()
+    working_dir = sys.argv[2]
+    speed_test(model_names, os.path.join(working_dir, "repos"))

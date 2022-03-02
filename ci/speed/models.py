@@ -1,5 +1,6 @@
 import os
 import shutil
+import sys
 from time import time
 import oneflow as flow
 import oneflow.nn as nn
@@ -56,7 +57,9 @@ def export_models(model_names, image):
 
 
 if __name__ == "__main__":
-    model_names = ["alexnet", "efficientnet_b7", "mobilenet_v3_large", "resnet50", 
-                  "resnet101", "vgg19", "vit_base_patch16_224", "mlp_mixer_b16_224"]
+    if len(sys.argv) != 2:
+        print('usage: python3 models.py "model_names"')
+        exit()
+    model_names = sys.argv[1].split()
     image = flow.randn(1, 3, 224, 224).to(DEVICE)
     export_models(model_names, image)

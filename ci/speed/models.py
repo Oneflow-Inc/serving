@@ -8,7 +8,6 @@ import flowvision
 
 
 MODEL_ROOT = os.path.join(os.getcwd(), "repos")
-LOG_ROOT = os.path.join(os.getcwd(), "log")
 CONFIG_FILE = os.path.join(os.path.dirname(os.path.realpath(__file__)), "config.pbtxt")
 DEVICE = "cuda:0"
 

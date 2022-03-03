@@ -6,10 +6,10 @@ import argparse
 
 def get_device_configuration(device : str):
     if device == "cpu":
-        return "cpu", "[{count: 1 kind: KIND_CPU }]"
+        return "cpu", "instance_group [{count: 1 kind: KIND_CPU }]"
     if device.startswith("cuda"):
         device, device_id = device.split(":")
-        return "device", "[{count: 1 kind: KIND_GPU gpus: [ %s ]}]" % device_id
+        return device, "instance_group [{count: 1 kind: KIND_GPU gpus: [ %s ]}]" % device_id
 
 
 parser = argparse.ArgumentParser()
@@ -24,12 +24,12 @@ DEVICE = FLAGS.device
 XRT_TYPE = FLAGS.xrt
 BOOT_RETRY_TIMES=20
 PERF_RETRY_TIMES=10
-SPEED_TEST_DETAILED = "speed_test_detailed.txt"
-SPEED_TEST_SUMMARY = "speed_test_summary.txt"
 WORKING_DIR = os.getcwd()
 XRT_CONFIGURATION = 'parameters { key: "xrt" value: {string_value: "%s"}}' % XRT_TYPE
 OUTPUT_FILE_DIR = "speed_test_output"
-OUTPUT_FILE_NAME = "speed_test_output/{}_{}_{}_speed.txt"
+OUTPUT_FILE_NAME = os.path.join(OUTPUT_FILE_DIR, "{}_{}_{}_speed.txt")
+SPEED_TEST_DETAILED = os.path.join(OUTPUT_FILE_DIR, "speed_test_{}_{}_detailed.txt".format(DEVICE, XRT_TYPE))
+SPEED_TEST_SUMMARY = os.path.join(OUTPUT_FILE_DIR, "speed_test_{}_{}_summary.txt".format(DEVICE, XRT_TYPE))
 DEVICE, DEVICE_CONFIGURATION = get_device_configuration(DEVICE)
 
 
@@ -40,11 +40,11 @@ def speed_test(model_names, model_repo_root, device="cpu", xrt_type=None):
         config_pb_txt = os.path.join(model_repo_root, model_name + "_repo", model_name, "config.pbtxt")
         output_file_name = OUTPUT_FILE_NAME.format(model_name, device, str(xrt_type))
 
-        if xrt_type is not None:
-            shutil.copyfile(config_pb_txt, config_pb_txt + ".bak")
-            with open(config_pb_txt, "a+") as f:
-                f.write(DEVICE_CONFIGURATION)
-                f.write("\n")
+        shutil.copyfile(config_pb_txt, config_pb_txt + ".bak")
+        with open(config_pb_txt, "a+") as f:
+            f.write(DEVICE_CONFIGURATION)
+            f.write("\n")
+            if xrt_type is not None:
                 f.write(XRT_CONFIGURATION)
 
         ret = os.system("docker container rm -f triton-server")
@@ -62,7 +62,7 @@ def speed_test(model_names, model_repo_root, device="cpu", xrt_type=None):
             return
 
         retry_time = 0
-        window = 5000 + 1000 * retry_time
+        window = 5000 + 10000 * retry_time
         ret = os.system("docker container rm -f triton-server-sdk")
         command = "docker run --rm --runtime=nvidia --shm-size=2g --network=host --name triton-server-sdk nvcr.io/nvidia/tritonserver:21.10-py3-sdk perf_analyzer -m {} --shape INPUT_0:3,224,224 -p {} -u localhost:8003 --concurrency-range 1:4  --percentile=95 > {}".format(model_name, str(window), output_file_name)
         ret = os.system(command)
@@ -76,9 +76,7 @@ def speed_test(model_names, model_repo_root, device="cpu", xrt_type=None):
         ret = os.system("docker container rm -f triton-server")
         ret = os.system("docker container rm -f triton-server-sdk")
         ret = os.system("rm server.log")
-
-        if xrt_type is not None:
-            os.system("mv {}.bak {}".format(config_pb_txt, config_pb_txt))
+        ret = os.system("mv {}.bak {}".format(config_pb_txt, config_pb_txt))
 
 
 def parse_speed(model_names, device="cpu", xrt_type=None):

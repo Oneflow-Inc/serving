@@ -9,5 +9,4 @@ docker exec oneflow-mlir-container python3 -m pip install --upgrade --force-rein
 docker exec oneflow-mlir-container python3 -m pip install flowvision
 docker exec --env MODEL_NAMES="$MODEL_NAMES" oneflow-mlir-container python3 ci/speed/models.py "$MODEL_NAMES"
 python3 ci/speed/speed.py "$WORKING_DIR" "$MODEL_NAMES"
-python3 ci/speed/parse.py "$MODEL_NAMES"
 docker stop oneflow-mlir-container

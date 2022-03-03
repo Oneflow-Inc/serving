@@ -9,6 +9,7 @@ PERF_RETRY_TIMES=10
 def speed_test(model_names, model_repo_root):
     for model_name in model_names:
         model_repo_dir = os.path.join(model_repo_root, model_name + "_repo")
+        print(model_name, model_repo_dir)
         ret = os.system("docker container rm -f triton-server")
         ret = os.system("docker run --rm --name triton-server -v{}:/models --runtime=nvidia -p8003:8000 -p8001:8001 -p8002:8002 registry.cn-beijing.aliyuncs.com/oneflow/oneflow-serving:nightly /opt/tritonserver/bin/tritonserver --model-store /models --strict-model-config false > server.log 2>&1 &".format(model_repo_dir))
 
@@ -45,6 +46,6 @@ if __name__ == "__main__":
     if len(sys.argv) != 3:
         print('usage: python3 models.py "working_dir" "model_names"')
         exit()
-    model_names = sys.argv[1].split()
-    working_dir = sys.argv[2]
-    speed_test(model_names, os.path.join(working_dir, "repos"))
+    working_dir = os.path.join(sys.argv[1], "repos")
+    model_names = sys.argv[2].split()
+    speed_test(model_names, working_dir)

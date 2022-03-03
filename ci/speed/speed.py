@@ -1,39 +1,50 @@
 import os
 import re
 import shutil
-import sys
 import argparse
 
 
+def get_device_configuration(device : str):
+    if device == "cpu":
+        return "cpu", "[{count: 1 kind: KIND_CPU }]"
+    if device.startswith("cuda"):
+        device, device_id = device.split(":")
+        return "device", "[{count: 1 kind: KIND_GPU gpus: [ %s ]}]" % device_id
+
+
 parser = argparse.ArgumentParser()
-parser.add_argument('--model_names', required=True, help="models to test")
-parser.add_argument('--device', default="cpu", help="speed test device, --device cuda:n|cpu")
-parser.add_argument('--xrt', default=None, help="xrt, --xrt tensorrt|openvino")
+parser.add_argument("--model_names", required=True, help="models to test")
+parser.add_argument("--device", default="cpu", help="speed test device, --device cuda:n|cpu")
+parser.add_argument("--xrt", default=None, help="xrt, --xrt tensorrt|openvino")
+
+
 FLAGS = parser.parse_args()
-
-
+MODEL_NAMES = FLAGS.model_names.split()
+DEVICE = FLAGS.device
+XRT_TYPE = FLAGS.xrt
 BOOT_RETRY_TIMES=20
 PERF_RETRY_TIMES=10
 SPEED_TEST_DETAILED = "speed_test_detailed.txt"
 SPEED_TEST_SUMMARY = "speed_test_summary.txt"
 WORKING_DIR = os.getcwd()
-MODEL_NAMES = FLAGS.model_names.split()
-DEVICE = FLAGS.device
-XRT_TYPE = FLAGS.xrt
 XRT_CONFIGURATION = 'parameters { key: "xrt" value: {string_value: "%s"}}' % XRT_TYPE
-OUTPUT_FILE_NAME = '{}_{}_speed.txt'
+OUTPUT_FILE_DIR = "speed_test_output"
+OUTPUT_FILE_NAME = "speed_test_output/{}_{}_{}_speed.txt"
+DEVICE, DEVICE_CONFIGURATION = get_device_configuration(DEVICE)
 
 
 # speed test
-def speed_test(model_names, model_repo_root, xrt_type=None):
+def speed_test(model_names, model_repo_root, device="cpu", xrt_type=None):
     for model_name in model_names:
         model_repo_dir = os.path.join(model_repo_root, model_name + "_repo")
         config_pb_txt = os.path.join(model_repo_root, model_name + "_repo", model_name, "config.pbtxt")
-        output_file_name = OUTPUT_FILE_NAME.format(model_name, str(xrt_type))
+        output_file_name = OUTPUT_FILE_NAME.format(model_name, device, str(xrt_type))
 
         if xrt_type is not None:
             shutil.copyfile(config_pb_txt, config_pb_txt + ".bak")
             with open(config_pb_txt, "a+") as f:
+                f.write(DEVICE_CONFIGURATION)
+                f.write("\n")
                 f.write(XRT_CONFIGURATION)
 
         ret = os.system("docker container rm -f triton-server")
@@ -70,14 +81,14 @@ def speed_test(model_names, model_repo_root, xrt_type=None):
             os.system("mv {}.bak {}".format(config_pb_txt, config_pb_txt))
 
 
-def parse_speed(model_names, xrt_type=None):
+def parse_speed(model_names, device="cpu", xrt_type=None):
     for model_name in model_names:
-        ret = os.system("echo {} >> {}".format(model_name, SPEED_TEST_DETAILED))
-        ret = os.system("cat {}_speed.txt | tail -n 5 >> {}".format(model_name, SPEED_TEST_DETAILED))
-        
-        model_speed_file = "{}_speed.txt".format(model_name)
+        output_file_name = OUTPUT_FILE_NAME.format(model_name, device, str(xrt_type))
+        ret = os.system("echo {}_{} >> {}".format(model_name, str(xrt_type), SPEED_TEST_DETAILED))
+        ret = os.system("cat {} | tail -n 5 >> {}".format(output_file_name, SPEED_TEST_DETAILED))
+
         whole_text = ""
-        with open(model_speed_file, "r") as f:
+        with open(output_file_name, "r") as f:
             whole_text = f.readlines()
         if whole_text == "" or len(whole_text) <= 0:
             continue
@@ -98,10 +109,6 @@ def parse_speed(model_names, xrt_type=None):
 
 
 if __name__ == "__main__":
-    print(MODEL_NAMES)
-    print(XRT_CONFIGURATION)
-    print(XRT_TYPE)
-    model_repo_root = os.path.join(WORKING_DIR, "repos")
-    speed_test(MODEL_NAMES, model_repo_root, XRT_TYPE)
-    # speed_test(model_names, WORKING_DIR)
-    # parse_speed(model_names)
+    os.makedirs(OUTPUT_FILE_DIR, exist_ok=True)
+    speed_test(MODEL_NAMES, os.path.join(WORKING_DIR, "repos"), DEVICE, XRT_TYPE)
+    parse_speed(MODEL_NAMES, DEVICE, XRT_TYPE)

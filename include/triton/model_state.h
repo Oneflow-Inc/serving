@@ -91,14 +91,9 @@ class ModelState : public BackendModel {
 
  private:
   TRITONSERVER_Error* AutoCompleteConfig();
-  TRITONSERVER_Error* ParseModelInputsAndOutputs(
-      std::unordered_map<std::string, std::shared_ptr<oneflow_api::Tensor>>&
-          input_name_to_tensor,
-      std::unordered_map<std::string, std::shared_ptr<oneflow_api::Tensor>>&
-          output_name_to_tensor);
   TRITONSERVER_Error* AutoCompleteInputsAndOutputs(
       const char* key,
-      std::unordered_map<std::string, std::shared_ptr<oneflow_api::Tensor>>&
+      std::unordered_map<std::string, std::pair<oneflow_api::Shape, oneflow_api::DType>>&
           name_to_tensor);
   TRITONSERVER_Error* AutoCompleteMaxBatchSize();
 

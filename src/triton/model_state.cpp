@@ -1,5 +1,8 @@
 #include "model_state.h"
 
+#include <oneflow/framework/device.h>
+#include <oneflow/framework/dtype.h>
+#include <oneflow/framework/graph.h>
 #include <oneflow/framework/shape.h>
 #include <oneflow/framework/tensor.h>
 
@@ -104,22 +107,13 @@ ModelState::OutputAttributes() const
 TRITONSERVER_Error*
 ModelState::AutoCompleteConfig()
 {
-  std::unordered_map<std::string, std::shared_ptr<oneflow_api::Tensor>>
-      input_name_to_tensor;
-  std::unordered_map<std::string, std::shared_ptr<oneflow_api::Tensor>>
-      output_name_to_tensor;
-  ParseModelInputsAndOutputs(input_name_to_tensor, output_name_to_tensor);
+  std::unique_ptr<oneflow_api::Graph> graph;
+  LoadModel(oneflow_api::Device("cpu"), &graph);
+  auto input_infos = graph->GetInputInfos();
+  auto output_infos = graph->GetOutputInfos();
 
-  // TODO(zzk0): remove this after implement ParseModelInputsAndOutputs
-  oneflow_api::Tensor input_tensor(oneflow_api::Shape{3, 224, 224});
-  oneflow_api::Tensor output_tensor(oneflow_api::Shape{1000});
-  input_name_to_tensor["INPUT_0"] =
-      std::make_shared<oneflow_api::Tensor>(input_tensor);
-  output_name_to_tensor["OUTPUT_0"] =
-      std::make_shared<oneflow_api::Tensor>(output_tensor);
-
-  AutoCompleteInputsAndOutputs("input", input_name_to_tensor);
-  AutoCompleteInputsAndOutputs("output", output_name_to_tensor);
+  AutoCompleteInputsAndOutputs("input", input_infos);
+  AutoCompleteInputsAndOutputs("output", output_infos);
   AutoCompleteMaxBatchSize();
 
   triton::common::TritonJson::WriteBuffer buffer;
@@ -131,20 +125,9 @@ ModelState::AutoCompleteConfig()
 }
 
 TRITONSERVER_Error*
-ModelState::ParseModelInputsAndOutputs(
-    std::unordered_map<std::string, std::shared_ptr<oneflow_api::Tensor>>&
-        input_name_to_tensor,
-    std::unordered_map<std::string, std::shared_ptr<oneflow_api::Tensor>>&
-        output_name_to_tensor)
-{
-  // TODO(zzk0): just call oneflow cpp api
-  return nullptr;
-}
-
-TRITONSERVER_Error*
 ModelState::AutoCompleteInputsAndOutputs(
     const char* key,
-    std::unordered_map<std::string, std::shared_ptr<oneflow_api::Tensor>>&
+    std::unordered_map<std::string, std::pair<oneflow_api::Shape, oneflow_api::DType>>&
         name_to_tensor)
 {
   triton::common::TritonJson::Value ios(
@@ -152,9 +135,9 @@ ModelState::AutoCompleteInputsAndOutputs(
   int index = 0;
   for (const auto& info : name_to_tensor) {
     TRITONSERVER_DataType data_type =
-        ConvertOneFlowTypeToTritonType(info.second->dtype());
+        ConvertOneFlowTypeToTritonType(info.second.second);
     const char* data_type_str = TRITONSERVER_DataTypeString(data_type);
-    std::vector<int64_t> dims_vector = OfShapeToVector(info.second->shape());
+    std::vector<int64_t> dims_vector = OfShapeToVector(info.second.first);
 
     triton::common::TritonJson::Value io(
         ModelConfig(), triton::common::TritonJson::ValueType::OBJECT);
@@ -200,9 +183,10 @@ ModelState::AutoCompleteInputsAndOutputs(
 TRITONSERVER_Error* 
 ModelState::AutoCompleteMaxBatchSize() {
   triton::common::TritonJson::Value mbs_value;
-  ModelConfig().Find("max_batch_size", &mbs_value);
-  mbs_value.SetInt(1);
-  SetMaxBatchSize(1);
+  if (!ModelConfig().Find("max_batch_size", &mbs_value)) {
+    mbs_value.SetInt(1);
+    SetMaxBatchSize(1);
+  }
   return nullptr;
 }
 

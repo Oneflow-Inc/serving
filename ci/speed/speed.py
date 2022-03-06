@@ -71,7 +71,6 @@ def speed_test(model_names, model_repo_root, device="cpu", xrt_type=None):
             ret = os.system(command)
         if ret != 0:
             print("perf_analyzer failed")
-            return
 
         ret = os.system("docker container rm -f triton-server")
         ret = os.system("docker container rm -f triton-server-sdk")
@@ -88,22 +87,23 @@ def parse_speed(model_names, device="cpu", xrt_type=None):
         whole_text = ""
         with open(output_file_name, "r") as f:
             whole_text = f.readlines()
-        if whole_text == "" or len(whole_text) <= 0:
-            continue
+        if whole_text == "" or len(whole_text) == 0:
+            with open(SPEED_TEST_SUMMARY, "a+") as f:
+                f.write(model_name)
+                f.write(" | x |\n")
         last_line = whole_text[-1]
         pattern = "Concurrency: 4, throughput: (.*) infer/sec, latency (.*) usec"
         match_objs = re.match(pattern, last_line)
-        if match_objs is None:
-            continue
+        if match_objs is None or len(match_objs.groups()) != 2:
+            with open(SPEED_TEST_SUMMARY, "a+") as f:
+                f.write(model_name)
+                f.write(" | x |\n")
         else:
-            match_objs = match_objs.groups()
-        if len(match_objs) != 2:
-            continue
-        with open(SPEED_TEST_SUMMARY, "a+") as f:
-            f.write(model_name)
-            f.write(" | ")
-            f.write(match_objs[0])
-            f.write(" |\n")
+            with open(SPEED_TEST_SUMMARY, "a+") as f:
+                f.write(model_name)
+                f.write(" | ")
+                f.write(match_objs.groups()[0])
+                f.write(" |\n")
 
 
 if __name__ == "__main__":

@@ -42,6 +42,7 @@ limitations under the License.
 
 #pragma once
 
+#include <oneflow/framework/graph.h>
 #include <oneflow/framework/shape.h>
 
 #include <cstddef>
@@ -92,9 +93,7 @@ class ModelState : public BackendModel {
  private:
   TRITONSERVER_Error* AutoCompleteConfig();
   TRITONSERVER_Error* AutoCompleteInputsAndOutputs(
-      const char* key,
-      std::unordered_map<std::string, std::pair<oneflow_api::Shape, oneflow_api::DType>>&
-          name_to_tensor);
+      const char* key, oneflow_api::InputOutputInfos& input_output_infos);
   TRITONSERVER_Error* AutoCompleteMaxBatchSize();
 
   ModelState(TRITONBACKEND_Model* triton_model);

@@ -126,18 +126,16 @@ ModelState::AutoCompleteConfig()
 
 TRITONSERVER_Error*
 ModelState::AutoCompleteInputsAndOutputs(
-    const char* key,
-    std::unordered_map<std::string, std::pair<oneflow_api::Shape, oneflow_api::DType>>&
-        name_to_tensor)
+    const char* key, oneflow_api::InputOutputInfos& input_output_infos)
 {
   triton::common::TritonJson::Value ios(
       ModelConfig(), triton::common::TritonJson::ValueType::ARRAY);
   int index = 0;
-  for (const auto& info : name_to_tensor) {
+  for (const auto& info : input_output_infos) {
     TRITONSERVER_DataType data_type =
-        ConvertOneFlowTypeToTritonType(info.second.second);
+        ConvertOneFlowTypeToTritonType(info.second.datatype_);
     const char* data_type_str = TRITONSERVER_DataTypeString(data_type);
-    std::vector<int64_t> dims_vector = OfShapeToVector(info.second.first);
+    std::vector<int64_t> dims_vector = OfShapeToVector(info.second.input_output_shape_);
 
     triton::common::TritonJson::Value io(
         ModelConfig(), triton::common::TritonJson::ValueType::OBJECT);
@@ -165,7 +163,7 @@ ModelState::AutoCompleteInputsAndOutputs(
   ios.PrettyWrite(&buffer);
   LOG_MESSAGE(TRITONSERVER_LOG_INFO, "ModelConfig().Add Key Input Outputs");
   LOG_MESSAGE(TRITONSERVER_LOG_INFO, buffer.Contents().c_str());
-  LOG_MESSAGE(TRITONSERVER_LOG_INFO, (std::to_string(index) + " " + std::to_string(name_to_tensor.size())).c_str());
+  LOG_MESSAGE(TRITONSERVER_LOG_INFO, (std::to_string(index) + " " + std::to_string(input_output_infos.size())).c_str());
 
   triton::common::TritonJson::Value existing_ios;
   bool found_ios = ModelConfig().Find(key, &existing_ios);

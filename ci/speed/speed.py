@@ -89,6 +89,7 @@ def parse_speed(model_names, device="cpu", xrt_type=None):
             whole_text = f.readlines()
         if whole_text == "" or len(whole_text) == 0:
             with open(SPEED_TEST_SUMMARY, "a+") as f:
+                f.write("| ")
                 f.write(model_name)
                 f.write(" | x |\n")
         last_line = whole_text[-1]
@@ -96,10 +97,12 @@ def parse_speed(model_names, device="cpu", xrt_type=None):
         match_objs = re.match(pattern, last_line)
         if match_objs is None or len(match_objs.groups()) != 2:
             with open(SPEED_TEST_SUMMARY, "a+") as f:
+                f.write("| ")
                 f.write(model_name)
                 f.write(" | x |\n")
         else:
             with open(SPEED_TEST_SUMMARY, "a+") as f:
+                f.write("| ")
                 f.write(model_name)
                 f.write(" | ")
                 f.write(match_objs.groups()[0])

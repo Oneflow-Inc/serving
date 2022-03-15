@@ -1,5 +1,5 @@
 build
-build-*
+build-*/
 checkpoints
 model
 log

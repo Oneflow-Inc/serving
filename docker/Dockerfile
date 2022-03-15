@@ -74,6 +74,7 @@ RUN wget https://oneflow-static.oss-cn-beijing.aliyuncs.com/openvino/l_openvino_
     rm -rf l_openvino_toolkit_p_2021.4.752.tgz
 
 ENV LD_LIBRARY_PATH="/opt/intel/openvino_2021/inference_engine/lib/intel64/:${LD_LIBRARY_PATH}"
+ENV LD_LIBRARY_PATH="/opt/intel/openvino_2021/deployment_tools/ngraph/lib/:${LD_LIBRARY_PATH}"
 ENV LD_LIBRARY_PATH="/opt/intel/openvino_2021/deployment_tools/inference_engine/lib/intel64/:${LD_LIBRARY_PATH}"
 ENV LD_LIBRARY_PATH="/opt/intel/openvino_2021/deployment_tools/inference_engine/external/tbb/lib/:${LD_LIBRARY_PATH}"
 

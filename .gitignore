@@ -4,6 +4,7 @@ checkpoints
 model
 log
 .vscode
+.clangd
 .cache
 
 *.so

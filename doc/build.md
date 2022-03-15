@@ -8,7 +8,7 @@ docker pull registry.cn-beijing.aliyuncs.com/oneflow/triton-devel
 
 To build from source, you need to build liboneflow first.
 
-- Build liboneflow from source
+1. Build liboneflow from source
 
 ```
 git clone https://github.com/Oneflow-Inc/oneflow --depth=1
@@ -19,7 +19,7 @@ cmake -C ../cmake/caches/cn/cuda.cmake -DBUILD_CPP_API=ON -DBUILD_SHARED_LIBS=ON
 ninja
 ```
 
-- Build oneflow backend from source
+2. Build oneflow backend from source
 
 ```
 mkdir build && cd build
@@ -28,7 +28,7 @@ cmake -DCMAKE_PREFIX_PATH=/path/to/liboneflow_cpp/share -DTRITON_RELATED_REPO_TA
 ninja
 ```
 
-- Launch triton server
+3. Launch triton server
 
 ```
 cd ../  # back to root of the serving

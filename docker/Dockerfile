@@ -59,8 +59,19 @@ RUN wget https://oneflow-static.oss-cn-beijing.aliyuncs.com/tensorrt/nv-tensorrt
     apt-get update && \
     apt-get install -y tensorrt && \
     apt-get clean && \
+    rm -rf /var/nv-tensorrt-repo-ubuntu2004-cuda11.3-trt8.0.3.4-ga-20210831 && \
     rm -rf /var/lib/apt/lists/* && \
     rm -f nv-tensorrt-repo-ubuntu2004-cuda11.3-trt8.0.3.4-ga-20210831_1-1_amd64.deb
+
+# Install OpenVINO
+RUN wget https://oneflow-static.oss-cn-beijing.aliyuncs.com/openvino/l_openvino_toolkit_p_2021.4.752.tgz && \
+    tar -xvzf l_openvino_toolkit_p_2021.4.752.tgz && \
+    cd l_openvino_toolkit_p_2021.4.752 && \
+    sed -i 's/decline/accept/g' silent.cfg && \
+    ./install.sh -s silent.cfg && \
+    cd .. && \
+    rm -rf l_openvino_toolkit_p_2021.4.752 && \
+    rm -rf l_openvino_toolkit_p_2021.4.752.tgz
 
 ENV NVIDIA_BUILD_ID 28453983
 LABEL com.nvidia.build.id=28453983

@@ -1,3 +1,4 @@
+# copy from https://github.com/Oneflow-Inc/oneflow/blob/master/ci/manylinux/build-gcc7.sh
 source scl_source enable devtoolset-7
 set -ex
 ONEFLOW_CI_BUILD_PARALLEL=${ONEFLOW_CI_BUILD_PARALLEL:-$(nproc)}

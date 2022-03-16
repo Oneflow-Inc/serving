@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 
+#include "oneflow_utils.h"
 #include "triton/backend/backend_common.h"
 #include "triton/core/tritonserver.h"
 
@@ -225,6 +226,9 @@ ModelState::LoadModel(
   }
   if (IsXrtTensorrt(xrt_kind_)) {
     (*graph)->enable_tensorrt();
+  }
+  if (IsXrtOpenvino(xrt_kind_)) {
+    (*graph)->enable_openvino();
   }
 
   return nullptr;

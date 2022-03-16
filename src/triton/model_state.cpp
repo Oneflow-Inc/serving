@@ -31,12 +31,9 @@ ModelState::Create(TRITONBACKEND_Model* triton_model, ModelState** state)
   try {
     *state = new ModelState(triton_model);
     bool auto_complete_config = false;
-    LOG_MESSAGE(TRITONSERVER_LOG_INFO, "Try to get auto complate config");
     RETURN_IF_ERROR(TRITONBACKEND_ModelAutoCompleteConfig(
         triton_model, &auto_complete_config));
     if (auto_complete_config) {
-      LOG_MESSAGE(
-          TRITONSERVER_LOG_INFO, "auto complete config is not implemented yet");
       RETURN_IF_ERROR((*state)->AutoCompleteConfig());
     }
   }
@@ -159,11 +156,6 @@ ModelState::AutoCompleteInputsAndOutputs(
 
     index += 1;
   }
-  triton::common::TritonJson::WriteBuffer buffer;
-  ios.PrettyWrite(&buffer);
-  LOG_MESSAGE(TRITONSERVER_LOG_INFO, "ModelConfig().Add Key Input Outputs");
-  LOG_MESSAGE(TRITONSERVER_LOG_INFO, buffer.Contents().c_str());
-  LOG_MESSAGE(TRITONSERVER_LOG_INFO, (std::to_string(index) + " " + std::to_string(input_output_infos.size())).c_str());
 
   triton::common::TritonJson::Value existing_ios;
   bool found_ios = ModelConfig().Find(key, &existing_ios);

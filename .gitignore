@@ -5,6 +5,7 @@ model
 log
 .vscode
 .cache
+.clangd
 
 *.so
 *.pt

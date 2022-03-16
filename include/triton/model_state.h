@@ -42,9 +42,6 @@ limitations under the License.
 
 #pragma once
 
-#include <oneflow/framework/graph.h>
-#include <oneflow/framework/shape.h>
-
 #include <cstddef>
 #include <cstdint>
 #include <memory>

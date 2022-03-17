@@ -35,14 +35,15 @@ function model_config_exists() {
 }
 
 function generate_model_config() {
-  echo "name: \"resnet50\"" >> $1
+  echo "name: \"$2\"" >> $1
   echo "backend: \"oneflow\"" >> $1
 }
 
 function generate_repository_config() {
   for file in $1/*
   do
-    model_config_exists $file/config.pbtxt
+    base_name=basename $file
+    model_config_exists $file/config.pbtxt 
     if [ $? != 0 ]
     then
       generate_model_config $file/config.pbtxt

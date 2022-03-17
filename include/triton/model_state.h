@@ -90,7 +90,7 @@ class ModelState : public BackendModel {
  private:
   TRITONSERVER_Error* AutoCompleteConfig();
   TRITONSERVER_Error* AutoCompleteInputsAndOutputs(
-      const char* key, oneflow_api::InputOutputInfos& input_output_infos);
+      bool is_input, oneflow_api::InputOutputInfos& input_output_infos);
   TRITONSERVER_Error* AutoCompleteMaxBatchSize();
 
   ModelState(TRITONBACKEND_Model* triton_model);

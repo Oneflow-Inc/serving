@@ -109,8 +109,8 @@ ModelState::AutoCompleteConfig()
   auto input_infos = graph->GetInputInfos();
   auto output_infos = graph->GetOutputInfos();
 
-  AutoCompleteInputsAndOutputs("input", input_infos);
-  AutoCompleteInputsAndOutputs("output", output_infos);
+  AutoCompleteInputsAndOutputs(true, input_infos);
+  AutoCompleteInputsAndOutputs(false, output_infos);
   AutoCompleteMaxBatchSize();
 
   triton::common::TritonJson::WriteBuffer buffer;
@@ -123,7 +123,7 @@ ModelState::AutoCompleteConfig()
 
 TRITONSERVER_Error*
 ModelState::AutoCompleteInputsAndOutputs(
-    const char* key, oneflow_api::InputOutputInfos& input_output_infos)
+    bool is_input, oneflow_api::InputOutputInfos& input_output_infos)
 {
   triton::common::TritonJson::Value ios(
       ModelConfig(), triton::common::TritonJson::ValueType::ARRAY);
@@ -136,11 +136,11 @@ ModelState::AutoCompleteInputsAndOutputs(
 
     triton::common::TritonJson::Value io(
         ModelConfig(), triton::common::TritonJson::ValueType::OBJECT);
-    if (std::string(key) == "input") {
+    if (is_input) {
       RETURN_IF_ERROR(
         io.AddString("name", std::string("INPUT_") + std::to_string(index)));
     }
-    else if (std::string(key) == "output") {
+    else {
       RETURN_IF_ERROR(
         io.AddString("name", std::string("OUTPUT_") + std::to_string(index)));
     }
@@ -158,6 +158,7 @@ ModelState::AutoCompleteInputsAndOutputs(
   }
 
   triton::common::TritonJson::Value existing_ios;
+  const char* key = is_input ? "input" : "output";
   bool found_ios = ModelConfig().Find(key, &existing_ios);
 
   if (!found_ios) {

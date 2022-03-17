@@ -42,11 +42,11 @@ function generate_model_config() {
 function generate_repository_config() {
   for file in $1/*
   do
-    base_name=basename $file
-    model_config_exists $file/config.pbtxt 
+    base_name=$(basename $file)
+    model_config_exists $file/config.pbtxt
     if [ $? != 0 ]
     then
-      generate_model_config $file/config.pbtxt
+      generate_model_config $file/config.pbtxt $base_name
     fi
   done
 }

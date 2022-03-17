@@ -10,8 +10,8 @@ mkdir -p models/resnet50_batching/1
 cp -r ../common/model models/resnet50/1/
 cp -r ../common/model models/resnet50_batching/1/
 
-python3 ../common/generate_pbtxt.py --template ./config.pbtxt.j2 --output models/resnet50
-python3 ../common/generate_pbtxt.py --template ./config.pbtxt.j2 --output models/resnet50_batching --batching
+python3 ../common/generate_pbtxt.py --template ../common/config.pbtxt.j2 --output models/resnet50
+python3 ../common/generate_pbtxt.py --template ../common/config.pbtxt.j2 --output models/resnet50_batching --batching
 
 SERVER=/opt/tritonserver/bin/tritonserver
 SERVER_ARGS="--model-repository=`pwd`/models --log-verbose=1"

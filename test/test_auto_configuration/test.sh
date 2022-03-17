@@ -5,7 +5,7 @@ export CUDA_VISIBLE_DEVICES=0
 
 rm -rf ./models
 mkdir -p models/resnet50/1
-cp -r ./model models/resnet50/1/
+cp -r ../common/model models/resnet50/1/
 
 SERVER=/opt/tritonserver/bin/tritonserver
 SERVER_ARGS="--model-repository=`pwd`/models --log-verbose=1 --strict-model-config false"

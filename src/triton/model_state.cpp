@@ -160,10 +160,7 @@ ModelState::AutoCompleteInputsAndOutputs(
   triton::common::TritonJson::Value existing_ios;
   bool found_ios = ModelConfig().Find(key, &existing_ios);
 
-  if (found_ios) {
-    existing_ios.Swap(ios);
-  }
-  else {
+  if (!found_ios) {
     ModelConfig().Add(key, std::move(ios));
   }
 

@@ -73,7 +73,7 @@ jobs:
           extra_docker_args+=" --env TRITON_VERSION=${{ env.TRITON_VERSION }}"
           extra_docker_args+=" --env ONEFLOW_CI_SRC_DIR=$PWD/oneflow"
           extra_docker_args+=" --env ONEFLOW_CI_BUILD_DIR=$manylinux_cache_dir/build"
-          extra_docker_args+=" --env ONEFLOW_CI_BUILD_SCRIPT=$PWD/oneflow/ci/manylinux/build-gcc7.sh"
+          extra_docker_args+=" --env ONEFLOW_CI_BUILD_SCRIPT=$PWD/ci/build/build-gcc7.sh"
           extra_docker_args+=" --env WHEELHOUSE_DIR=$manylinux_cache_dir/wheelhouse"
           extra_docker_args+=" --env ONEFLOW_CI_CMAKE_INIT_CACHE=$PWD/cmake/ci/oneflow-cuda.cmake"
           extra_docker_args+=" --env ONEFLOW_CI_PYTHON_EXE=python3"

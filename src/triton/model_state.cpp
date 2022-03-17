@@ -320,6 +320,9 @@ ModelState::LoadModel(
   if (IsXrtTensorrt(xrt_kind_)) {
     (*graph)->enable_tensorrt();
   }
+  if (IsXrtOpenvino(xrt_kind_)) {
+    (*graph)->enable_openvino();
+  }
 
   return nullptr;
 }

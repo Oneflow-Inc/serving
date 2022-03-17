@@ -7,8 +7,8 @@ rm -rf ./models
 mkdir -p models/resnet50/1
 mkdir -p models/resnet50_batching/1
 
-cp -r ./model models/resnet50/1/
-cp -r ./model models/resnet50_batching/1/
+cp -r ../common/model models/resnet50/1/
+cp -r ../common/model models/resnet50_batching/1/
 
 python3 ../common/generate_pbtxt.py --template ./config.pbtxt.j2 --output models/resnet50
 python3 ../common/generate_pbtxt.py --template ./config.pbtxt.j2 --output models/resnet50_batching --batching
@@ -26,10 +26,10 @@ if [ "$SERVER_PID" == "0" ]; then
 fi
 
 echo "running resnet50 basic test"
-python3 ../common/test_model.py --model resnet50 --target-output ./resnet50_output.npy
+python3 ../common/test_model.py --model resnet50 --target-output ../common/resnet50_output.npy
 
 echo "running resnet50 batching test"
-python3 ../common/test_model.py --model resnet50_batching --target-output ./resnet50_output.npy
+python3 ../common/test_model.py --model resnet50_batching --target-output ../common/resnet50_output.npy
 
 
 kill $SERVER_PID

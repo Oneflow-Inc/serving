@@ -26,28 +26,28 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 function model_config_exists() {
-    if [ -e $1 ]
-    then
-        return 0
-    else
-        return 1
-    fi
+  if [ -e $1 ]
+  then
+    return 0
+  else
+    return 1
+  fi
 }
 
 function generate_model_config() {
-    echo "name: \"resnet50\"" >> $1
-    echo "backend: \"oneflow\"" >> $1
+  echo "name: \"resnet50\"" >> $1
+  echo "backend: \"oneflow\"" >> $1
 }
 
 function generate_repository_config() {
-    for file in $1/*
-    do
-        model_config_exists $file/config.pbtxt
-        if [ $? != 0 ]
-        then
-            generate_model_config $file/config.pbtxt
-        fi
-    done
+  for file in $1/*
+  do
+    model_config_exists $file/config.pbtxt
+    if [ $? != 0 ]
+    then
+      generate_model_config $file/config.pbtxt
+    fi
+  done
 }
 
 # Gather parts in alpha order

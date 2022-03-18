@@ -32,7 +32,7 @@ ModelState::Create(TRITONBACKEND_Model* triton_model, ModelState** state)
       // Update model config
       triton::common::TritonJson::WriteBuffer json_buffer;
       (*state)->ModelConfig().Write(&json_buffer);
-      
+
       TRITONSERVER_Message* message;
       RETURN_IF_ERROR(TRITONSERVER_MessageNewFromSerializedJson(
           &message, json_buffer.Base(), json_buffer.Size()));
@@ -142,7 +142,7 @@ ModelState::AutoCompleteInputsAndOutputs(
 
   if (!found_ios) {
     existing_ios = triton::common::TritonJson::Value(
-      ModelConfig(), triton::common::TritonJson::ValueType::ARRAY);
+        ModelConfig(), triton::common::TritonJson::ValueType::ARRAY);
   }
 
   int index = 0;

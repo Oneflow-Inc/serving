@@ -42,7 +42,7 @@ Here is a [tutorial](./doc/tutorial.md) about how to export the model and how to
 
 # Documentation
 
-- [Tutorial](./doc/tutorial.md)
+- [Tutorial (Chinese)](./doc/tutorial.md)
 - [Build](./doc/build.md)
 - [Model Configuration](./doc/model_config.md)
 - [Know Issues](./doc/know_issues.md)

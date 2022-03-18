@@ -52,7 +52,7 @@ Here is a [tutorial](./doc/tutorial.md) about how to export the model and how to
 
 ### llvm: Option already exists
 
-Oneflow backend conflits with tensorflow1 due to some mysterious reason. It is recommended not to use oneflow and tensorflow1 together.
+Oneflow backend conflicts with tensorflow1 due to some mysterious reason. It is recommended not to use oneflow and tensorflow1 together.
 
 ```
 .../llvm/include/llvm/Support/CommandLine.h:858: void llvm::cl::parser<DataType>::addLiteralOption
@@ -63,4 +63,4 @@ exists!"' failed.
 
 ### Multiple model instance execution
 
-The current version of oneflow does not support concurrent execution of multiple model instances. You can launch multiple containers with k8s to bypass this limitation.
+The current version of oneflow does not support concurrent execution of multiple model instances. You can launch multiple containers (which is easy with Kubernetes) to bypass this limitation.

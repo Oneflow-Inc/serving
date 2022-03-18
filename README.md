@@ -63,4 +63,4 @@ exists!"' failed.
 
 ### Multiple model instance execution
 
-The current version of oneflow does not support concurrent execution of multiple model instances. You can launch multiple container with k8s to bypass this limitation.
+The current version of oneflow does not support concurrent execution of multiple model instances. You can launch multiple containers with k8s to bypass this limitation.

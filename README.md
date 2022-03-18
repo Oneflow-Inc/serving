@@ -40,9 +40,27 @@ Here is a [tutorial](./doc/tutorial.md) about how to export the model and how to
   python3 client.py --image cat.jpg
   ```
 
-# Documentation
+## Documentation
 
 - [Tutorial (Chinese)](./doc/tutorial.md)
 - [Build](./doc/build.md)
 - [Model Configuration](./doc/model_config.md)
-- [Know Issues](./doc/know_issues.md)
+- [OneFlow Cookies: Serving (Chinese)](https://docs.oneflow.org/master/cookies/serving.html)
+- [OneFlow Cookies: Serving (English)](https://docs.oneflow.org/en/master/cookies/serving.html)
+
+## Known Issues
+
+### llvm: Option already exists
+
+Oneflow backend conflits with tensorflow1 due to some mysterious reason. It is recommended not to use oneflow and tensorflow1 together.
+
+```
+.../llvm/include/llvm/Support/CommandLine.h:858: void llvm::cl::parser<DataType>::addLiteralOption
+(llvm::StringRef, const DT&, llvm::StringRef) [with DT = llvm::FunctionPass* (*)(); DataType = 
+llvm::FunctionPass* (*)()]: Assertion `findOption(Name) == Values.size() && "Option already 
+exists!"' failed.
+```
+
+### Multiple model instance executaion
+
+The current version of oneflow does not support concurrent execution of multiple model instances. You can launch multiple container with k8s to bypass this limitation.

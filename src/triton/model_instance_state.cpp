@@ -235,9 +235,8 @@ ModelInstanceState::SetInputTensors(
     if (device_.type() == "cpu") {
       alloc_perference = {BackendMemory::AllocationType::CPU};
     } else {
-      alloc_perference = {
-          BackendMemory::AllocationType::GPU_POOL,
-          BackendMemory::AllocationType::GPU};
+      alloc_perference = {BackendMemory::AllocationType::GPU_POOL,
+                          BackendMemory::AllocationType::GPU};
     }
 
     BackendMemory* input_memory;

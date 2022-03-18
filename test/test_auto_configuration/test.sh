@@ -7,6 +7,10 @@ rm -rf ./models
 mkdir -p models/resnet50/1
 cp -r ../common/model models/resnet50/1/
 
+# generate minimal config.pbtxt
+echo "name: \"resnet50\"" >> models/resnet50/config.pbtxt
+echo "backend: \"oneflow\"" >> models/resnet50/config.pbtxt
+
 SERVER=/opt/tritonserver/bin/tritonserver
 SERVER_ARGS="--model-repository=`pwd`/models --log-verbose=1 --strict-model-config false"
 SERVER_LOG="./inference_server.log"

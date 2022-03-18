@@ -211,5 +211,5 @@ jobs:
       - name: Push latest
         if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
         run: |
-          docker tag ${{ env.acr_image_tag }} ${{ env.SERVING_IMAGE }}:latest
-          docker push ${{ env.SERVING_IMAGE }}:latest
+          docker tag ${{ env.acr_image_tag }} oneflowinc/${{ env.SERVING_IMAGE }}:latest
+          docker push oneflowinc/${{ env.SERVING_IMAGE }}:latest

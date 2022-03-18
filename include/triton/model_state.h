@@ -44,7 +44,6 @@ limitations under the License.
 
 #include <cstddef>
 #include <cstdint>
-#include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -52,7 +51,6 @@ limitations under the License.
 #include "oneflow/api.h"
 #include "oneflow_utils.h"
 #include "triton/backend/backend_model.h"
-#include "triton/core/tritonserver.h"
 
 namespace triton { namespace backend { namespace oneflow {
 

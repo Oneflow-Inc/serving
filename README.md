@@ -26,7 +26,8 @@ Here is a [tutorial](./doc/tutorial.md) about how to export the model and how to
 
   ```
   cd ../../  # back to root of the serving
-  docker run --rm --runtime=nvidia --network=host -v$(pwd)/oneflow-backend/examples:/models oneflowinc/oneflow-serving
+  docker run --rm --runtime=nvidia --network=host -v$(pwd)/oneflow-backend/examples:/models \
+    oneflowinc/oneflow-serving
   curl -v localhost:8000/v2/health/ready  # ready check
   ```
 

@@ -6,6 +6,7 @@ log
 .vscode
 .clangd
 .cache
+.clangd
 
 *.so
 *.pt

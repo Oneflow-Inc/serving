@@ -94,7 +94,7 @@ jobs:
         run: |
           set -x
           manylinux_cache_dir=${{ env.MANYLINUX_CACHE_DIR }}
-          docker exec -w $PWD/test/test_resnet50 ${{ env.container_name }} bash -c "source $manylinux_cache_dir/build/ci_source.sh && python3 export_model.py"
+          docker exec -w $PWD/test/common ${{ env.container_name }} bash -c "source $manylinux_cache_dir/build/ci_source.sh && python3 export_model.py"
       - name: Remove container
         run: |
           docker container rm -f ${{ env.container_name }}
@@ -203,3 +203,13 @@ jobs:
           docker pull ${{ env.acr_image_tag }}
           docker tag ${{ env.acr_image_tag }} ${{ env.image_tag }}
           docker push ${{ env.image_tag }}
+      - name: Pull, tag and push
+        run: |
+          docker pull ${{ env.acr_image_tag }}
+          docker tag ${{ env.acr_image_tag }} ${{ env.image_tag }}
+          docker push ${{ env.image_tag }}
+      - name: Push latest
+        if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
+        run: |
+          docker tag ${{ env.acr_image_tag }} ${{ env.SERVING_IMAGE }}:latest
+          docker push ${{ env.SERVING_IMAGE }}:latest

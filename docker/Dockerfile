@@ -59,7 +59,6 @@ RUN wget https://oneflow-static.oss-cn-beijing.aliyuncs.com/tensorrt/nv-tensorrt
     apt-get update && \
     apt-get install -y tensorrt && \
     apt-get clean && \
-    rm -rf /var/nv-tensorrt-repo-ubuntu2004-cuda11.3-trt8.0.3.4-ga-20210831 && \
     rm -rf /var/lib/apt/lists/* && \
     rm -f nv-tensorrt-repo-ubuntu2004-cuda11.3-trt8.0.3.4-ga-20210831_1-1_amd64.deb
 

@@ -7,10 +7,13 @@
 #include <iostream>
 #include <ostream>
 #include <string>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "oneflow_utils.h"
 #include "triton/backend/backend_common.h"
+#include "triton/common/triton_json.h"
 #include "triton/core/tritonserver.h"
 
 namespace triton { namespace backend { namespace oneflow {
@@ -20,6 +23,21 @@ ModelState::Create(TRITONBACKEND_Model* triton_model, ModelState** state)
 {
   try {
     *state = new ModelState(triton_model);
+    bool auto_complete_config = false;
+    RETURN_IF_ERROR(TRITONBACKEND_ModelAutoCompleteConfig(
+        triton_model, &auto_complete_config));
+    if (auto_complete_config) {
+      RETURN_IF_ERROR((*state)->AutoCompleteConfig());
+
+      // Update model config
+      triton::common::TritonJson::WriteBuffer json_buffer;
+      (*state)->ModelConfig().Write(&json_buffer);
+
+      TRITONSERVER_Message* message;
+      RETURN_IF_ERROR(TRITONSERVER_MessageNewFromSerializedJson(
+          &message, json_buffer.Base(), json_buffer.Size()));
+      RETURN_IF_ERROR(TRITONBACKEND_ModelSetConfig(triton_model, 1, message));
+    }
   }
   catch (const BackendModelException& ex) {
     RETURN_ERROR_IF_TRUE(
@@ -83,6 +101,102 @@ const std::unordered_map<std::string, InputOutputAttribute>&
 ModelState::OutputAttributes() const
 {
   return output_attribute_;
+}
+
+TRITONSERVER_Error*
+ModelState::AutoCompleteConfig()
+{
+  std::unique_ptr<oneflow_api::Graph> graph;
+  LoadModel(oneflow_api::Device("cpu"), &graph);
+  auto input_infos = graph->GetInputInfos();
+  auto output_infos = graph->GetOutputInfos();
+
+  AutoCompleteInputsAndOutputs(true, input_infos);
+  AutoCompleteInputsAndOutputs(false, output_infos);
+  AutoCompleteMaxBatchSize();
+
+  triton::common::TritonJson::WriteBuffer buffer;
+  ModelConfig().PrettyWrite(&buffer);
+  LOG_MESSAGE(
+      TRITONSERVER_LOG_INFO,
+      std::string("Auto-completed config: " + buffer.Contents()).c_str());
+  return nullptr;
+}
+
+TRITONSERVER_Error*
+ModelState::AutoCompleteInputsAndOutputs(
+    bool is_input, oneflow_api::InputOutputInfos& input_output_infos)
+{
+  triton::common::TritonJson::Value existing_ios;
+  const char* key = is_input ? "input" : "output";
+  bool found_ios = ModelConfig().Find(key, &existing_ios);
+
+  std::unordered_set<std::string> existing_io_names;
+  for (size_t i = 0; i < existing_ios.ArraySize(); ++i) {
+    triton::common::TritonJson::Value value;
+    existing_ios.IndexAsObject(i, &value);
+    std::string name;
+    value.MemberAsString("name", &name);
+    existing_io_names.insert(name);
+  }
+
+  if (!found_ios) {
+    existing_ios = triton::common::TritonJson::Value(
+        ModelConfig(), triton::common::TritonJson::ValueType::ARRAY);
+  }
+
+  int index = 0;
+  for (const auto& info : input_output_infos) {
+    std::string input_output_name;
+    if (is_input) {
+      input_output_name = std::string("INPUT_") + std::to_string(index);
+    } else {
+      input_output_name = std::string("OUTPUT_") + std::to_string(index);
+    }
+    if (existing_io_names.find(input_output_name) != existing_io_names.end()) {
+      index += 1;
+      continue;
+    }
+
+    TRITONSERVER_DataType data_type =
+        ConvertOneFlowTypeToTritonType(info.second.datatype_);
+    const char* data_type_str = TRITONSERVER_DataTypeString(data_type);
+    std::vector<int64_t> dims_vector =
+        OfShapeToVector(info.second.input_output_shape_);
+
+    triton::common::TritonJson::Value io(
+        ModelConfig(), triton::common::TritonJson::ValueType::OBJECT);
+    RETURN_IF_ERROR(io.AddString("name", input_output_name));
+
+    RETURN_IF_ERROR(io.AddString(
+        "data_type", ("TYPE_" + std::string(data_type_str)).c_str()));
+    triton::common::TritonJson::Value dims(
+        ModelConfig(), triton::common::TritonJson::ValueType::ARRAY);
+    for (const int64_t& dim : dims_vector) {
+      RETURN_IF_ERROR(dims.AppendInt(dim));
+    }
+    RETURN_IF_ERROR(io.Add("dims", std::move(dims)));
+    RETURN_IF_ERROR(existing_ios.Append(std::move(io)));
+
+    index += 1;
+  }
+
+  if (!found_ios) {
+    ModelConfig().Add(key, std::move(existing_ios));
+  }
+
+  return nullptr;
+}
+
+TRITONSERVER_Error*
+ModelState::AutoCompleteMaxBatchSize()
+{
+  triton::common::TritonJson::Value mbs_value;
+  if (!ModelConfig().Find("max_batch_size", &mbs_value)) {
+    mbs_value.SetInt(1);
+    SetMaxBatchSize(1);
+  }
+  return nullptr;
 }
 
 TRITONSERVER_Error*

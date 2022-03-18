@@ -5,16 +5,14 @@ export CUDA_VISIBLE_DEVICES=0
 
 rm -rf ./models
 mkdir -p models/resnet50/1
-mkdir -p models/resnet50_batching/1
-
 cp -r ../common/model models/resnet50/1/
-cp -r ../common/model models/resnet50_batching/1/
 
-python3 ../common/generate_pbtxt.py --template ../common/config.pbtxt.j2 --output models/resnet50
-python3 ../common/generate_pbtxt.py --template ../common/config.pbtxt.j2 --output models/resnet50_batching --batching
+# generate minimal config.pbtxt
+echo "name: \"resnet50\"" >> models/resnet50/config.pbtxt
+echo "backend: \"oneflow\"" >> models/resnet50/config.pbtxt
 
 SERVER=/opt/tritonserver/bin/tritonserver
-SERVER_ARGS="--model-repository=`pwd`/models --log-verbose=1"
+SERVER_ARGS="--model-repository=`pwd`/models --log-verbose=1 --strict-model-config false"
 SERVER_LOG="./inference_server.log"
 source ../common/util.sh
 
@@ -27,10 +25,6 @@ fi
 
 echo "running resnet50 basic test"
 python3 ../common/test_model.py --model resnet50 --target-output ../common/resnet50_output.npy
-
-echo "running resnet50 batching test"
-python3 ../common/test_model.py --model resnet50_batching --target-output ../common/resnet50_output.npy
-
 
 kill $SERVER_PID
 wait $SERVER_PID

@@ -1,8 +1,9 @@
 # OneFlow Serving
 
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Oneflow-Inc/serving/pulls)
-[![Docker Image](https://img.shields.io/docker/v/oneflowinc/oneflow-serving?sort=semver)](https://hub.docker.com/r/oneflowinc/oneflow-serving)
+[![Docker Image Version](https://img.shields.io/docker/v/oneflowinc/oneflow-serving?sort=semver)](https://hub.docker.com/r/oneflowinc/oneflow-serving)
 [![Docker Pulls](https://img.shields.io/docker/pulls/oneflowinc/oneflow-serving)](https://hub.docker.com/r/oneflowinc/oneflow-serving)
+[![License](https://img.shields.io/github/license/oneflow-inc/serving)](https://github.com/Oneflow-Inc/serving/blob/main/LICENSE)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Oneflow-Inc/serving/pulls)
 
 Currently, we support [oneflow-backend](./oneflow-backend) for the [Triton Inference Server](https://github.com/triton-inference-server/server) that enables model serving.
 

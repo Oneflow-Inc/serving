@@ -51,7 +51,7 @@ class XrtProcessor(Processor):
         elif self._xrt_type == 'openvino' and 'tensorrt' in xrt_config:
             self._replace_xrt_config(config_file_path, 'tensorrt', self._xrt_type)
         elif self._xrt_type == 'tensorrt' and 'openvino' in xrt_config:
-            self._replace_xrt_config(config_file_path, 'openvino',self._xrt_type)
+            self._replace_xrt_config(config_file_path, 'openvino', self._xrt_type)
         elif self._xrt_type in xrt_config:
             pass
         else:

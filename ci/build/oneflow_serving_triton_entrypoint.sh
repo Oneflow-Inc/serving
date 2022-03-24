@@ -25,32 +25,6 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-function model_config_exists() {
-  if [ -e $1 ]
-  then
-    return 0
-  else
-    return 1
-  fi
-}
-
-function generate_model_config() {
-  echo "name: \"$2\"" >> $1
-  echo "backend: \"oneflow\"" >> $1
-}
-
-function generate_repository_config() {
-  for file in $1/*
-  do
-    base_name=$(basename $file)
-    model_config_exists $file/config.pbtxt
-    if [ $? != 0 ]
-    then
-      generate_model_config $file/config.pbtxt $base_name
-    fi
-  done
-}
-
 # Gather parts in alpha order
 shopt -s nullglob extglob
 SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
@@ -70,8 +44,7 @@ echo
 # This script can either be a wrapper around arbitrary command lines,
 # or it will simply exec bash if no arguments were given
 if [[ $# -eq 0 ]]; then
-  generate_repository_config /models
-  exec /opt/tritonserver/bin/tritonserver --model-store /models --strict-model-config false
+  exec triton_wrapper --model-store /models --strict-model-config false
 else
   exec "$@"
 fi

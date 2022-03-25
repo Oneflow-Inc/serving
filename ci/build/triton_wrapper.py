@@ -1,18 +1,19 @@
 #!/usr/bin/env python3
 import argparse
+from asyncio import subprocess
 import os
 import sys
 import shutil
+from abc import ABCMeta, abstractmethod
 
 
-class Processor(object):
+class Processor(metaclass=ABCMeta):
 
-    def __init__(self):
-        pass
-
+    @abstractmethod
     def process(self):
         pass
 
+    @abstractmethod
     def clean(self):
         pass
 
@@ -158,7 +159,7 @@ class TritonWrapper(object):
         self._launch_command = 'tritonserver ' + ' '.join(self._unknown)
 
         for option, argument in zip(self._unknown, self._unknown[1:] + [' ']):
-            if option.startswith('-') and (option == '--model-repository' or option == '--model-store'):
+            if option == '--model-repository' or option == '--model-store':
                 self._model_repos.append(argument)
 
         self._collect_models()
@@ -170,7 +171,7 @@ class TritonWrapper(object):
             processor.process()
 
         # launch tritonserver using the rest options
-        os.system(self._launch_command)
+        subprocess.run(self._launch_command.split())
 
         # for each option, do clean
         for processor in reversed(self._processors):

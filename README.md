@@ -47,7 +47,7 @@ Here is a [tutorial](./doc/tutorial.md) about how to export the model and how to
 - [Model Configuration](./doc/model_config.md)
 - [OneFlow Cookies: Serving (Chinese)](https://docs.oneflow.org/master/cookies/serving.html)
 - [OneFlow Cookies: Serving (English)](https://docs.oneflow.org/en/master/cookies/serving.html)
-- [Triton Wrapper](./doc/triton_wrapper.md)
+- [Command Line Tool: oneflow-serving](./doc/command_line_tool.md)
 
 ## Known Issues
 

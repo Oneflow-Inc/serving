@@ -97,5 +97,5 @@ COPY --chown=1000:1000 --from=full /usr/bin/serve /usr/bin/.
 COPY ./liboneflow_cpp/lib/ /usr/local/nvidia/lib/
 COPY ./libtriton_oneflow.so /opt/tritonserver/backends/oneflow/
 COPY ./oneflow_serving_triton_entrypoint.sh /opt/nvidia
-COPY ./triton_wrapper /opt/tritonserver/bin
+COPY ./oneflow-serving /opt/tritonserver/bin
 ENTRYPOINT ["/opt/nvidia/oneflow_serving_triton_entrypoint.sh"]

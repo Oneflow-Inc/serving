@@ -81,10 +81,10 @@ class EmptyConfigProcessor(Processor):
         return super().clean()
 
 
-class TritonWrapper(object):
+class OneFlowServing(object):
 
     def __init__(self) -> None:
-        self._parser = argparse.ArgumentParser(description='triton_wrapper: a command line tool to help you configure your model')
+        self._parser = argparse.ArgumentParser(description='oneflow-serving: a command line tool to help you configure your model')
         self._parser.add_argument('--enable-openvino', help='specify the model name that wants to enable openvino', action='append')
         self._parser.add_argument('--enable-tensorrt', help='specify the model name that wants to enable tensorrt', action='append')
         
@@ -171,7 +171,7 @@ class TritonWrapper(object):
 
 
 if __name__ == '__main__':
-    wrapper = TritonWrapper()
+    wrapper = OneFlowServing()
     wrapper.prepare()
     wrapper.start()
 

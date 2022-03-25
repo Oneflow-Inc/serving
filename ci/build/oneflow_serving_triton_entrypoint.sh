@@ -44,7 +44,7 @@ echo
 # This script can either be a wrapper around arbitrary command lines,
 # or it will simply exec bash if no arguments were given
 if [[ $# -eq 0 ]]; then
-  exec triton_wrapper --model-store /models --strict-model-config false
+  exec oneflow-serving --model-store /models --strict-model-config false
 else
   exec "$@"
 fi

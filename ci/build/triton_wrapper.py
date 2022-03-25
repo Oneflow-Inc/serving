@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 import argparse
-from asyncio import subprocess
 import os
 import sys
-import shutil
+import subprocess
 from abc import ABCMeta, abstractmethod
 
 
@@ -28,70 +27,21 @@ class XrtProcessor(Processor):
 
     def process(self):
         config_file_path = os.path.join(self._model_path, 'config.pbtxt')
-        if not os.path.exists(config_file_path):
-            sys.exit(self._model_name + ' config.pbtxt not exists')
-        shutil.copyfile(config_file_path, config_file_path + '.bak')
-        
-        instance_group = self._parse_instance_group(config_file_path)
-        xrt_config = self._parse_xrt_config(config_file_path)
-
-        if len(instance_group) == 0:
-            if self._xrt_type == 'openvino':
-                self._append_instance_group(config_file_path, 'cpu')
-            elif self._xrt_type == 'tensorrt':
-                self._append_instance_group(config_file_path, 'gpu')
-        elif 'gpu' in instance_group:
-            if self._xrt_type == 'openvino':
-                print('openvino will not work for gpu instances')
-        elif 'cpu' in instance_group:
-            if self._xrt_type == 'tensorrt':
-                print('tensorrt will not work for cpu instances')
-
-        if len(xrt_config) > 1:
-            sys.exit('XRT only support one type currently')
-        elif self._xrt_type == 'openvino' and 'tensorrt' in xrt_config:
-            self._replace_xrt_config(config_file_path, 'tensorrt', self._xrt_type)
-        elif self._xrt_type == 'tensorrt' and 'openvino' in xrt_config:
-            self._replace_xrt_config(config_file_path, 'openvino', self._xrt_type)
-        elif self._xrt_type in xrt_config:
-            pass
-        else:
-            self._append_xrt_config(config_file_path, self._xrt_type)
+        if self._xrt_type == 'openvino':
+            self._append_instance_group(config_file_path, 'cpu')
+        elif self._xrt_type == 'tensorrt':
+            self._append_instance_group(config_file_path, 'gpu')
+        self._append_xrt_config(config_file_path, self._xrt_type)
         return super().process()
     
     def clean(self):
-        config_file_path = os.path.join(self._model_path, 'config.pbtxt')
-        if not os.path.exists(config_file_path):
-            sys.exit(self._model_name + ' config.pbtxt not exists')
-        shutil.copyfile(config_file_path + '.bak', config_file_path)
-        os.remove(config_file_path + '.bak')
         return super().clean()
-    
-    def _parse_instance_group(self, config_file_path):
-        instance_group = []
-        with open(config_file_path, 'r') as f:
-            text = f.read()
-            if 'KIND_GPU' in text:
-                instance_group.append('gpu')
-            if 'KIND_CPU' in text:
-                instance_group.append('cpu')
-        return instance_group
-    
-    def _parse_xrt_config(self, config_file_path):
-        xrt_config = []
-        with open(config_file_path, 'r') as f:
-            text = f.read()
-            if 'tensorrt' in text:
-                xrt_config.append('tensorrt')
-            if 'openvino' in text:
-                xrt_config.append('openvino')
-        return xrt_config
 
     def _append_instance_group(self, config_file_path, instance_group):
         with open(config_file_path, 'a+') as f:
             f.write('\n')
             if instance_group == 'gpu':
-                f.write('instance_group [{count: 1 kind: KIND_GPU gpus: [ 0 ]}]')
+                f.write('instance_group [{count: 1 kind: KIND_GPU}]')
             elif instance_group == 'cpu':
                 f.write('instance_group [{count: 1 kind: KIND_CPU}]')
             f.write('\n')
@@ -102,13 +52,6 @@ class XrtProcessor(Processor):
             f.write('parameters {key: "xrt" value: {string_value: "%s"}}' % xrt_type)
             f.write('\n')
 
-    def _replace_xrt_config(self, config_file_path, xrt_type, new_xrt_type):
-        with open(config_file_path, 'r') as f:
-            data = f.read()
-        data = data.replace(xrt_type, new_xrt_type)
-        with open(config_file_path, 'w') as f:
-            f.write(data)
-
 
 class EmptyConfigProcessor(Processor):
 
@@ -117,13 +60,13 @@ class EmptyConfigProcessor(Processor):
         self._model_repo = model_repo
         self._empty_models_path = {}
 
-    def process(self):
         models = os.listdir(self._model_repo)
         for model in models:
             config_file = os.path.join(self._model_repo, model, 'config.pbtxt')
             if not os.path.exists(config_file):
                 self._empty_models_path[model] = config_file
 
+    def process(self):
         # generate default config
         for model in self._empty_models_path:
             with open(self._empty_models_path[model], 'w+') as f:
@@ -141,7 +84,7 @@ class EmptyConfigProcessor(Processor):
 class TritonWrapper(object):
 
     def __init__(self) -> None:
-        self._parser = argparse.ArgumentParser(description='triton-wrapper: a command line tool to help you configure your model')
+        self._parser = argparse.ArgumentParser(description='triton_wrapper: a command line tool to help you configure your model')
         self._parser.add_argument('--enable-openvino', help='specify the model name that wants to enable openvino', action='append')
         self._parser.add_argument('--enable-tensorrt', help='specify the model name that wants to enable tensorrt', action='append')
         
@@ -156,6 +99,7 @@ class TritonWrapper(object):
     def prepare(self):
         self._parse()
         
+        self._unknown.extend(['--strict-model-config', 'false'])
         self._launch_command = 'tritonserver ' + ' '.join(self._unknown)
 
         for option, argument in zip(self._unknown, self._unknown[1:] + [' ']):
@@ -171,7 +115,11 @@ class TritonWrapper(object):
             processor.process()
 
         # launch tritonserver using the rest options
-        subprocess.run(self._launch_command.split())
+        try:
+            subprocess.run(self._launch_command.split())
+        except KeyboardInterrupt:
+            # do nothing
+            pass
 
         # for each option, do clean
         for processor in reversed(self._processors):
@@ -191,8 +139,11 @@ class TritonWrapper(object):
 
     def _prepare_processor(self):
         # empty config file
+        empty_config_models = []
         for model_repo in self._model_repos:
-            self._processors.append(EmptyConfigProcessor(model_repo))
+            processor = EmptyConfigProcessor(model_repo)
+            empty_config_models = list(processor._empty_models_path.keys())
+            self._processors.append(processor)
 
         # xrt config: openvino
         openvino_models = self._args['enable_openvino']
@@ -200,6 +151,9 @@ class TritonWrapper(object):
             for model_name in openvino_models:
                 if model_name not in self._model_to_path:
                     print(model_name, ' will be ignored because it is not exist in the repository')
+                    continue
+                if model_name not in empty_config_models:
+                    print(model_name, ' will be ignored because model configuration exists')
                     continue
                 self._processors.append(XrtProcessor(model_name, self._model_to_path[model_name], 'openvino'))
 
@@ -209,6 +163,9 @@ class TritonWrapper(object):
             for model_name in tensorrt_models:
                 if model_name not in self._model_to_path:
                     print(model_name, ' will be ignored because it is not exist in the repository')
+                    continue
+                if model_name not in empty_config_models:
+                    print(model_name, ' will be ignored because model configuration exists')
                     continue
                 self._processors.append(XrtProcessor(model_name, self._model_to_path[model_name], 'tensorrt'))
 

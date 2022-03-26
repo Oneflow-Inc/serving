@@ -9,11 +9,11 @@ docker run -it --rm -v$(pwd)/triton-models:/models --runtime=nvidia --network=ho
   oneflowinc/oneflow-serving oneflow-serving --model-store /models --enable-tensorrt resnet101
 ```
 
-Using the above command, resnet101 will enable xrt tensorrt backend to accelerate computation.
+The resnet101 is the name of a model directory under the model repository directory `/models`. Using the above command, resnet101 will enable xrt tensorrt backend to accelerate computation. 
 
 ## Arguments
 
 The following command line arguments are briefly described as supported.
 
-`--enable-openvino model_name`: a model to enable xrt openvino backend
-`--enable-tensorrt model_name`: xrt tensorrt backend is enabled for a model
+`--enable-openvino model_name`: specify the model name that wants to enable openvino
+`--enable-tensorrt model_name`: specify the model name that wants to enable tensorrt

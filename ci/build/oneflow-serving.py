@@ -150,10 +150,12 @@ class OneFlowServing(object):
         if openvino_models is not None:
             for model_name in openvino_models:
                 if model_name not in self._model_to_path:
-                    print(model_name, ' will be ignored because it is not exist in the repository')
+                    print('[oneflow-serving] warning:', '--enable-openvino', model_name,
+                          'will be ignored because it is not exist in the repository')
                     continue
                 if model_name not in empty_config_models:
-                    print(model_name, ' will be ignored because model configuration exists')
+                    print('[oneflow-serving] warning:', '--enable-openvino', model_name,
+                          'will be ignored because model configuration exists')
                     continue
                 self._processors.append(XrtProcessor(model_name, self._model_to_path[model_name], 'openvino'))
 
@@ -162,10 +164,12 @@ class OneFlowServing(object):
         if tensorrt_models is not None:
             for model_name in tensorrt_models:
                 if model_name not in self._model_to_path:
-                    print(model_name, ' will be ignored because it is not exist in the repository')
+                    print('[oneflow-serving] warning:', '--enable-tensorrt', model_name,
+                          'will be ignored because it is not exist in the repository')
                     continue
                 if model_name not in empty_config_models:
-                    print(model_name, ' will be ignored because model configuration exists')
+                    print('[oneflow-serving] warning:', '--enable-tensorrt', model_name,
+                          'will be ignored because model configuration exists')
                     continue
                 self._processors.append(XrtProcessor(model_name, self._model_to_path[model_name], 'tensorrt'))
 

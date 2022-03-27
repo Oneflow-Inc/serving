@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import os
+import re
 import sys
 import subprocess
 from abc import ABCMeta, abstractmethod
@@ -100,6 +101,10 @@ class OneFlowServing(object):
         self._parse()
         
         self._unknown.extend(['--strict-model-config', 'false'])
+        self._unknown_split = []
+        for argument in self._unknown:
+            self._unknown_split.extend(argument.split('='))
+        self._unknown = self._unknown_split
         self._launch_command = 'tritonserver ' + ' '.join(self._unknown)
 
         for option, argument in zip(self._unknown, self._unknown[1:] + [' ']):

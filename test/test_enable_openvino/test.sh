@@ -7,7 +7,7 @@ rm -rf ./models
 mkdir -p models/resnet50/1
 cp -r ../common/model models/resnet50/1/
 
-SERVER=/usr/bin/oneflow-serving
+SERVER=/opt/tritonserver/bin/oneflow-serving
 SERVER_ARGS="--model-repository=`pwd`/models --log-verbose=1 --strict-model-config false --enable-openvino resnet50"
 SERVER_LOG="./inference_server.log"
 source ../common/util.sh

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 import argparse
 import os
-import re
 import sys
+import signal
 import subprocess
 from abc import ABCMeta, abstractmethod
 
@@ -93,6 +93,7 @@ class OneFlowServing(object):
         self._unknown = None
 
         self._launch_command = None
+        self._triton_process = None
         self._model_repos = []
         self._processors = []
         self._model_to_path = {}
@@ -121,11 +122,15 @@ class OneFlowServing(object):
 
         # launch tritonserver using the rest options
         try:
-            subprocess.run(self._launch_command.split())
+            self._triton_process = subprocess.Popen(self._launch_command.split())
+            self._triton_process.wait()
         except KeyboardInterrupt:
             # do nothing
             pass
 
+        self.clean()
+    
+    def clean(self):
         # for each option, do clean
         for processor in reversed(self._processors):
             processor.clean()
@@ -181,6 +186,14 @@ class OneFlowServing(object):
 
 if __name__ == '__main__':
     wrapper = OneFlowServing()
+
+    def on_exit_handler(signum, frame):
+        wrapper._triton_process.kill()
+        wrapper.clean()
+        exit()
+
+    signal.signal(signal.SIGTERM, on_exit_handler)
+
     wrapper.prepare()
     wrapper.start()
 

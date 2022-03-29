@@ -1,115 +1,215 @@
 import os
 import re
-import shutil
+import sys
+import time
 import argparse
 
 
-def get_device_configuration(device : str):
-    if device == "cpu":
-        return "cpu", "instance_group [{count: 1 kind: KIND_CPU }]"
-    if device.startswith("cuda"):
-        device, device_id = device.split(":")
-        return device, "instance_group [{count: 1 kind: KIND_GPU gpus: [ %s ]}]" % device_id
+def format_device_instance_group(device):
+    if device == 'cpu':
+        return "instance_group [{count: 1 kind: KIND_CPU }]"
+    if device.startswith('cuda'):
+        _, device_ids = device.split(':')
+        return "instance_group [{count: 1 kind: KIND_GPU gpus: [ %s ]}]" % device_ids
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--model_names", required=True, help="models to test")
-parser.add_argument("--device", default="cpu", help="speed test device, --device cuda:n|cpu")
-parser.add_argument("--xrt", default=None, help="xrt, --xrt tensorrt|openvino")
+def format_xrt_configuration(xrt_type):
+    if xrt_type is not None:
+        return 'parameters { key: "xrt" value: {string_value: "%s"}}' % xrt_type
+    return None
 
 
-FLAGS = parser.parse_args()
-MODEL_NAMES = FLAGS.model_names.split()
-DEVICE = FLAGS.device
-XRT_TYPE = FLAGS.xrt
-BOOT_RETRY_TIMES=20
-PERF_RETRY_TIMES=10
-WORKING_DIR = os.getcwd()
-XRT_CONFIGURATION = 'parameters { key: "xrt" value: {string_value: "%s"}}' % XRT_TYPE
-OUTPUT_FILE_DIR = "speed_test_output"
-OUTPUT_FILE_NAME = os.path.join(OUTPUT_FILE_DIR, "{}_{}_{}_speed.txt")
-SPEED_TEST_DETAILED = os.path.join(OUTPUT_FILE_DIR, "speed_test_{}_{}_detailed.txt".format(DEVICE, XRT_TYPE))
-SPEED_TEST_SUMMARY = os.path.join(OUTPUT_FILE_DIR, "speed_test_{}_{}_summary.txt".format(DEVICE, XRT_TYPE))
-DEVICE, DEVICE_CONFIGURATION = get_device_configuration(DEVICE)
+def format_output_filename(output_dir, model_name, device_type, xrt_type):
+    output_filename = os.path.join(output_dir, "{}_{}_{}_speed.txt")
+    return output_filename.format(model_name, device_type, xrt_type)
 
 
-# speed test
-def speed_test(model_names, model_repo_root, device="cpu", xrt_type=None):
-    for model_name in model_names:
-        model_repo_dir = os.path.join(model_repo_root, model_name + "_repo")
-        config_pb_txt = os.path.join(model_repo_root, model_name + "_repo", model_name, "config.pbtxt")
-        output_file_name = OUTPUT_FILE_NAME.format(model_name, device, str(xrt_type))
-
-        shutil.copyfile(config_pb_txt, config_pb_txt + ".bak")
-        with open(config_pb_txt, "a+") as f:
-            f.write(DEVICE_CONFIGURATION)
-            f.write("\n")
-            if xrt_type is not None:
-                f.write(XRT_CONFIGURATION)
-
-        ret = os.system("docker container rm -f triton-server")
-        ret = os.system("docker run --rm --name triton-server -v{}:/models --runtime=nvidia -p8003:8000 -p8001:8001 -p8002:8002 registry.cn-beijing.aliyuncs.com/oneflow/oneflow-serving:nightly /opt/tritonserver/bin/tritonserver --model-store /models --strict-model-config false > server.log 2>&1 &".format(model_repo_dir))
-
-        retry_time = 0
-        command = "cat server.log | grep HTTPService"
-        ret = os.system(command)
-        while ret != 0 and retry_time < BOOT_RETRY_TIMES:
-            retry_time += 1
-            ret = os.system("sleep 1")
-            ret = os.system(command)
-        if ret != 0:
-            print("triton server boot failed")
-            return
-
-        retry_time = 0
-        window = 5000 + 10000 * retry_time
-        ret = os.system("docker container rm -f triton-server-sdk")
-        command = "docker run --rm --runtime=nvidia --shm-size=2g --network=host --name triton-server-sdk nvcr.io/nvidia/tritonserver:21.10-py3-sdk perf_analyzer -m {} --shape INPUT_0:3,224,224 -p {} -u localhost:8003 --concurrency-range 1:4  --percentile=95 > {}".format(model_name, str(window), output_file_name)
-        ret = os.system(command)
-        while ret != 0 and retry_time < PERF_RETRY_TIMES:
-            retry_time += 1
-            ret = os.system(command)
-        if ret != 0:
-            print("perf_analyzer failed")
-
-        ret = os.system("docker container rm -f triton-server")
-        ret = os.system("docker container rm -f triton-server-sdk")
-        ret = os.system("rm server.log")
-        ret = os.system("mv {}.bak {}".format(config_pb_txt, config_pb_txt))
+def format_report_filename(output_dir, device, xrt_type, report_type):
+    report_filename = os.path.join(output_dir, "speed_test_{}_{}_{}.txt")
+    return report_filename.format(device, str(xrt_type), report_type)
 
 
-def parse_speed(model_names, device="cpu", xrt_type=None):
-    for model_name in model_names:
-        output_file_name = OUTPUT_FILE_NAME.format(model_name, device, str(xrt_type))
-        ret = os.system("echo {}_{} >> {}".format(model_name, str(xrt_type), SPEED_TEST_DETAILED))
-        ret = os.system("cat {} | tail -n 5 >> {}".format(output_file_name, SPEED_TEST_DETAILED))
+def format_model_dir(configuration, model_name):
+    return os.path.join(configuration['repo_dir'], model_name + "_repo")
 
-        whole_text = ""
-        with open(output_file_name, "r") as f:
-            whole_text = f.readlines()
-        if whole_text == "" or len(whole_text) == 0:
-            with open(SPEED_TEST_SUMMARY, "a+") as f:
-                f.write("| ")
-                f.write(model_name)
-                f.write(" | x |\n")
-        last_line = whole_text[-1]
-        pattern = "Concurrency: 4, throughput: (.*) infer/sec, latency (.*) usec"
-        match_objs = re.match(pattern, last_line)
-        if match_objs is None or len(match_objs.groups()) != 2:
-            with open(SPEED_TEST_SUMMARY, "a+") as f:
-                f.write("| ")
-                f.write(model_name)
-                f.write(" | x |\n")
-        else:
-            with open(SPEED_TEST_SUMMARY, "a+") as f:
-                f.write("| ")
-                f.write(model_name)
-                f.write(" | ")
-                f.write(match_objs.groups()[0])
-                f.write(" |\n")
+
+def format_model_config_filename(configuration, model_name):
+    return os.path.join(format_model_dir(configuration, model_name), model_name, "config.pbtxt")
+
+
+def parse_command_line_arguments():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--model_names", required=True, help="models to test")
+    parser.add_argument("--device", default="cpu", help="speed test device, --device cuda:n0,n1,n2|cpu")
+    parser.add_argument("--xrt", default=None, help="xrt, --xrt tensorrt|openvino")
+    parser.add_argument('--env-file', default='', help='environment file')
+    parser.add_argument('--http-port', default=8000, help='http port')
+    arguments = parser.parse_args()
+    arguments = vars(arguments)
+    return arguments
+
+
+def user_configuration(arguments):
+    configuration = {}
+    configuration.update(arguments)
+    configuration['model_names'] = configuration['model_names'].split()
+    configuration['tritonserver_boot_retry_times'] = 20
+    configuration['perf_analyzer_retry_times'] = 20
+    configuration['working_dir'] = os.getcwd()
+    configuration['output_dir'] = 'speed_test_output'
+    configuration['repo_dir'] = os.path.join(configuration['working_dir'], 'repos')
+    configuration['serving_image'] = 'registry.cn-beijing.aliyuncs.com/oneflow/oneflow-serving:nightly'
+    return configuration
+
+
+def prepare_model_configuration(model_name, config_file, device_configuration, xrt_configuration):
+    with open(config_file, 'w+') as f:
+        f.write('name: "{}"'.format(model_name))
+        f.write('\n')
+        f.write('backend: "oneflow"')
+        f.write('\n')
+        f.write(device_configuration)
+        f.write('\n')
+        if xrt_configuration is not None:
+            f.write(xrt_configuration)
+
+
+def run_shell_command(command):
+    return os.system(command)
+
+
+def launch_tritonserver(configuration, model_repo_dir):
+    docker_container_name = 'triton-server'
+    docker_rm_container = 'docker container rm -f ' + docker_container_name
+
+    extra_docker_args = ''
+    extra_docker_args += ' --rm'
+    extra_docker_args += ' --runtime=nvidia'
+    extra_docker_args += ' --network=host'
+    extra_docker_args += ' --name ' + docker_container_name
+    extra_docker_args += ' -v{}:/models'.format(model_repo_dir)
+    if configuration['env_file'] is not None and configuration['env_file'] != '':
+        extra_docker_args += ' --env-file {}'.format(configuration['env_file'])
+
+    lanuch_command = '/opt/tritonserver/bin/tritonserver'
+    lanuch_command += ' --model-store /models'
+    lanuch_command += ' --strict-model-config false'
+    lanuch_command += ' --http-port ' + configuration['http_port']
+ 
+    run_shell_command(docker_rm_container)
+    run_shell_command("docker run {} {} {} > server.log 2>&1 &".format(extra_docker_args, configuration['serving_image'], lanuch_command))
+
+    retry_time = 0
+    command = "cat server.log | grep HTTPService"
+    ret = run_shell_command(command)
+    while ret != 0 and retry_time < configuration['tritonserver_boot_retry_times']:
+        retry_time += 1
+        time.sleep(1)
+        ret = run_shell_command(command)
+    if ret != 0:
+        return False
+    return True
+
+
+def launch_perf_analyzer(configuration, model_name, output_filename):
+    docker_container_name = 'triton-server-sdk'
+    docker_rm_container = 'docker container rm -f ' + docker_container_name
+
+    retry_time = 0
+    window = 5000 + 10000 * retry_time
+
+    extra_docker_args = ''
+    extra_docker_args += ' --rm'
+    extra_docker_args += ' --runtime=nvidia'
+    extra_docker_args += ' --shm-size=2g'
+    extra_docker_args += ' --network=host'
+    extra_docker_args += ' --name ' + docker_container_name
+
+    docker_image = "nvcr.io/nvidia/tritonserver:21.10-py3-sdk"
+
+    lanuch_command = 'perf_analyzer'
+    lanuch_command += ' -m ' + model_name
+    lanuch_command += ' -p ' + str(window)
+    lanuch_command += ' -u localhost:' + configuration['http_port']
+    lanuch_command += ' --concurrency-range 1:4'
+    lanuch_command += ' --percentile=95'
+
+    command = "docker run {} {} {} > {}".format(extra_docker_args, docker_image, lanuch_command, output_filename)
+
+    ret = run_shell_command(docker_rm_container)
+    ret = run_shell_command(command)
+    while ret != 0 and retry_time < configuration['perf_analyzer_retry_times']:
+        retry_time += 1
+        ret = run_shell_command(command)
+    if ret != 0:
+        return False
+    return True
+
+
+def speed_test_clean(model_config_filename):
+    run_shell_command("docker container rm -f triton-server")
+    run_shell_command("docker container rm -f triton-server-sdk")
+    os.remove('server.log')
+    os.remove(model_config_filename)
+
+
+def generate_detailed_report(configuration, model_name, device, xrt_type):
+    output_filename = format_output_filename(configuration['output_dir'], model_name, device, xrt_type)
+    detail_report_filename = format_report_filename(configuration['output_dir'], device, xrt_type, 'detail')
+    run_shell_command("echo {}_{} >> {}".format(model_name, str(xrt_type), detail_report_filename))
+    run_shell_command("cat {} | tail -n 5 >> {}".format(output_filename, detail_report_filename))
+
+
+def summary_speed_test_output(model_name, output_filename, summary_report_filename):
+    whole_text = ""
+    with open(output_filename, "r") as f:
+        whole_text = f.readlines()
+    if whole_text == "" or len(whole_text) == 0:
+        with open(summary_report_filename, "a+") as f:
+            f.write("| ")
+            f.write(model_name)
+            f.write(" | x |\n")
+    last_line = whole_text[-1]
+    pattern = "Concurrency: 4, throughput: (.*) infer/sec, latency (.*) usec"
+    match_objs = re.match(pattern, last_line)
+    if match_objs is None or len(match_objs.groups()) != 2:
+        with open(summary_report_filename, "a+") as f:
+            f.write("| ")
+            f.write(model_name)
+            f.write(" | x |\n")
+    else:
+        with open(summary_report_filename, "a+") as f:
+            f.write("| ")
+            f.write(model_name)
+            f.write(" | ")
+            f.write(match_objs.groups()[0])
+            f.write(" |\n")
+
+
+def generate_summary_report(configuration, model_name, device, xrt_type):
+    output_filename = format_output_filename(configuration['output_dir'], model_name, device, xrt_type)
+    summary_report_filename = format_report_filename(configuration['output_dir'], device, xrt_type, 'summary')
+    summary_speed_test_output(model_name, output_filename, summary_report_filename)
 
 
 if __name__ == "__main__":
-    os.makedirs(OUTPUT_FILE_DIR, exist_ok=True)
-    speed_test(MODEL_NAMES, os.path.join(WORKING_DIR, "repos"), DEVICE, XRT_TYPE)
-    parse_speed(MODEL_NAMES, DEVICE, XRT_TYPE)
+    arguments = parse_command_line_arguments()
+    configuration = user_configuration(arguments)
+    os.makedirs(configuration['output_dir'], exist_ok=True)
+
+    for model_name in configuration['model_names']:
+        model_repo_dir = format_model_dir(configuration, model_name)
+        model_config_filename = format_model_config_filename(configuration, model_name)
+        device_configuration = format_device_instance_group(configuration['device'])
+        xrt_configuration = format_xrt_configuration(configuration['xrt'])
+        output_filename = format_output_filename(configuration['output_dir'], model_name, configuration['device'], configuration['xrt'])
+
+        prepare_model_configuration(model_name, model_config_filename, device_configuration, xrt_configuration)
+        if not launch_tritonserver(configuration, model_repo_dir):
+            sys.exit('tritonserver launch failed')
+        if not launch_perf_analyzer(configuration, model_name, output_filename):
+            sys.exit('perf_analyzer launch failed')
+        generate_detailed_report(configuration, model_name, configuration['device'], configuration['xrt'])
+        generate_summary_report(configuration, model_name, configuration['device'], configuration['xrt'])
+        speed_test_clean(model_config_filename)
+

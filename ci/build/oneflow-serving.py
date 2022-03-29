@@ -5,6 +5,7 @@ import sys
 import signal
 import subprocess
 from abc import ABCMeta, abstractmethod
+import warnings
 
 
 class Processor(metaclass=ABCMeta):
@@ -106,12 +107,17 @@ class OneFlowServing(object):
         for argument in self._unknown:
             self._unknown_split.extend(argument.split('='))
         self._unknown = self._unknown_split
-        self._launch_command = 'tritonserver ' + ' '.join(self._unknown)
 
         for option, argument in zip(self._unknown, self._unknown[1:] + [' ']):
             if option == '--model-repository' or option == '--model-store':
                 self._model_repos.append(argument)
+        
+        if len(self._model_repos) == 0:
+            self._model_repos.append('/models')
+            self._unknown.append('--model-store')
+            self._unknown.append('/models')
 
+        self._launch_command = 'tritonserver ' + ' '.join(self._unknown)
         self._collect_models()
         self._prepare_processor()
 
@@ -125,8 +131,7 @@ class OneFlowServing(object):
             self._triton_process = subprocess.Popen(self._launch_command.split())
             self._triton_process.wait()
         except KeyboardInterrupt:
-            # do nothing
-            pass
+            self._triton_process.wait()
 
         self.clean()
     
@@ -160,12 +165,10 @@ class OneFlowServing(object):
         if openvino_models is not None:
             for model_name in openvino_models:
                 if model_name not in self._model_to_path:
-                    print('[oneflow-serving] warning:', '--enable-openvino', model_name,
-                          'will be ignored because it is not exist in the repository')
+                    warnings.warn('--enable-openvino ' + model_name + ' will be ignored because it is not exist in the repository')
                     continue
                 if model_name not in empty_config_models:
-                    print('[oneflow-serving] warning:', '--enable-openvino', model_name,
-                          'will be ignored because model configuration exists')
+                    warnings.warn('--enable-openvino ' + model_name + ' will be ignored because model configuration exists')
                     continue
                 self._processors.append(XrtProcessor(model_name, self._model_to_path[model_name], 'openvino'))
 
@@ -174,12 +177,10 @@ class OneFlowServing(object):
         if tensorrt_models is not None:
             for model_name in tensorrt_models:
                 if model_name not in self._model_to_path:
-                    print('[oneflow-serving] warning:', '--enable-tensorrt', model_name,
-                          'will be ignored because it is not exist in the repository')
+                    warnings.warn('--enable-tensorrt ' + model_name + ' will be ignored because it is not exist in the repository')
                     continue
                 if model_name not in empty_config_models:
-                    print('[oneflow-serving] warning:', '--enable-tensorrt', model_name,
-                          'will be ignored because model configuration exists')
+                    warnings.warn('--enable-tensorrt ' + model_name + ' will be ignored because model configuration exists')
                     continue
                 self._processors.append(XrtProcessor(model_name, self._model_to_path[model_name], 'tensorrt'))
 

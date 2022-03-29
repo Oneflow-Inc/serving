@@ -16,4 +16,5 @@ The resnet101 is the name of a model directory under the model repository direct
 The following command line arguments are briefly described as supported.
 
 `--enable-openvino model_name`: specify the model name that wants to enable openvino
+
 `--enable-tensorrt model_name`: specify the model name that wants to enable tensorrt

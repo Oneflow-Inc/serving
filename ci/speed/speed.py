@@ -43,7 +43,7 @@ def parse_command_line_arguments():
     parser.add_argument("--device", default="cpu", help="speed test device, --device cuda:n0,n1,n2|cpu")
     parser.add_argument("--xrt", default=None, help="xrt, --xrt tensorrt|openvino")
     parser.add_argument('--env-file', default='', help='environment file')
-    parser.add_argument('--http-port', default=8000, help='http port')
+    parser.add_argument('--http-port', default='8000', help='http port')
     arguments = parser.parse_args()
     arguments = vars(arguments)
     return arguments

@@ -3,8 +3,8 @@ import re
 import sys
 import time
 import argparse
-import shlex
 import subprocess
+import warnings
 
 
 def format_device_instance_group(device):
@@ -37,6 +37,15 @@ def format_model_dir(configuration, model_name):
 
 def format_model_config_filename(configuration, model_name):
     return os.path.join(format_model_dir(configuration, model_name), model_name, "config.pbtxt")
+
+
+def format_match_string(match_str):
+    if match_str is None or len(match_str) == 0:
+        return 'x | x | x | x | '
+    res = ''
+    for one_str in match_str:
+        res += (one_str[0] + '(' + one_str[1] + ') | ')
+    return res
 
 
 def parse_command_line_arguments():
@@ -153,41 +162,25 @@ def launch_perf_analyzer(configuration, model_name, output_filename):
 def speed_test_clean(model_config_filename):
     run_shell_command("docker container rm -f triton-server")
     run_shell_command("docker container rm -f triton-server-sdk")
-    os.remove('server.log')
-    os.remove(model_config_filename)
-
-
-def generate_detailed_report(configuration, model_name, device, xrt_type):
-    output_filename = format_output_filename(configuration['output_dir'], model_name, device, xrt_type)
-    detail_report_filename = format_report_filename(configuration['output_dir'], device, xrt_type, 'detail')
-    run_shell_command("echo {}_{} >> {}".format(model_name, str(xrt_type), detail_report_filename))
-    run_shell_command("cat {} | tail -n 5 >> {}".format(output_filename, detail_report_filename))
+    if os.path.exists('server.log'):
+        os.remove('server.log')
+    if os.path.exists(model_config_filename):
+        os.remove(model_config_filename)
 
 
 def summary_speed_test_output(model_name, output_filename, summary_report_filename):
-    whole_text = ""
-    with open(output_filename, "r") as f:
+    whole_text = ''
+    with open(output_filename, 'r') as f:
         whole_text = f.readlines()
-    if whole_text == "" or len(whole_text) == 0:
-        with open(summary_report_filename, "a+") as f:
-            f.write("| ")
-            f.write(model_name)
-            f.write(" | x |\n")
-    last_line = whole_text[-1]
-    pattern = "Concurrency: 4, throughput: (.*) infer/sec, latency (.*) usec"
-    match_objs = re.match(pattern, last_line)
-    if match_objs is None or len(match_objs.groups()) != 2:
-        with open(summary_report_filename, "a+") as f:
-            f.write("| ")
-            f.write(model_name)
-            f.write(" | x |\n")
-    else:
-        with open(summary_report_filename, "a+") as f:
-            f.write("| ")
-            f.write(model_name)
-            f.write(" | ")
-            f.write(match_objs.groups()[0])
-            f.write(" |\n")
+        whole_text = ''.join(whole_text)
+    pattern = re.compile(r'Concurrency: .*, throughput: (.*) infer/sec, latency (.*) usec')
+    match_objs = pattern.findall(whole_text)
+    with open(summary_report_filename, 'a+') as f:
+        f.write('| ')
+        f.write(model_name)
+        f.write(' | ')
+        f.write(format_match_string(match_objs))
+        f.write(' \n')
 
 
 def generate_summary_report(configuration, model_name, device, xrt_type):
@@ -208,12 +201,11 @@ if __name__ == "__main__":
         xrt_configuration = format_xrt_configuration(configuration['xrt'])
         output_filename = format_output_filename(configuration['output_dir'], model_name, configuration['device'], configuration['xrt'])
 
-        prepare_model_configuration(model_name, model_config_filename, device_configuration, xrt_configuration)
-        if not launch_tritonserver(configuration, model_repo_dir):
-            sys.exit('tritonserver launch failed')
-        if not launch_perf_analyzer(configuration, model_name, output_filename):
-            sys.exit('perf_analyzer launch failed')
-        generate_detailed_report(configuration, model_name, configuration['device'], configuration['xrt'])
+        # prepare_model_configuration(model_name, model_config_filename, device_configuration, xrt_configuration)
+        # if not launch_tritonserver(configuration, model_repo_dir):
+        #     sys.exit('tritonserver launch failed')
+        # if not launch_perf_analyzer(configuration, model_name, output_filename):
+        #     warnings.warn('perf_analyzer launch failed')
         generate_summary_report(configuration, model_name, configuration['device'], configuration['xrt'])
         speed_test_clean(model_config_filename)
 

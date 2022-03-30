@@ -1,0 +1,62 @@
+name: OneFlow Serving Speed Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      model_name:
+        description: "model names"
+        required: false
+        default: "alexnet mobilenet_v3_large resnet50 resnet101 vgg19 vit_base_patch16_224 mlp_mixer_b16_224"
+        type: string
+      http_port:
+        description: "http port"
+        required: false
+        default: "8000"
+        type: string
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  cancel_previous:
+    name: Cancel previous runs
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Cancel previous runs of outdated commit
+        if: github.ref != 'refs/heads/main'
+        uses: styfle/cancel-workflow-action@0.9.0
+        with:
+          access_token: ${{ github.token }}
+
+  speed_test:
+    name: Speed Test
+    runs-on: [self-hosted]
+    needs: [cancel_previous]
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v2
+      - name: Export Models
+        run: |
+          MODEL_NAMES=${{ github.event.inputs.model_name }}
+          docker pull oneflowinc/oneflow:nightly-cuda11.2
+          docker run --rm -v $(pwd):$(pwd) -w $(pwd) --runtime=nvidia --network=host --detach --name oneflow-mlir-container --shm-size=8g oneflowinc/oneflow:nightly-cuda11.2 sleep 7200
+          docker exec oneflow-mlir-container python3 -m pip install --upgrade --force-reinstall  --find-links=https://oneflow-staging.oss-cn-beijing.aliyuncs.com/canary/refs/heads/master/cu112/index.html oneflow
+          docker exec oneflow-mlir-container python3 -m pip install flowvision -i https://pypi.tuna.tsinghua.edu.cn/simple
+          docker exec --env MODEL_NAMES="$MODEL_NAMES" oneflow-mlir-container python3 ci/speed/models.py "$MODEL_NAMES"
+          docker run --rm -v $PWD/repos:/p -w /p busybox chmod -R o+w .
+      - name: Run Speed Test
+        run: |
+          HTTP_PORT=${{ github.event.inputs.http_port }}
+          python3 ci/speed/speed_test.py --model_names "$MODEL_NAMES" --device cuda:0 --xrt tensorrt --http-port $HTTP_PORT
+          python3 ci/speed/speed_test.py --model_names "$MODEL_NAMES" --device cuda:0 --http-port $HTTP_PORT
+          python3 ci/speed/speed_test.py --model_names "$MODEL_NAMES" --xrt openvino --http-port $HTTP_PORT
+          python3 ci/speed/speed_test.py --model_names "$MODEL_NAMES" --http-port $HTTP_PORT
+          docker stop oneflow-mlir-container
+      - name: Print Report
+        run: |
+          cat speed_test_output/speed_test_cuda\:0_None_summary.txt
+          cat speed_test_output/speed_test_cuda\:0_tensorrt_summary.txt
+          cat speed_test_output/speed_test_cpu_None_summary.txt
+          cat speed_test_output/speed_test_cpu_openvino_summary.txt

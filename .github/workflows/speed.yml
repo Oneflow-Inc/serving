@@ -2,17 +2,17 @@ name: OneFlow Serving Speed Test
 
 on:
   workflow_dispatch:
-  inputs:
-    model_name:
-      description: "model names"
-      required: false
-      default: "alexnet mobilenet_v3_large resnet50 resnet101 vgg19 vit_base_patch16_224 mlp_mixer_b16_224"
-      type: string
-    http_port:
-      description: "http port"
-      required: false
-      default: "8000"
-      type: string
+    inputs:
+      model_name:
+        description: "model names"
+        required: false
+        default: "alexnet mobilenet_v3_large resnet50 resnet101 vgg19 vit_base_patch16_224 mlp_mixer_b16_224"
+        type: string
+      http_port:
+        description: "http port"
+        required: false
+        default: "8000"
+        type: string
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -32,7 +32,7 @@ jobs:
 
   speed_test:
     name: Speed Test
-    runs-on: [self-hosted, linux, provision]
+    runs-on: [self-hosted]
     needs: [cancel_previous]
     if: github.event_name == 'workflow_dispatch'
     steps:

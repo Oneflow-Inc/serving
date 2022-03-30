@@ -6,7 +6,7 @@ on:
       model_name:
         description: "model names"
         required: false
-        default: "alexnet mobilenet_v3_large resnet50 resnet101 vgg19 vit_base_patch16_224 mlp_mixer_b16_224"
+        default: "alexnet efficientnet_b7 mobilenet_v3_large resnet50 resnet101 vgg19 vit_base_patch16_224 mlp_mixer_b16_224"
         type: string
       http_port:
         description: "http port"

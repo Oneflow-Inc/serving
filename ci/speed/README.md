@@ -16,7 +16,7 @@ docker exec oneflow-mlir-container python3 -m pip install --upgrade --force-rein
 docker exec oneflow-mlir-container python3 -m pip install flowvision \
     -i https://pypi.tuna.tsinghua.edu.cn/simple
 docker exec --env MODEL_NAMES="$MODEL_NAMES" oneflow-mlir-container \
-    python3 ci/speed/models.py "$MODEL_NAMES"
+    python3 ci/speed/export_models.py "$MODEL_NAMES"
 ```
 
 2. 启动测试脚本
@@ -25,9 +25,9 @@ docker exec --env MODEL_NAMES="$MODEL_NAMES" oneflow-mlir-container \
 
 ```
 docker run --rm -v $PWD/repos:/p -w /p busybox chmod -R o+w .
-python3 ci/speed/speed.py --model_names "$MODEL_NAMES" --device cuda:0 --xrt tensorrt
-python3 ci/speed/speed.py --model_names "$MODEL_NAMES" --device cuda:0
-python3 ci/speed/speed.py --model_names "$MODEL_NAMES" --xrt openvino
-python3 ci/speed/speed.py --model_names "$MODEL_NAMES"
+python3 ci/speed/speed_test.py --model_names "$MODEL_NAMES" --device cuda:0 --xrt tensorrt
+python3 ci/speed/speed_test.py --model_names "$MODEL_NAMES" --device cuda:0
+python3 ci/speed/speed_test.py --model_names "$MODEL_NAMES" --xrt openvino
+python3 ci/speed/speed_test.py --model_names "$MODEL_NAMES"
 ```
 

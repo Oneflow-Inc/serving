@@ -48,7 +48,7 @@ def format_match_string(match_str):
     return res
 
 
-def speed_test_header(configuration, device, xrt_type):
+def write_speed_test_header(configuration, device, xrt_type):
     header = '| Model | Concurrency(1) | Concurrency(2) | Concurrency(3) | Concurrency(4) |\n'
     sperators = '| ---- | ----  | ---- | ---- | ---- |\n'
     summary_report_filename = format_report_filename(configuration['output_dir'], device, xrt_type, 'summary')
@@ -202,6 +202,7 @@ if __name__ == "__main__":
     arguments = parse_command_line_arguments()
     configuration = user_configuration(arguments)
     os.makedirs(configuration['output_dir'], exist_ok=True)
+    write_speed_test_header(configuration, configuration['device'], configuration['xrt'])
 
     for model_name in configuration['model_names']:
         model_repo_dir = format_model_dir(configuration, model_name)

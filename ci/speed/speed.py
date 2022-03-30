@@ -75,6 +75,7 @@ def prepare_model_configuration(model_name, config_file, device_configuration, x
 
 
 def run_shell_command(command):
+    print(command)
     return os.system(command)
 
 

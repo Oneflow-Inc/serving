@@ -48,6 +48,15 @@ def format_match_string(match_str):
     return res
 
 
+def speed_test_header(configuration, device, xrt_type):
+    header = '| Model | Concurrency(1) | Concurrency(2) | Concurrency(3) | Concurrency(4) |\n'
+    sperators = '| ---- | ----  | ---- | ---- | ---- |\n'
+    summary_report_filename = format_report_filename(configuration['output_dir'], device, xrt_type, 'summary')
+    with open(summary_report_filename, 'w+') as f:
+        f.write(header)
+        f.write(sperators)
+
+
 def parse_command_line_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model_names", required=True, help="models to test")
@@ -201,11 +210,11 @@ if __name__ == "__main__":
         xrt_configuration = format_xrt_configuration(configuration['xrt'])
         output_filename = format_output_filename(configuration['output_dir'], model_name, configuration['device'], configuration['xrt'])
 
-        # prepare_model_configuration(model_name, model_config_filename, device_configuration, xrt_configuration)
-        # if not launch_tritonserver(configuration, model_repo_dir):
-        #     sys.exit('tritonserver launch failed')
-        # if not launch_perf_analyzer(configuration, model_name, output_filename):
-        #     warnings.warn('perf_analyzer launch failed')
+        prepare_model_configuration(model_name, model_config_filename, device_configuration, xrt_configuration)
+        if not launch_tritonserver(configuration, model_repo_dir):
+            sys.exit('tritonserver launch failed')
+        if not launch_perf_analyzer(configuration, model_name, output_filename):
+            warnings.warn('perf_analyzer launch failed')
         generate_summary_report(configuration, model_name, configuration['device'], configuration['xrt'])
         speed_test_clean(model_config_filename)
 

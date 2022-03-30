@@ -60,3 +60,4 @@ jobs:
           cat speed_test_output/speed_test_cuda\:0_tensorrt_summary.txt
           cat speed_test_output/speed_test_cpu_None_summary.txt
           cat speed_test_output/speed_test_cpu_openvino_summary.txt
+

@@ -73,7 +73,7 @@ jobs:
           extra_docker_args+=" --env TRITON_VERSION=${{ env.TRITON_VERSION }}"
           extra_docker_args+=" --env ONEFLOW_CI_SRC_DIR=$PWD/oneflow"
           extra_docker_args+=" --env ONEFLOW_CI_BUILD_DIR=$manylinux_cache_dir/build"
-          extra_docker_args+=" --env ONEFLOW_CI_BUILD_SCRIPT=$PWD/oneflow/ci/manylinux/build-gcc7.sh"
+          extra_docker_args+=" --env ONEFLOW_CI_BUILD_SCRIPT=$PWD/ci/build/build-gcc7.sh"
           extra_docker_args+=" --env WHEELHOUSE_DIR=$manylinux_cache_dir/wheelhouse"
           extra_docker_args+=" --env ONEFLOW_CI_CMAKE_INIT_CACHE=$PWD/cmake/ci/oneflow-cuda.cmake"
           extra_docker_args+=" --env ONEFLOW_CI_PYTHON_EXE=python3"
@@ -94,7 +94,7 @@ jobs:
         run: |
           set -x
           manylinux_cache_dir=${{ env.MANYLINUX_CACHE_DIR }}
-          docker exec -w $PWD/test/test_resnet50 ${{ env.container_name }} bash -c "source $manylinux_cache_dir/build/ci_source.sh && python3 export_model.py"
+          docker exec -w $PWD/test/common ${{ env.container_name }} bash -c "source $manylinux_cache_dir/build/ci_source.sh && python3 export_model.py"
       - name: Remove container
         run: |
           docker container rm -f ${{ env.container_name }}
@@ -134,6 +134,7 @@ jobs:
           echo ${{ env.image_tag }}
           mkdir -p context
           cp ci/build/oneflow_serving_triton_entrypoint.sh context/
+          cp ci/build/oneflow-serving.py context/oneflow-serving
           cp -r ${{ env.MANYLINUX_CACHE_DIR }}/build/liboneflow_cpp/ context/
           cp build/libtriton_oneflow.so context/
           docker build -f docker/Dockerfile context/ --build-arg TRITON_CONTAINER_VERSION=${{ env.triton_version }} -t ${{ env.image_tag }}
@@ -203,3 +204,13 @@ jobs:
           docker pull ${{ env.acr_image_tag }}
           docker tag ${{ env.acr_image_tag }} ${{ env.image_tag }}
           docker push ${{ env.image_tag }}
+      - name: Pull, tag and push
+        run: |
+          docker pull ${{ env.acr_image_tag }}
+          docker tag ${{ env.acr_image_tag }} ${{ env.image_tag }}
+          docker push ${{ env.image_tag }}
+      - name: Push latest
+        if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
+        run: |
+          docker tag ${{ env.acr_image_tag }} oneflowinc/${{ env.SERVING_IMAGE }}:latest
+          docker push oneflowinc/${{ env.SERVING_IMAGE }}:latest

@@ -1,10 +1,12 @@
 build
-build-*
+build-*/
 checkpoints
 model
 log
 .vscode
+.clangd
 .cache
+.clangd
 
 *.so
 *.pt

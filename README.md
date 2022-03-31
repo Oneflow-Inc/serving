@@ -1,5 +1,8 @@
 # OneFlow Serving
 
+[![Docker Image Version](https://img.shields.io/docker/v/oneflowinc/oneflow-serving?sort=semver)](https://hub.docker.com/r/oneflowinc/oneflow-serving)
+[![Docker Pulls](https://img.shields.io/docker/pulls/oneflowinc/oneflow-serving)](https://hub.docker.com/r/oneflowinc/oneflow-serving)
+[![License](https://img.shields.io/github/license/oneflow-inc/serving)](https://github.com/Oneflow-Inc/serving/blob/main/LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Oneflow-Inc/serving/pulls)
 
 Currently, we support [oneflow-backend](./oneflow-backend) for the [Triton Inference Server](https://github.com/triton-inference-server/server) that enables model serving.
@@ -10,82 +13,47 @@ OneFlow Backend For Triton Inference Server
 
 ## Get Started
 
-Download and save model
+Here is a [tutorial](./doc/tutorial.md) about how to export the model and how to deploy it. You can also follow the instructions below to get started.
 
-```
-cd examples/resnet50/
-python3 export_model.py
-```
+1. Download and save model
 
-Launch triton server
+  ```
+  cd examples/resnet50/
+  python3 export_model.py
+  ```
 
-```
-cd ../../  # back to root of the serving
-docker run --rm --runtime=nvidia --network=host -v$(pwd)/oneflow-backend/examples:/models oneflowinc/oneflow-serving:0.0.1
-curl -v localhost:8000/v2/health/ready  # ready check
-```
+2. Launch triton server
 
-Send images and predict
+  ```
+  cd ../../  # back to root of the serving
+  docker run --rm --runtime=nvidia --network=host -v$(pwd)/examples:/models \
+    oneflowinc/oneflow-serving
+  curl -v localhost:8000/v2/health/ready  # ready check
+  ```
 
-```
-pip3 install tritonclient[all]
-cd examples/resnet50/
-curl -o cat.jpg https://images.pexels.com/photos/156934/pexels-photo-156934.jpeg
-python3 client.py --image cat.jpg
-```
+3. Send images and predict
 
-## Model Config Convention
+  ```
+  pip3 install tritonclient[all]
+  cd examples/resnet50/
+  curl -o cat.jpg https://images.pexels.com/photos/156934/pexels-photo-156934.jpeg
+  python3 client.py --image cat.jpg
+  ```
 
-### input output name
+## Documentation
 
-- input name should follow naming convention: `INPUT_<index>`
-- output name should follow naming convention: `OUTPUT_<index>`
-- In `INPUT_<index>`, the `<index>` should be in the range `[0, input_size)`
-- In `OUTPUT_<index>`, the `<index>` should be in the range `[0, output_size)`
-
-### XRT
-
-You can enable XRT by adding following configuration.
-
-```
-parameters {
-  key: "xrt"
-  value: {
-    string_value: "tensorrt"
-  }
-}
-```
-
-### Model Repository Structure
-
-A directory named `model` should be put in the version directory.
-
-Example:
-
-```
-.
-├── 1
-│   └── model
-├── client.py
-├── config.pbtxt
-├── labels.txt
-└── model.py
-```
-
-#### Model Backend Name
-
-Model backend name must be `oneflow`.
-
-```
-name: "identity"
-backend: "oneflow"
-```
+- [Tutorial (Chinese)](./doc/tutorial.md)
+- [Build](./doc/build.md)
+- [Model Configuration](./doc/model_config.md)
+- [OneFlow Cookies: Serving (Chinese)](https://docs.oneflow.org/master/cookies/serving.html)
+- [OneFlow Cookies: Serving (English)](https://docs.oneflow.org/en/master/cookies/serving.html)
+- [Command Line Tool: oneflow-serving](./doc/command_line_tool.md)
 
 ## Known Issues
 
 ### llvm: Option already exists
 
-Oneflow backend conflits with tensorflow1 due to some mysterious reason. It is recommended not to use oneflow and tensorflow1 together.
+Oneflow backend conflicts with tensorflow1 due to some mysterious reason. It is recommended not to use oneflow and tensorflow1 together.
 
 ```
 .../llvm/include/llvm/Support/CommandLine.h:858: void llvm::cl::parser<DataType>::addLiteralOption
@@ -93,3 +61,7 @@ Oneflow backend conflits with tensorflow1 due to some mysterious reason. It is r
 llvm::FunctionPass* (*)()]: Assertion `findOption(Name) == Values.size() && "Option already 
 exists!"' failed.
 ```
+
+### Multiple model instance execution
+
+The current version of oneflow does not support concurrent execution of multiple model instances. You can launch multiple containers (which is easy with Kubernetes) to bypass this limitation.

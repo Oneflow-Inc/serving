@@ -55,9 +55,9 @@ limitations under the License.
 namespace triton { namespace backend { namespace oneflow {
 
 struct InputOutputAttribute {
-  TRITONSERVER_DataType datatype;
-  std::vector<int64_t> input_shape;
-  size_t input_output_index;
+  TRITONSERVER_DataType datatype_;
+  std::vector<int64_t> input_output_shape_;
+  size_t input_output_index_;
 };
 
 //
@@ -86,6 +86,11 @@ class ModelState : public BackendModel {
       std::unique_ptr<oneflow_api::Graph>* graph);
 
  private:
+  TRITONSERVER_Error* AutoCompleteConfig();
+  TRITONSERVER_Error* AutoCompleteInputsAndOutputs(
+      bool is_input, oneflow_api::InputOutputInfos& input_output_infos);
+  TRITONSERVER_Error* AutoCompleteMaxBatchSize();
+
   ModelState(TRITONBACKEND_Model* triton_model);
   TRITONSERVER_Error* ValidateAndParseInputs();
   TRITONSERVER_Error* ValidateAndParseOutputs();

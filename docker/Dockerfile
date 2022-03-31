@@ -35,7 +35,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # example libcurl only needed for GCS?)
 RUN sed -i 's/archive.ubuntu.com/mirrors.ustc.edu.cn/g' /etc/apt/sources.list && \
     apt-get update && \
-    apt-get install -y --no-install-recommends software-properties-common libb64-0d libcurl4-openssl-dev libre2-5 git dirmngr libnuma-dev curl python3 python3-dev build-essential autoconf automake libtool make gcc g++ curl wget tar ccache rsync libopenblas-dev nasm python3-pip libssl-dev libonig-dev zlib1g-dev libboost-all-dev libre2-dev libb64-dev rapidjson-dev ninja-build libjpeg-dev && \
+    apt-get install -y --no-install-recommends software-properties-common libb64-0d libcurl4-openssl-dev libre2-5 git dirmngr libnuma-dev curl python3 python3-dev build-essential autoconf automake libtool make gcc g++ curl wget tar ccache rsync libopenblas-dev nasm python3-pip libssl-dev libonig-dev zlib1g-dev libboost-all-dev libre2-dev libb64-dev rapidjson-dev ninja-build libjpeg-dev cpio && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
     pip3 config set global.index-url https://mirrors.bfsu.edu.cn/pypi/web/simple && \
@@ -62,6 +62,21 @@ RUN wget https://oneflow-static.oss-cn-beijing.aliyuncs.com/tensorrt/nv-tensorrt
     rm -rf /var/lib/apt/lists/* && \
     rm -f nv-tensorrt-repo-ubuntu2004-cuda11.3-trt8.0.3.4-ga-20210831_1-1_amd64.deb
 
+# Install OpenVINO
+RUN wget https://oneflow-static.oss-cn-beijing.aliyuncs.com/openvino/l_openvino_toolkit_p_2021.4.752.tgz && \
+    tar -xvzf l_openvino_toolkit_p_2021.4.752.tgz && \
+    cd l_openvino_toolkit_p_2021.4.752 && \
+    sed -i 's/decline/accept/g' silent.cfg && \
+    ./install.sh -s silent.cfg && \
+    cd .. && \
+    rm -rf l_openvino_toolkit_p_2021.4.752 && \
+    rm -rf l_openvino_toolkit_p_2021.4.752.tgz
+
+ENV LD_LIBRARY_PATH="/opt/intel/openvino_2021/inference_engine/lib/intel64/:${LD_LIBRARY_PATH}"
+ENV LD_LIBRARY_PATH="/opt/intel/openvino_2021/deployment_tools/ngraph/lib/:${LD_LIBRARY_PATH}"
+ENV LD_LIBRARY_PATH="/opt/intel/openvino_2021/deployment_tools/inference_engine/lib/intel64/:${LD_LIBRARY_PATH}"
+ENV LD_LIBRARY_PATH="/opt/intel/openvino_2021/deployment_tools/inference_engine/external/tbb/lib/:${LD_LIBRARY_PATH}"
+
 ENV NVIDIA_BUILD_ID 28453983
 LABEL com.nvidia.build.id=28453983
 LABEL com.nvidia.build.ref=a8c3497c460014286e5293d32fcd8df9c99621c7
@@ -81,5 +96,6 @@ COPY --chown=1000:1000 --from=full /usr/bin/serve /usr/bin/.
 # Copying over oneflow
 COPY ./liboneflow_cpp/lib/ /usr/local/nvidia/lib/
 COPY ./libtriton_oneflow.so /opt/tritonserver/backends/oneflow/
-COPY ./oneflow_serving_triton_entrypoint.sh .
-ENTRYPOINT ["/opt/tritonserver/oneflow_serving_triton_entrypoint.sh"]
+COPY ./oneflow_serving_triton_entrypoint.sh /opt/nvidia
+COPY ./oneflow-serving /opt/tritonserver/bin
+ENTRYPOINT ["/opt/nvidia/oneflow_serving_triton_entrypoint.sh"]

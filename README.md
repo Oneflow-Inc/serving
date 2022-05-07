@@ -5,7 +5,7 @@
 [![License](https://img.shields.io/github/license/oneflow-inc/serving)](https://github.com/Oneflow-Inc/serving/blob/main/LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Oneflow-Inc/serving/pulls)
 
-Currently, we have implemented a oneflow-backend for the [Triton Inference Server](https://github.com/triton-inference-server/server) that enables model serving.
+Currently, we have implemented an oneflow-backend for the [Triton Inference Server](https://github.com/triton-inference-server/server) that enables model serving.
 
 # Triton Inference Server OneFlow Backend
 

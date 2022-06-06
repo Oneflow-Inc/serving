@@ -9,6 +9,9 @@ endif()
 
 option(BUILD_CUDA "" OFF)
 option(USE_TRITON "" ON)
+option(USE_XLA "" OFF)
+option(USE_TENSORRT "" OFF)
+option(USE_OPENVINO "" OFF)
 
 option(TRITON_ENABLE_GPU "Enable GPU support in backend" ON)
 option(TRITON_ENABLE_STATS "Include statistics collections in backend" ON)
@@ -24,6 +27,11 @@ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 include(util)
 
 find_package(oneflow)
+
+if(USE_XLA OR USE_TENSORRT OR USE_OPENVINO)
+  add_definitions(-DUSE_XRT=1)
+  include(oneflow_xrt)
+endif()
 
 if(USE_TRITON)
   if(${CMAKE_CXX_COMPILER_ID} STREQUAL Clang)

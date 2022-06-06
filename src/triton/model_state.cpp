@@ -342,7 +342,6 @@ ModelState::LoadModel(
     (*graph)->set_batch_size(MaxBatchSize());
   }
 #ifdef USE_XRT
-  LOG_MESSAGE(TRITONSERVER_LOG_INFO, "apply xrt pass");
   if (!IsXrtOneFlow(xrt_kind_)) {
     (*graph)->ApplyJobPass([this](const std::string& job) -> std::string {
       return oneflow_xrt::Transform(job, this->xrt_kind_);

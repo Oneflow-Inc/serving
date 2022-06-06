@@ -86,7 +86,12 @@ namespace triton { namespace backend { namespace oneflow {
     }                                                                  \
   } while (false)
 
-enum class XrtKind : int { kOneflow = 0, kTensorrt = 1, kOpenvino = 2, kXla = 3 };
+enum class XrtKind : int {
+  kOneflow = 0,
+  kTensorrt = 1,
+  kOpenvino = 2,
+  kXla = 3
+};
 
 inline XrtKind
 ParseXrtKind(const std::string& xrt_str, bool* is_unknown)

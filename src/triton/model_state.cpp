@@ -344,14 +344,15 @@ ModelState::LoadModel(
 #ifdef USE_XRT
   LOG_MESSAGE(TRITONSERVER_LOG_INFO, "apply xrt pass");
   if (!IsXrtOneFlow(xrt_kind_)) {
-    (*graph)->ApplyJobPass([this](const std::string& job)-> std::string {
+    (*graph)->ApplyJobPass([this](const std::string& job) -> std::string {
       return oneflow_xrt::Transform(job, this->xrt_kind_);
     });
   }
 #else
   LOG_MESSAGE(
-        TRITONSERVER_LOG_INFO,
-        "unable to use XRT since it was not compiled with TENSORRT, OPENVINO or XLA, so use oneflow instead");
+      TRITONSERVER_LOG_INFO,
+      "unable to use XRT since it was not compiled with TENSORRT, OPENVINO or "
+      "XLA, so use oneflow instead");
 #endif
   return nullptr;
 }

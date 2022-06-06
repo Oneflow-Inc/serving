@@ -47,9 +47,14 @@ limitations under the License.
 #include "oneflow_utils.h"
 #include "oneflow_xrt/api/api_serving.h"
 
-namespace triton { namespace backend { namespace oneflow { namespace oneflow_xrt {
+namespace triton {
+  namespace backend {
+    namespace oneflow {
+      namespace oneflow_xrt {
 
-inline std::string Transform(const std::string& job, const XrtKind xrt_kind) {
+inline std::string
+Transform(const std::string& job, const XrtKind xrt_kind)
+{
   std::vector<std::string> engine;
   if (IsXrtTensorrt(xrt_kind)) {
     engine.emplace_back("TENSORRT");

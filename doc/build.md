@@ -68,8 +68,20 @@ If you want to use XLA, TensorRT and OpenVINO in OneFlow-Serving, please build O
 
    ```shell
    mkdir build && cd build
+
+   # Use TensorRT
    cmake -DCMAKE_PREFIX_PATH=/path/to/liboneflow_cpp/share -DTRITON_RELATED_REPO_TAG=r21.10 \
      -DTRITON_ENABLE_GPU=ON -DUSE_TENSORRT=ON -DONEFLOW_XRT_ROOT=$(pwd)/oneflow-xrt/build/install -G Ninja -DTHIRD_PARTY_MIRROR=aliyun ..
+   ninja
+
+   # Use XLA
+   cmake -DCMAKE_PREFIX_PATH=/path/to/liboneflow_cpp/share -DTRITON_RELATED_REPO_TAG=r21.10 \
+     -DTRITON_ENABLE_GPU=ON -DUSE_XLA=ON -DONEFLOW_XRT_ROOT=$(pwd)/oneflow-xrt/build/install -G Ninja -DTHIRD_PARTY_MIRROR=aliyun ..
+   ninja
+
+   # Use OpenVINO
+   cmake -DCMAKE_PREFIX_PATH=/path/to/liboneflow_cpp/share -DTRITON_RELATED_REPO_TAG=r21.10 \
+     -DTRITON_ENABLE_GPU=ON -DUSE_OPENVINO=ON -DONEFLOW_XRT_ROOT=$(pwd)/oneflow-xrt/build/install -G Ninja -DTHIRD_PARTY_MIRROR=aliyun ..
    ninja
    ```
 

@@ -343,7 +343,7 @@ ModelState::LoadModel(
   }
 #ifdef USE_XRT
   if (!IsXrtOneFlow(xrt_kind_)) {
-    (*graph)->ApplyJobPass([this](const std::string& job) -> std::string {
+    (*graph)->RegisterJobPass([this](const std::string& job) -> std::string {
       return oneflow_xrt::Transform(job, this->xrt_kind_);
     });
   }

@@ -47,10 +47,7 @@ limitations under the License.
 #include "oneflow_utils.h"
 #include "oneflow_xrt/api/api_serving.h"
 
-namespace triton {
-  namespace backend {
-    namespace oneflow {
-      namespace oneflow_xrt {
+namespace triton { namespace backend { namespace oneflow { namespace oneflow_xrt {
 
 inline std::string
 Transform(const std::string& job, const XrtKind xrt_kind)

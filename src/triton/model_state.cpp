@@ -338,12 +338,6 @@ ModelState::LoadModel(
   if (MaxBatchSize() > 0) {
     (*graph)->set_batch_size(MaxBatchSize());
   }
-  if (IsXrtTensorrt(xrt_kind_)) {
-    (*graph)->enable_tensorrt();
-  }
-  if (IsXrtOpenvino(xrt_kind_)) {
-    (*graph)->enable_openvino();
-  }
 
   return nullptr;
 }

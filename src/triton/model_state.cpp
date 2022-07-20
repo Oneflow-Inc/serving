@@ -12,6 +12,9 @@
 #include <vector>
 
 #include "oneflow_utils.h"
+#ifdef USE_XRT
+#include "oneflow_xrt_utils.h"
+#endif  // USE_XRT
 #include "triton/backend/backend_common.h"
 #include "triton/common/triton_json.h"
 #include "triton/core/tritonserver.h"
@@ -338,7 +341,18 @@ ModelState::LoadModel(
   if (MaxBatchSize() > 0) {
     (*graph)->set_batch_size(MaxBatchSize());
   }
-
+#ifdef USE_XRT
+  if (!IsXrtOneFlow(xrt_kind_)) {
+    (*graph)->RegisterJobPass([this](const std::string& job) -> std::string {
+      return oneflow_xrt::Transform(job, this->xrt_kind_);
+    });
+  }
+#else
+  LOG_MESSAGE(
+      TRITONSERVER_LOG_INFO,
+      "unable to use XRT since it was not compiled with TENSORRT, OPENVINO or "
+      "XLA, so use oneflow instead");
+#endif
   return nullptr;
 }
 

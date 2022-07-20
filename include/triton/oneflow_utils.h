@@ -86,7 +86,12 @@ namespace triton { namespace backend { namespace oneflow {
     }                                                                  \
   } while (false)
 
-enum class XrtKind : int { kOneflow = 0, kTensorrt = 1, kOpenvino = 2 };
+enum class XrtKind : int {
+  kOneflow = 0,
+  kTensorrt = 1,
+  kOpenvino = 2,
+  kXla = 3
+};
 
 inline XrtKind
 ParseXrtKind(const std::string& xrt_str, bool* is_unknown)
@@ -101,6 +106,9 @@ ParseXrtKind(const std::string& xrt_str, bool* is_unknown)
     *is_unknown = false;
   } else if (xrt_str == "openvino") {
     kind = XrtKind::kOpenvino;
+    *is_unknown = false;
+  } else if (xrt_str == "xla") {
+    kind = XrtKind::kXla;
     *is_unknown = false;
   }
   return kind;
@@ -122,6 +130,12 @@ inline bool
 IsXrtOpenvino(const XrtKind& kind)
 {
   return kind == XrtKind::kOpenvino;
+}
+
+inline bool
+IsXrtXla(const XrtKind& kind)
+{
+  return kind == XrtKind::kXla;
 }
 
 inline TRITONSERVER_DataType

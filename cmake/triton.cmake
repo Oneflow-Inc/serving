@@ -60,6 +60,7 @@ target_include_directories(
   triton-oneflow-backend
   PRIVATE
     ${triton_oneflow_backend_include_dir}
+    ${ONEFLOW_XRT_INCLUDE_DIR}
 )
 
 target_compile_features(triton-oneflow-backend PRIVATE cxx_std_11)
@@ -77,6 +78,9 @@ target_link_libraries(
     triton-core-serverstub  # from repo-core
     triton-backend-utils    # from repo-backend
     OneFlow::liboneflow
+    -Wl,--no-as-needed
+    ${ONEFLOW_XRT_LIBRARIES}
+    -Wl,--as-needed
 )
 
 set_target_properties(

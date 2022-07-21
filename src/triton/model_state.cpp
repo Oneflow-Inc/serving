@@ -72,6 +72,15 @@ ModelState::ValidateAndParseModelConfig()
       RETURN_IF_ERROR(xrt.MemberAsString("string_value", &xrt_str));
       this->xrt_kind_ = ParseXrtKind(xrt_str, &is_unknown);
     }
+
+    common::TritonJson::Value one_embedding_persistent_table_path;
+    if (params.Find(
+            "one_embedding_persistent_table_path",
+            &one_embedding_persistent_table_path)) {
+      enable_one_embedding_ = true;
+      RETURN_IF_ERROR(one_embedding_persistent_table_path.MemberAsString(
+          "string_value", &persistent_table_path_));
+    }
   }
   if (is_unknown) {
     LOG_MESSAGE(
@@ -335,9 +344,15 @@ ModelState::LoadModel(
         std::string("unable to find '") + model_path +
             "' for model instance '" + Name() + "'");
   }
+  if (enable_one_embedding_) {
+    graph->reset(new oneflow_api::Graph(oneflow_api::Graph::LoadOneEmbedding(
+        model_path, device, persistent_table_path_)));
 
-  graph->reset(
-      new oneflow_api::Graph(oneflow_api::Graph::Load(model_path, device)));
+  } else {
+    graph->reset(
+        new oneflow_api::Graph(oneflow_api::Graph::Load(model_path, device)));
+  }
+
   if (MaxBatchSize() > 0) {
     (*graph)->set_batch_size(MaxBatchSize());
   }

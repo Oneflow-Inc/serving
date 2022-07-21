@@ -96,6 +96,8 @@ class ModelState : public BackendModel {
   TRITONSERVER_Error* ValidateAndParseOutputs();
 
   XrtKind xrt_kind_ = XrtKind::kOneflow;
+  bool enable_one_embedding_ = false;
+  std::string persistent_table_path_ = "";
 
   std::vector<std::string> input_names_;
   std::vector<std::string> output_names_;

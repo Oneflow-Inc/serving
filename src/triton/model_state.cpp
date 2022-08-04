@@ -338,6 +338,7 @@ ModelState::LoadModel(
 
   graph->reset(
       new oneflow_api::Graph(oneflow_api::Graph::Load(model_path, device)));
+
   if (MaxBatchSize() > 0) {
     (*graph)->set_batch_size(MaxBatchSize());
   }

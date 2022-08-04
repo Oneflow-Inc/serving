@@ -335,7 +335,7 @@ ModelState::LoadModel(
         std::string("unable to find '") + model_path +
             "' for model instance '" + Name() + "'");
   }
-  
+
   graph->reset(
       new oneflow_api::Graph(oneflow_api::Graph::Load(model_path, device)));
 

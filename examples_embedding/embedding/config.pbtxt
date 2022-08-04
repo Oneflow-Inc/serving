@@ -25,10 +25,3 @@ instance_group [
     gpus: [ 0 ]
   }
 ]
-
-parameters {
-    key: "one_embedding_persistent_table_path"
-    value: {
-      string_value: "/mnt/DATA/lph/s_embedding/examples_embedding/embedding/dlrm/init_model/0-1",
-    }
-}

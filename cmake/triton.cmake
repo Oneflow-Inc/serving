@@ -10,12 +10,12 @@ if(DEFINED THIRD_PARTY_MIRROR)
   use_mirror(VARIABLE REPO_BACKEND_URL URL ${REPO_BACKEND_URL})
 endif()
 
-if(${TRITON_RELATED_REPO_TAG} STREQUAL "r21.10")
-    set(REPO_COMMON_MD5 72bf32b638fe6a9e9877630cb099fc1a)
-    set(REPO_CORE_MD5 59d97b3e5d40ea58c9f685b6ecb0771a)
-    set(REPO_BACKEND_MD5 2ae374cf913fc5b348b6552858fb7e7b)
+if(${TRITON_RELATED_REPO_TAG} STREQUAL "r23.10")
+    set(REPO_COMMON_MD5 8183efa82f41c4964c26e9b839ef2760)
+    set(REPO_CORE_MD5 ba92d1b9aa5154edb26fc9664224f9ae)
+    set(REPO_BACKEND_MD5 c7a6a21353e8f00e61bd97afd8708c0a)
 else()
-  message(FATAL_ERROR "Only support triton with tag r21.10.")
+  message(FATAL_ERROR "Only support triton with tag r23.10.")
 endif()
 
 

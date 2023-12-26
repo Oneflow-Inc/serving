@@ -1,0 +1,50 @@
+FROM serving:build_of as build_of
+FROM serving:build_serving as build_serving
+FROM nvcr.io/nvidia/tritonserver:23.10-py3 as full
+FROM serving:base
+
+ENV PATH /miniconda3/envs/py310/bin:$PATH
+ENV PATH /opt/tritonserver/bin:${PATH}
+
+# Create a user that can be used to run triton as
+# non-root. Make sure that this user to given ID 1000. All server
+# artifacts copied below are assign to this user.
+ENV TRITON_SERVER_USER=triton-server
+RUN userdel tensorrt-server > /dev/null 2>&1 || true &&     if ! id -u $TRITON_SERVER_USER > /dev/null 2>&1 ; then         useradd $TRITON_SERVER_USER;     fi &&     [ `id -u $TRITON_SERVER_USER` -eq 1000 ] &&     [ `id -g $TRITON_SERVER_USER` -eq 1000 ]
+
+# Ensure apt-get won't prompt for selecting options
+ENV DEBIAN_FRONTEND=noninteractive
+
+WORKDIR /opt/tritonserver
+RUN rm -rf /opt/tritonserver/*
+COPY --chown=1000:1000 --from=full /opt/tritonserver/LICENSE .
+COPY --chown=1000:1000 --from=full /opt/tritonserver/TRITON_VERSION .
+COPY --chown=1000:1000 --from=full /opt/tritonserver/NVIDIA_Deep_Learning_Container_License.pdf .
+COPY --chown=1000:1000 --from=full /opt/tritonserver/bin bin/
+COPY --chown=1000:1000 --from=full /opt/tritonserver/lib lib/
+COPY --chown=1000:1000 --from=full /opt/tritonserver/include include/
+
+COPY --chown=1000:1000 --from=build_serving /opt/liboneflow_cpp/lib/ /usr/local/nvidia/lib/
+COPY --chown=1000:1000 --from=build_serving /opt/serving/build/libtriton_oneflow.so /opt/tritonserver/backends/oneflow/
+COPY --chown=1000:1000 --from=build_serving /opt/serving/ci/build/oneflow_serving_triton_entrypoint.sh /opt/nvidia
+COPY --chown=1000:1000 --from=build_serving /opt/serving/ci/build/oneflow-serving.py /opt/tritonserver/bin
+
+COPY --chown=1000:1000 --from=build_of /opt/oneflow /opt/oneflow
+
+RUN distribution=$(. /etc/os-release;echo $ID$VERSION_ID | sed -e 's/\.//g') && \
+    wget https://developer.download.nvidia.com/compute/cuda/repos/$distribution/x86_64/cuda-keyring_1.0-1_all.deb && \
+    dpkg -i cuda-keyring_1.0-1_all.deb && \
+    apt-get update && \
+    apt-get install -y datacenter-gpu-manager=1:2.4.7 && \
+    rm cuda-keyring_1.0-1_all.deb
+
+RUN apt-get install -y --no-install-recommends libunwind-dev && \
+    mv /opt/tritonserver/bin/oneflow-serving.py /opt/tritonserver/bin/oneflow-serving && \
+    rm /opt/oneflow/python/oneflow/core && \
+    cp -r /opt/oneflow/build/of_proto_python/oneflow/core /opt/oneflow/python/oneflow/ && \
+    rm -rf /opt/oneflow/build && \
+    /miniconda3/envs/py310/bin/python -m pip --no-cache-dir install -r /opt/oneflow/dev-requirements.txt && \
+    /miniconda3/envs/py310/bin/python -m pip --no-cache-dir install typing_extensions && \
+    echo "export PYTHONPATH=/opt/oneflow/python:$PYTHONPATH" >> ~/.bashrc
+
+ENTRYPOINT ["/opt/nvidia/oneflow_serving_triton_entrypoint.sh"]

@@ -1,0 +1,19 @@
+FROM serving:build_of as build_of
+FROM serving:base
+
+ENV PATH /miniconda3/envs/py310/bin:$PATH
+
+COPY --chown=1000:1000 --from=build_of /opt/oneflow/build/liboneflow_cpp /opt/liboneflow_cpp
+
+RUN cd /opt && \
+    git clone https://github.com/Oneflow-Inc/serving.git && \
+    cd /opt/serving && \
+    git checkout multi_backends && \
+    mkdir build && \
+    cd /opt/serving/build && \
+    cmake -DCMAKE_PREFIX_PATH=/opt/liboneflow_cpp/share \
+        -DTRITON_RELATED_REPO_TAG="r23.10" \
+        -DTRITON_ENABLE_GPU=ON \
+        -DTHIRD_PARTY_MIRROR=aliyun \
+        -G Ninja .. && \
+        ninja -j32

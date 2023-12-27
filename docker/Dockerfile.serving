@@ -12,8 +12,8 @@ RUN cd /opt && \
     mkdir build && \
     cd /opt/serving/build && \
     cmake -DCMAKE_PREFIX_PATH=/opt/liboneflow_cpp/share \
-        -DTRITON_RELATED_REPO_TAG="r23.10" \
-        -DTRITON_ENABLE_GPU=ON \
-        -DTHIRD_PARTY_MIRROR=aliyun \
-        -G Ninja .. && \
-        ninja -j32
+    -DTRITON_RELATED_REPO_TAG="r23.10" \
+    -DTRITON_ENABLE_GPU=ON \
+    -DTHIRD_PARTY_MIRROR=aliyun \
+    -G Ninja .. && \
+    ninja -j32

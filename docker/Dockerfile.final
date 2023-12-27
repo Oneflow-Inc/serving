@@ -39,7 +39,7 @@ RUN distribution=$(. /etc/os-release;echo $ID$VERSION_ID | sed -e 's/\.//g') && 
     apt-get install -y datacenter-gpu-manager=1:2.4.7 && \
     rm cuda-keyring_1.0-1_all.deb
 
-RUN apt-get install -y --no-install-recommends libunwind-dev && \
+RUN apt-get install -y --no-install-recommends libunwind-dev libarchive-dev && \
     mv /opt/tritonserver/bin/oneflow-serving.py /opt/tritonserver/bin/oneflow-serving && \
     rm /opt/oneflow/python/oneflow/core && \
     cp -r /opt/oneflow/build/of_proto_python/oneflow/core /opt/oneflow/python/oneflow/ && \

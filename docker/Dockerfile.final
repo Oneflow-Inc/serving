@@ -23,6 +23,7 @@ COPY --chown=1000:1000 --from=full /opt/tritonserver/NVIDIA_Deep_Learning_Contai
 COPY --chown=1000:1000 --from=full /opt/tritonserver/bin bin/
 COPY --chown=1000:1000 --from=full /opt/tritonserver/lib lib/
 COPY --chown=1000:1000 --from=full /opt/tritonserver/include include/
+COPY --chown=1000:1000 --from=full /opt/tritonserver/backends/python backends/python/
 
 COPY --chown=1000:1000 --from=build_serving /opt/liboneflow_cpp/lib/ /usr/local/nvidia/lib/
 COPY --chown=1000:1000 --from=build_serving /opt/serving/build/libtriton_oneflow.so /opt/tritonserver/backends/oneflow/

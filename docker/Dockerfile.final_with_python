@@ -1,0 +1,3 @@
+FROM serving:final
+
+COPY ./src/triton_python/model.py /opt/tritonserver/backends/oneflow_python/ 

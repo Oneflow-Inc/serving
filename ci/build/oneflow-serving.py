@@ -102,7 +102,7 @@ class OneFlowServing(object):
     def prepare(self):
         self._parse()
         
-        self._unknown.extend(['--strict-model-config', 'false'])
+        self._unknown.extend(['--disable-auto-complete-config', 'false'])
         self._unknown_split = []
         for argument in self._unknown:
             self._unknown_split.extend(argument.split('='))

@@ -1,0 +1,27 @@
+name: "resnet50_python"
+backend: "oneflow_python"
+max_batch_size: 1
+input [
+  {
+    name: "INPUT_0"
+    data_type: TYPE_FP32
+    dims: [ 3, 224, 224 ]
+  }
+]
+output [
+  {
+    name: "OUTPUT_0"
+    data_type: TYPE_FP32
+    dims: [ 1000 ]
+    label_filename: "labels.txt"
+  }
+]
+
+instance_group [
+  {
+    count: 1
+    kind: KIND_GPU
+    gpus: [ 1 ]
+  }
+]
+

@@ -13,6 +13,9 @@ option(USE_XLA "" OFF)
 option(USE_TENSORRT "" OFF)
 option(USE_OPENVINO "" OFF)
 
+option(BUILD_ONEFLOW_BACKEND "" OFF)
+option(BUILD_ONEFLOW_LITE_BACKEND "" ON)
+
 option(TRITON_ENABLE_GPU "Enable GPU support in backend" ON)
 option(TRITON_ENABLE_STATS "Include statistics collections in backend" ON)
 
@@ -26,13 +29,18 @@ endif()
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 include(util)
 
-find_package(oneflow)
-
-if(USE_XLA OR USE_TENSORRT OR USE_OPENVINO)
-  add_definitions(-DUSE_XRT=1)
-  include(oneflow_xrt)
+if (BUILD_ONEFLOW_BACKEND)
+  find_package(oneflow)
+  
+  if(USE_XLA OR USE_TENSORRT OR USE_OPENVINO)
+    add_definitions(-DUSE_XRT=1)
+    include(oneflow_xrt)
+  endif()
 endif()
-
+if(BUILD_ONEFLOW_LITE_BACKEND)
+  include(oneflow_lite)
+endif()
+  
 if(USE_TRITON)
   if(${CMAKE_CXX_COMPILER_ID} STREQUAL Clang)
     message(FATAL_ERROR "Clang is not supported when USE_TRITON=ON.")

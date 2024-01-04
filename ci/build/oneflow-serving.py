@@ -102,7 +102,7 @@ class OneFlowServing(object):
     def prepare(self):
         self._parse()
         
-        self._unknown.extend(['--disable-auto-complete-config', 'false'])
+        self._unknown.extend(['--disable-auto-complete-config'])
         self._unknown_split = []
         for argument in self._unknown:
             self._unknown_split.extend(argument.split('='))
@@ -116,7 +116,6 @@ class OneFlowServing(object):
             self._model_repos.append('/models')
             self._unknown.append('--model-store')
             self._unknown.append('/models')
-
         self._launch_command = 'tritonserver ' + ' '.join(self._unknown)
         self._collect_models()
         self._prepare_processor()

@@ -83,7 +83,7 @@ class TritonPythonModel:
             # infer
             # get oneflow input
             numpy_in_ls = [x.as_numpy() for x in triton_in_ls]
-            oneflow_in_ls = [flow.tensor(x, device=flow.device("cuda:1")) for x in numpy_in_ls]
+            oneflow_in_ls = [flow.tensor(x, device=flow.device("cuda:0")) for x in numpy_in_ls]
             
             oneflow_out_ls = self.model(*oneflow_in_ls)
             if self.out_num == 1:

@@ -1,4 +1,4 @@
-name: "resnet50_python"
+name: "resnet50"
 backend: "oneflow_python"
 max_batch_size: 1
 input [
@@ -21,7 +21,7 @@ instance_group [
   {
     count: 1
     kind: KIND_GPU
-    gpus: [ 1 ]
+    gpus: [ 0 ]
   }
 ]
 

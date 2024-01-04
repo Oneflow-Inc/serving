@@ -29,6 +29,7 @@ COPY --chown=1000:1000 --from=build_serving /opt/liboneflow_cpp/lib/ /usr/local/
 COPY --chown=1000:1000 --from=build_serving /opt/serving/build/libtriton_oneflow.so /opt/tritonserver/backends/oneflow/
 COPY --chown=1000:1000 --from=build_serving /opt/serving/ci/build/oneflow_serving_triton_entrypoint.sh /opt/nvidia
 COPY --chown=1000:1000 --from=build_serving /opt/serving/ci/build/oneflow-serving.py /opt/tritonserver/bin
+COPY --chown=1000:1000 --from=build_serving /opt/serving/src/triton_python/model.py /opt/tritonserver/backends/oneflow_python/
 
 COPY --chown=1000:1000 --from=build_of /opt/oneflow /opt/oneflow
 

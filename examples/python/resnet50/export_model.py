@@ -13,8 +13,8 @@ class MyGraph(nn.Graph):
 
 
 if __name__ == "__main__":
-    image = flow.ones((1, 3, 224, 224), device=flow.device("cuda:1"))
-    model = resnet50(pretrained=True, progress=True).to(flow.device("cuda:1"))
+    image = flow.ones((1, 3, 224, 224), device=flow.device("cuda:0"))
+    model = resnet50(pretrained=True, progress=True).to(flow.device("cuda:0"))
     model.eval()
     graph = MyGraph(model)
     out = graph(image)

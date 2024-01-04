@@ -8,7 +8,7 @@ COPY --chown=1000:1000 --from=build_of /opt/oneflow/build/liboneflow_cpp /opt/li
 RUN cd /opt && \
     git clone https://github.com/Oneflow-Inc/serving.git && \
     cd /opt/serving && \
-    git checkout with_python_backend && \
+    git checkout multi_backends && \
     mkdir build && \
     cd /opt/serving/build && \
     cmake -DCMAKE_PREFIX_PATH=/opt/liboneflow_cpp/share \

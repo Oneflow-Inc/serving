@@ -43,8 +43,8 @@ echo
 
 # This script can either be a wrapper around arbitrary command lines,
 # or it will simply exec bash if no arguments were given
+export PYTHONPATH=/opt/oneflow/python:$PYTHONPATH
 if [[ $# -eq 0 ]]; then
-  export PYTHONPATH=/opt/oneflow/python:$PYTHONPATH
   exec oneflow-serving --model-store /models
 else
   exec "$@"

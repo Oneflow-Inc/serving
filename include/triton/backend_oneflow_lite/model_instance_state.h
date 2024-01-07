@@ -47,10 +47,8 @@ limitations under the License.
 #include <string>
 
 #include "model_state.h"
-
 #include "oneflow-lite/core/executable.h"
 #include "oneflow-lite/core/execution_context.h"
-
 #include "triton/backend/backend_input_collector.h"
 #include "triton/backend/backend_memory.h"
 #include "triton/backend/backend_model_instance.h"
@@ -89,7 +87,8 @@ class ModelInstanceState : public BackendModelInstance {
   void SetInputTensors(
       size_t total_batch_size, TRITONBACKEND_Request** requests,
       const uint32_t request_count,
-      std::vector<TRITONBACKEND_Response*>* responses);
+      std::vector<TRITONBACKEND_Response*>* responses,
+      BackendInputCollector* collector);
   void ReadOutputTensors(
       size_t total_batch_size, const std::vector<std::string>& output_names,
       TRITONBACKEND_Request** requests, const uint32_t request_count,

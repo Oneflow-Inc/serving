@@ -76,9 +76,12 @@ ModelInstanceState::Create(
 ModelInstanceState::ModelInstanceState(
     ModelState* model_state, TRITONBACKEND_ModelInstance* triton_model_instance)
     : BackendModelInstance(model_state, triton_model_instance),
-      model_state_(model_state) {}
+      model_state_(model_state)
+{
+}
 
-ModelInstanceState::~ModelInstanceState() {
+ModelInstanceState::~ModelInstanceState()
+{
   OfLiteExecutionContextDestory(context_);
   OfLiteExecutableDestory(executable_);
 }
@@ -124,7 +127,11 @@ ModelInstanceState::ProcessRequests(
   }
 
   // collect input
-  SetInputTensors(total_batch_size, requests, request_count, &responses);
+  BackendInputCollector collector(
+      requests, request_count, &responses, model_state_->TritonMemoryManager(),
+      model_state_->EnablePinnedInput(), nullptr);
+  SetInputTensors(
+      total_batch_size, requests, request_count, &responses, &collector);
 
   // execute
   uint64_t compute_start_ns = 0;
@@ -135,8 +142,8 @@ ModelInstanceState::ProcessRequests(
   uint64_t compute_end_ns = 0;
   SET_TIMESTAMP(compute_end_ns);
   ReadOutputTensors(
-      total_batch_size, model_state_->OutputNames(), requests,
-      request_count, &responses);
+      total_batch_size, model_state_->OutputNames(), requests, request_count,
+      &responses);
 
   // report
   uint64_t exec_end_ns = 0;
@@ -178,7 +185,8 @@ void
 ModelInstanceState::SetInputTensors(
     size_t total_batch_size, TRITONBACKEND_Request** requests,
     const uint32_t request_count,
-    std::vector<TRITONBACKEND_Response*>* responses)
+    std::vector<TRITONBACKEND_Response*>* responses,
+    BackendInputCollector* collector)
 {
   uint32_t input_count;
   RESPOND_ALL_AND_RETURN_IF_ERROR(
@@ -208,26 +216,37 @@ ModelInstanceState::SetInputTensors(
     if (max_batch_size != 0) {
       tensor_shape[0] = max_batch_size;
     }
-    // const int64_t tensor_byte_size = GetByteSize(input_datatype, tensor_shape);
-
-    // collector->ProcessTensor(
-    //     input_name, input_buffer, tensor_byte_size, memory_type,
-    //     memory_type_id);
-
-    // oneflow_api::DType of_type = ConvertTritonTypeToOneFlowType(input_datatype);
-    // oneflow_api::Shape shape(tensor_shape);
-    // oneflow_api::Tensor input_tensor = oneflow_api::Tensor::from_buffer(
-    //     reinterpret_cast<float*>(input_buffer), shape, device_, of_type);
-
     auto input_attribute = model_state_->InputAttributes().find(input_name);
     if (input_attribute == model_state_->InputAttributes().end()) {
       continue;
     }
-    // size_t input_tensor_index = input_attribute->second.input_output_index_;
-    // (*input_tensors)[input_tensor_index] = input_tensor;
+    size_t input_tensor_index = input_attribute->second.input_output_index_;
+    OfLiteTensor* input_tensor = nullptr;
+    OfLiteExecutionContextInput(context_, input_tensor_index, &input_tensor);
+    if (!OfLiteTensorIsHost(input_tensor)) {
+      LOG_MESSAGE(
+          TRITONSERVER_LOG_ERROR, "input tensor should be allocated by host");
+    }
+    const OfLiteTensorDesc* input_desc = NULL;
+    OfLiteTensorTensorDesc(input_tensor, &input_desc);
+    const int64_t tensor_byte_size = OfLiteDataTypeByteSize(input_desc->dtype) *
+                                     OfLiteDimsCount(input_desc->dims);
+    if (tensor_byte_size < GetByteSize(input_datatype, tensor_shape)) {
+      LOG_MESSAGE(
+          TRITONSERVER_LOG_ERROR, "insufficient memory space for input tensor");
+    }
+
+    TRITONSERVER_MemoryType memory_type = TRITONSERVER_MEMORY_CPU;
+    int64_t memory_type_id = 0;
+    char* input_buffer =
+        reinterpret_cast<char*>(OfLiteTensorData(input_tensor));
+
+    collector->ProcessTensor(
+        input_name, input_buffer, tensor_byte_size, memory_type,
+        memory_type_id);
   }
 
-  // collector->Finalize();
+  collector->Finalize();
 }
 
 void
@@ -247,7 +266,31 @@ ModelInstanceState::ReadOutputTensors(
     if (output_attribute == model_state_->OutputAttributes().end()) {
       continue;
     }
-    // size_t output_tensor_index = output_attribute->second.input_output_index_;
+    size_t output_tensor_index = output_attribute->second.input_output_index_;
+    OfLiteTensor* output_tensor = NULL;
+    OfLiteExecutionContextOutput(context_, output_tensor_index, &output_tensor);
+    if (!OfLiteTensorIsHost(output_tensor)) {
+      LOG_MESSAGE(
+          TRITONSERVER_LOG_ERROR, "output tensor should be allocated by host");
+    }
+    const OfLiteTensorDesc* output_desc = NULL;
+    OfLiteTensorTensorDesc(output_tensor, &output_desc);
+    const int64_t output_buffer_size =
+        OfLiteDataTypeByteSize(output_desc->dtype) *
+        OfLiteDimsCount(output_desc->dims);
+    std::vector<char> output_buffer(output_buffer_size);
+    memcpy(
+        output_buffer.data(), OfLiteTensorData(output_tensor),
+        output_buffer_size);
+
+    TRITONSERVER_DataType output_dtype = output_attribute->second.datatype_;
+    std::vector<int64_t> tensor_shape(output_desc->dims.ndim);
+    for (size_t i = 0; i < tensor_shape.size(); ++i) {
+      tensor_shape[i] = output_desc->dims.sizes[i];
+    }
+    responder.ProcessTensor(
+        name, output_dtype, tensor_shape, output_buffer.data(),
+        TRITONSERVER_MEMORY_CPU, 0);
   }
 
   responder.Finalize();

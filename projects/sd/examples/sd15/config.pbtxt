@@ -1,0 +1,26 @@
+backend: "oneflow_sd"
+name: "sd15"
+
+input [
+  {
+    name: "INPUT_0"
+    data_type: TYPE_STRING
+    dims: [ 1 ]
+  }
+]
+
+output [
+  {
+    name: "OUTPUT_0"
+    data_type: TYPE_UINT8
+    dims: [ -1 ]
+  }
+]
+
+instance_group [
+  {
+    count: 1
+    kind: KIND_GPU
+    gpus: [ 0 ]
+  }
+]

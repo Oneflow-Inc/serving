@@ -1,0 +1,86 @@
+FROM serving:build_of as build_of
+FROM nvcr.io/nvidia/tritonserver:23.10-py3 as full
+FROM serving:base
+
+ENV PATH /miniconda3/envs/py310/bin:$PATH
+ENV PATH /opt/tritonserver/bin:${PATH}
+
+# Create a user that can be used to run triton as
+# non-root. Make sure that this user to given ID 1000. All server
+# artifacts copied below are assign to this user.
+ENV TRITON_SERVER_USER=triton-server
+RUN userdel tensorrt-server > /dev/null 2>&1 || true &&     if ! id -u $TRITON_SERVER_USER > /dev/null 2>&1 ; then         useradd $TRITON_SERVER_USER;     fi &&     [ `id -u $TRITON_SERVER_USER` -eq 1000 ] &&     [ `id -g $TRITON_SERVER_USER` -eq 1000 ]
+
+# Ensure apt-get won't prompt for selecting options
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN distribution=$(. /etc/os-release;echo $ID$VERSION_ID | sed -e 's/\.//g') && \
+    wget https://developer.download.nvidia.com/compute/cuda/repos/$distribution/x86_64/cuda-keyring_1.0-1_all.deb && \
+    dpkg -i cuda-keyring_1.0-1_all.deb && \
+    apt-get update && \
+    apt-get install -y datacenter-gpu-manager=1:2.4.7 && \
+    rm cuda-keyring_1.0-1_all.deb
+
+WORKDIR /opt/tritonserver
+RUN rm -rf /opt/tritonserver/*
+COPY --chown=1000:1000 --from=full /opt/tritonserver/LICENSE .
+COPY --chown=1000:1000 --from=full /opt/tritonserver/TRITON_VERSION .
+COPY --chown=1000:1000 --from=full /opt/tritonserver/NVIDIA_Deep_Learning_Container_License.pdf .
+COPY --chown=1000:1000 --from=full /opt/tritonserver/bin bin/
+COPY --chown=1000:1000 --from=full /opt/tritonserver/lib lib/
+COPY --chown=1000:1000 --from=full /opt/tritonserver/include include/
+COPY --chown=1000:1000 --from=full /opt/tritonserver/backends/python backends/python/
+
+RUN cd /opt && \
+    git clone https://github.com/Oneflow-Inc/serving.git && \
+    cd /opt/serving && \
+    git checkout multi_backends && \
+    cp /opt/serving/ci/build/oneflow_serving_triton_entrypoint.sh /opt/nvidia/ && \
+    cp /opt/serving/ci/build/oneflow-serving.py /opt/tritonserver/bin/oneflow-serving && \
+    mkdir -p /opt/tritonserver/backends/oneflow_python && \
+    cp /opt/serving/src/triton_python/model.py /opt/tritonserver/backends/oneflow_python/
+
+
+COPY --chown=1000:1000 --from=build_of /opt/oneflow /opt/oneflow
+COPY --chown=1000:1000 --from=build_of /opt/oneflow/build/liboneflow_cpp /opt/liboneflow_cpp
+
+RUN apt-get install -y --no-install-recommends libunwind-dev libarchive-dev && \
+    rm /opt/oneflow/python/oneflow/core && \
+    cp -r /opt/oneflow/build/of_proto_python/oneflow/core /opt/oneflow/python/oneflow/ && \
+    rm -rf /opt/oneflow/build && \
+    /miniconda3/envs/py310/bin/python -m pip --no-cache-dir install -r /opt/oneflow/dev-requirements.txt && \
+    /miniconda3/envs/py310/bin/python -m pip --no-cache-dir install typing_extensions && \
+    echo "export PYTHONPATH=/opt/oneflow/python:$PYTHONPATH" >> ~/.bashrc
+
+RUN cd /opt && \
+    git clone https://github.com/Oneflow-Inc/oneflow-lite.git && \
+    cd /opt/oneflow-lite/runtime && \
+    mkdir build && \
+    cd /opt/oneflow-lite/runtime/build && \
+    cmake -DBUILD_X86=ON \
+    -DBUILD_CUDA=ON .. && \
+    make -j32 && \
+    make install
+
+RUN mkdir -p /opt/serving/build && \
+    cd /opt/serving/build && \
+    cmake -DCMAKE_PREFIX_PATH=/opt/liboneflow_cpp/share \
+    -DTRITON_RELATED_REPO_TAG="r23.10" \
+    -DTRITON_ENABLE_GPU=ON \
+    -DTHIRD_PARTY_MIRROR=aliyun \
+    -DBUILD_ONEFLOW_LITE_BACKEND=ON \
+    -DBUILD_ONEFLOW_BACKEND=ON \
+    -G Ninja .. && \
+    ninja -j32 && \
+    mkdir -p /opt/tritonserver/backends/oneflow && \
+    mkdir -p /opt/tritonserver/backends/oneflow_lite && \
+    mv /opt/serving/build/libtriton_oneflow.so /opt/tritonserver/backends/oneflow/ && \
+    mv /opt/serving/build/libtriton_oneflow_lite.so /opt/tritonserver/backends/oneflow_lite/ && \
+    mkdir -p /usr/local/nvidia/lib && \
+    mv /opt/liboneflow_cpp/lib/* /usr/local/nvidia/lib/ && \
+    cd /opt && \
+    rm -rf /opt/liboneflow_cpp && \
+    rm -rf /opt/oneflow_lite && \
+    rm -rf /opt/serving
+
+ENTRYPOINT ["/opt/nvidia/oneflow_serving_triton_entrypoint.sh"]

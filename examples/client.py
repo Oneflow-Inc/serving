@@ -31,7 +31,7 @@ if __name__ == '__main__':
     triton_client = httpclient.InferenceServerClient(url='127.0.0.1:8000')
 
     image = Image.open(FLAGS.image)
-    image = image.resize((224, 224), Image.ANTIALIAS)
+    image = image.resize((224, 224), Image.LANCZOS)
     image = np.asarray(image)
     image = image / 255
     image = np.expand_dims(image, axis=0)
@@ -44,7 +44,7 @@ if __name__ == '__main__':
     outputs = []
     outputs.append(httpclient.InferRequestedOutput('OUTPUT_0', binary_data=True, class_count=3))
     now = time.time()
-    results = triton_client.infer("resnet50_oneflow", inputs=inputs, outputs=outputs)
-    print(time.time() - now)
+    results = triton_client.infer("resnet50", inputs=inputs, outputs=outputs)
+    print(f"time cost: {time.time() - now}s")
     output_data0 = results.as_numpy('OUTPUT_0')
     print(output_data0)

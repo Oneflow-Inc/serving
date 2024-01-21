@@ -1,0 +1,46 @@
+FROM nvcr.io/nvidia/tritonserver:23.10-py3-min
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
+    sed -i 's/archive.ubuntu.com/mirrors.ustc.edu.cn/g' /etc/apt/sources.list && \
+    apt-get update && \
+    $APT_INSTALL \
+    build-essential \
+    apt-utils \
+    ca-certificates \
+    wget \
+    git \
+    vim \
+    libssl-dev \
+    curl \
+    unzip \
+    unrar \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    libmkl-full-dev \
+    nasm \
+    ccache \
+    lld \
+    binutils-dev \
+    software-properties-common \
+    libb64-0d \
+    libb64-dev \
+    libre2-9 \
+    libre2-dev \
+    rapidjson-dev
+
+RUN wget https://mirrors.bfsu.edu.cn/anaconda/miniconda/Miniconda3-latest-Linux-x86_64.sh && \
+    bash ./Miniconda3-latest-Linux-x86_64.sh -b -p /miniconda3 && \
+    /miniconda3/bin/python -m pip config set global.index-url https://mirrors.bfsu.edu.cn/pypi/web/simple && \
+    /miniconda3/bin/conda create -n py310 python=3.10.12 -y && \
+    PIP_INSTALL="/miniconda3/envs/py310/bin/python -m pip --no-cache-dir install --upgrade" && \
+    $PIP_INSTALL cmake \
+    ninja && \
+    ln -s /miniconda3/etc/profile.d/conda.sh /etc/profile.d/conda.sh && \
+    echo ". /miniconda3/etc/profile.d/conda.sh" >> ~/.bashrc && \
+    echo "conda activate py310" >> ~/.bashrc && \
+    find /miniconda3/ -follow -type f -name '*.a' -delete && \
+    find /miniconda3/ -follow -type f -name '*.js.map' -delete && \
+    /miniconda3/bin/conda clean -afy && \
+    rm -f ./Miniconda3-latest-Linux-x86_64.sh

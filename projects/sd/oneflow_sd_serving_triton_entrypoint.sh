@@ -43,9 +43,14 @@ echo
 
 # This script can either be a wrapper around arbitrary command lines,
 # or it will simply exec bash if no arguments were given
-export PYTHONPATH=/opt/oneflow/python:$PYTHONPATH
 if [[ $# -eq 0 ]]; then
+  echo "You need to provide a huggingface token to download the model."
+  exit 0
+fi
+
+/miniconda3/envs/py310/bin/python3 -c "import sys;from huggingface_hub.hf_api import HfFolder; HfFolder.save_token(sys.argv[1])" "$1"
+if [[ $# -eq 1 ]]; then
   exec oneflow-serving --model-store /models
 else
-  exec "$@"
+  exec "${@:2}"
 fi

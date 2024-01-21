@@ -1,0 +1,17 @@
+FROM serving:base
+
+ENV PATH /miniconda3/envs/py310/bin:$PATH
+
+RUN cd /opt && \
+        git clone https://github.com/Oneflow-Inc/oneflow.git && \
+        cd /opt/oneflow && \
+        mkdir build && \
+        cd /opt/oneflow/build && \
+        cmake -C /opt/oneflow/cmake/caches/ci/serving/cuda-75.cmake \
+        -DCMAKE_EXE_LINKER_FLAGS_INIT="-fuse-ld=lld" \
+        -DCMAKE_MODULE_LINKER_FLAGS_INIT="-fuse-ld=lld" \
+        -DCMAKE_SHARED_LINKER_FLAGS_INIT="-fuse-ld=lld" \
+        -DBUILD_HWLOC=OFF \
+        -DWITH_MLIR_CUDA_CODEGEN=ON \
+        -DCMAKE_CUDA_ARCHITECTURES="75;86" /opt/oneflow && \
+        ninja -j32

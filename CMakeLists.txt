@@ -20,10 +20,10 @@ option(TRITON_ENABLE_GPU "Enable GPU support in backend" ON)
 option(TRITON_ENABLE_STATS "Include statistics collections in backend" ON)
 
 set(THIRD_PARTY_MIRROR "" CACHE STRING "")
-set(TRITON_RELATED_REPO_TAG r21.10 CACHE STRING "Tag for triton-inference-server/(common|core|backend) repo")
+set(TRITON_RELATED_REPO_TAG r23.10 CACHE STRING "Tag for triton-inference-server/(common|core|backend) repo")
 message(STATUS ${TRITON_RELATED_REPO_TAG})
-if(NOT ${TRITON_RELATED_REPO_TAG} STREQUAL "r21.10")
-  message(FATAL_ERROR "Only support triton with tag r21.10.")
+if(NOT ${TRITON_RELATED_REPO_TAG} MATCHES "^(r21.10|r23.10)$")
+  message(FATAL_ERROR "Only support triton with tag r21.10 or r23.10.")
 endif()
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)

@@ -1,13 +1,5 @@
 # Build From Source
 
-To use the model server, you can just pull the image `oneflowinc/oneflow-serving` from docker hub. Only when you want to modify the source code, you need to build from source.
-
-You can build on bare metal, and you can also pull the docker image and follow the instructions below to build in docker container.
-
-```
-docker pull registry.cn-beijing.aliyuncs.com/oneflow/triton-devel
-```
-
 To build from source, you need to build liboneflow first.
 
 1. Build liboneflow from source

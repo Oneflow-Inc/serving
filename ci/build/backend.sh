@@ -2,8 +2,6 @@
 set -euxo pipefail
 
 # build oneflow-backend
-git config --global http.proxy ${HTTP_PROXY}
-git config --global https.proxy ${HTTP_PROXY}
 
 mkdir -p build
 cd build

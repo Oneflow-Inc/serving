@@ -1,2 +1,2 @@
-tritonclient[all]
+tritonclient
 Jinja2

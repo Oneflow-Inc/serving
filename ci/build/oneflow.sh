@@ -30,9 +30,10 @@ else
     if [ "$oneflow_head_built" != "$oneflow_head" ]; then
         build_oneflow
     else
-        cached_whl=$(ls $WHEELHOUSE_DIR)
-        python3 -m pip install $WHEELHOUSE_DIR/$cached_whl
-        > $export_pythonpath_script
-        echo "Use build cache for oneflow."
+        # cached_whl=$(ls $WHEELHOUSE_DIR)
+        # python3 -m pip install $WHEELHOUSE_DIR/$cached_whl
+        # > $export_pythonpath_script
+        # echo "Use build cache for oneflow."
+        build_oneflow
     fi
 fi

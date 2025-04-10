@@ -1,2 +1,2 @@
-tritonclient[all]
+tritonclient[all]==2.26.0
 Jinja2
